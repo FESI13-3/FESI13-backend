@@ -419,6 +419,7 @@
   "startDate": "2025-03-22",
   "endDate": "2025-04-19",
   "totalWeeks": 4,
+  "image" : ["https://example.com/meeting1.jpg", "https://example.com/meeting2.jpg"],
   "status": "RECRUITING",
   "leader": { "id": 1, "nickname": "마감왕", "profileImage": "https://..." },
   "weeklyPlans": [

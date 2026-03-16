@@ -74,6 +74,16 @@ gatherings ───────────────────────
 
 ---
 
+### `gathering_images` — 모임 이미지
+
+| 컬럼명            | 타입 | NULL | KEY | 설명 |
+|----------------|--|---|---|----|
+| `id`           | BIGINT | NOT NULL | PK | Auto Increment |
+| `gathering_id` | BIGINT | NOT NULL | FK → gatherings.id |    |
+| `image_url`    | TEXT | NULL | 모임 이미지 URL |
+
+---
+
 ### `gathering_tags` — 모임 태그
 
 | 컬럼명 | 타입 | NULL | KEY | 설명 |
