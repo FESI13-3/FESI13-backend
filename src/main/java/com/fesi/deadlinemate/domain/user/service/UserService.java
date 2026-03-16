@@ -63,6 +63,10 @@ public class UserService {
         return userRepository.existsByNickname(nickname);
     }
 
+    public boolean existsByProviderAndProviderId(Provider provider, String providerId) {
+        return userRepository.findByProviderAndProviderId(provider, providerId).isPresent();
+    }
+
     private void validateEmailNotExists(String email) {
         if (userRepository.existsByEmail(email)) {
             throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
