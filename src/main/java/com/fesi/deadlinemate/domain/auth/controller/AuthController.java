@@ -1,10 +1,9 @@
 package com.fesi.deadlinemate.domain.auth.controller;
 
 import com.fesi.deadlinemate.domain.auth.dto.request.LoginRequest;
+import com.fesi.deadlinemate.domain.auth.dto.request.RefreshRequest;
 import com.fesi.deadlinemate.domain.auth.dto.request.SignupRequest;
-import com.fesi.deadlinemate.domain.auth.dto.response.LoginResponse;
-import com.fesi.deadlinemate.domain.auth.dto.response.OAuthCallbackResponse;
-import com.fesi.deadlinemate.domain.auth.dto.response.SignupResponse;
+import com.fesi.deadlinemate.domain.auth.dto.response.*;
 import com.fesi.deadlinemate.domain.auth.service.AuthService;
 import com.fesi.deadlinemate.domain.user.entity.Provider;
 import com.fesi.deadlinemate.global.common.ApiResponse;
@@ -42,6 +41,30 @@ public class AuthController {
     @GetMapping("/google/callback")
     public ResponseEntity<ApiResponse<OAuthCallbackResponse>> googleCallback(@RequestParam String code) {
         OAuthCallbackResponse response = authService.oauthCallback(Provider.GOOGLE, code);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<TokenResponse>> refresh(@Valid @RequestBody RefreshRequest request) {
+        TokenResponse response = authService.refresh(request);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody RefreshRequest request) {
+        authService.logout(request);
+        return ResponseEntity.ok(ApiResponse.success());
+    }
+
+    @GetMapping("/check/email")
+    public ResponseEntity<ApiResponse<AvailabilityResponse>> checkEmail(@RequestParam String email) {
+        AvailabilityResponse response = authService.checkEmailAvailability(email);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @GetMapping("/check/nickname")
+    public ResponseEntity<ApiResponse<AvailabilityResponse>> checkNickname(@RequestParam String nickname) {
+        AvailabilityResponse response = authService.checkNicknameAvailability(nickname);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

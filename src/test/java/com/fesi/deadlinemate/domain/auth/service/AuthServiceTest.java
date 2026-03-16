@@ -4,9 +4,12 @@ import com.fesi.deadlinemate.domain.auth.dto.request.LoginRequest;
 import com.fesi.deadlinemate.domain.auth.dto.request.SignupRequest;
 import com.fesi.deadlinemate.domain.auth.dto.response.LoginResponse;
 import com.fesi.deadlinemate.domain.auth.dto.response.SignupResponse;
+import com.fesi.deadlinemate.domain.auth.entity.RefreshToken;
 import com.fesi.deadlinemate.domain.auth.event.UserLoggedInEvent;
 import com.fesi.deadlinemate.domain.auth.event.UserRegisteredEvent;
 import com.fesi.deadlinemate.domain.auth.provider.EmailAuthProvider;
+import com.fesi.deadlinemate.domain.auth.provider.OAuthAuthProvider;
+import com.fesi.deadlinemate.domain.auth.repository.RefreshTokenRepository;
 import com.fesi.deadlinemate.domain.user.entity.Provider;
 import com.fesi.deadlinemate.domain.user.entity.User;
 import com.fesi.deadlinemate.domain.user.service.UserService;
@@ -33,13 +36,16 @@ class AuthServiceTest {
 
     @Mock
     private UserService userService;
-
     @Mock
     private EmailAuthProvider emailAuthProvider;
-
+    @Mock
+    private OAuthAuthProvider oAuthAuthProvider;
     @Mock
     private JwtTokenProvider jwtTokenProvider;
-
+    @Mock
+    private RefreshTokenRepository refreshTokenRepository;
+    @Mock
+    private LoginAttemptService loginAttemptService;
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
@@ -55,6 +61,7 @@ class AuthServiceTest {
                 .willReturn("access-token");
         given(jwtTokenProvider.generateRefreshToken(1L, "test@example.com"))
                 .willReturn("refresh-token");
+        given(refreshTokenRepository.save(any(RefreshToken.class))).willAnswer(i -> i.getArgument(0));
 
         SignupResponse response = authService.signup(request);
 
@@ -74,6 +81,7 @@ class AuthServiceTest {
         given(userService.createEmailUser(anyString(), anyString(), anyString())).willReturn(user);
         given(jwtTokenProvider.generateAccessToken(anyLong(), anyString())).willReturn("token");
         given(jwtTokenProvider.generateRefreshToken(anyLong(), anyString())).willReturn("token");
+        given(refreshTokenRepository.save(any(RefreshToken.class))).willAnswer(i -> i.getArgument(0));
 
         authService.signup(request);
 
@@ -98,6 +106,7 @@ class AuthServiceTest {
                 .willReturn("access-token");
         given(jwtTokenProvider.generateRefreshToken(1L, "test@example.com"))
                 .willReturn("refresh-token");
+        given(refreshTokenRepository.save(any(RefreshToken.class))).willAnswer(i -> i.getArgument(0));
 
         LoginResponse response = authService.login(request);
 
@@ -116,6 +125,7 @@ class AuthServiceTest {
         given(emailAuthProvider.authenticate(anyString(), anyString())).willReturn(user);
         given(jwtTokenProvider.generateAccessToken(anyLong(), anyString())).willReturn("token");
         given(jwtTokenProvider.generateRefreshToken(anyLong(), anyString())).willReturn("token");
+        given(refreshTokenRepository.save(any(RefreshToken.class))).willAnswer(i -> i.getArgument(0));
 
         authService.login(request);
 
