@@ -67,6 +67,39 @@ public class UserService {
         return userRepository.findByProviderAndProviderId(provider, providerId).isPresent();
     }
 
+    @Transactional
+    public User updateProfile(Long userId, String nickname, String profileImage) {
+        User user = findById(userId);
+
+        if (nickname != null && !nickname.equals(user.getNickname())) {
+            validateNicknameNotExists(nickname);
+        }
+
+        user.updateProfile(nickname, profileImage);
+        return user;
+    }
+
+    @Transactional
+    public void changePassword(Long userId, String currentPassword, String newPassword) {
+        User user = findById(userId);
+
+        if (!user.isEmailUser()) {
+            throw new BusinessException(ErrorCode.SOCIAL_USER_PASSWORD_CHANGE);
+        }
+
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new BusinessException(ErrorCode.PASSWORD_NOT_MATCHED);
+        }
+
+        user.updatePassword(passwordEncoder.encode(newPassword));
+    }
+
+    @Transactional
+    public void deactivate(Long userId) {
+        User user = findById(userId);
+        user.deactivate();
+    }
+
     private void validateEmailNotExists(String email) {
         if (userRepository.existsByEmail(email)) {
             throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
