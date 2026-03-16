@@ -1,0 +1,89 @@
+package com.fesi.deadlinemate.domain.user.service;
+
+import com.fesi.deadlinemate.domain.user.entity.Provider;
+import com.fesi.deadlinemate.domain.user.entity.User;
+import com.fesi.deadlinemate.domain.user.repository.UserRepository;
+import com.fesi.deadlinemate.global.error.BusinessException;
+import com.fesi.deadlinemate.global.error.ErrorCode;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class UserService {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    @Transactional
+    public User createEmailUser(String email, String password, String nickname) {
+        validateEmailNotExists(email);
+        validateNicknameNotExists(nickname);
+
+        User user = User.builder()
+                .email(email)
+                .passwordHash(passwordEncoder.encode(password))
+                .nickname(nickname)
+                .provider(Provider.EMAIL)
+                .build();
+
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public User findOrCreateOAuthUser(String email, String nickname, String profileImage,
+                                      Provider provider, String providerId) {
+        return userRepository.findByProviderAndProviderId(provider, providerId)
+                .orElseGet(() -> {
+                    String uniqueNickname = ensureUniqueNickname(nickname);
+                    User user = User.builder()
+                            .email(email)
+                            .nickname(uniqueNickname)
+                            .profileImage(profileImage)
+                            .provider(provider)
+                            .providerId(providerId)
+                            .build();
+                    return userRepository.save(user);
+                });
+    }
+
+    public User findById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    public boolean existsByNickname(String nickname) {
+        return userRepository.existsByNickname(nickname);
+    }
+
+    private void validateEmailNotExists(String email) {
+        if (userRepository.existsByEmail(email)) {
+            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        }
+    }
+
+    private void validateNicknameNotExists(String nickname) {
+        if (userRepository.existsByNickname(nickname)) {
+            throw new BusinessException(ErrorCode.NICKNAME_ALREADY_EXISTS);
+        }
+    }
+
+    private String ensureUniqueNickname(String nickname) {
+        if (!userRepository.existsByNickname(nickname)) {
+            return nickname;
+        }
+        int suffix = 1;
+        String candidate;
+        do {
+            candidate = nickname + suffix++;
+        } while (userRepository.existsByNickname(candidate));
+        return candidate;
+    }
+}
