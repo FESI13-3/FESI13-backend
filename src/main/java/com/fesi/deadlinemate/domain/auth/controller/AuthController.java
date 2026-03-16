@@ -32,15 +32,12 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @GetMapping("/kakao/callback")
-    public ResponseEntity<ApiResponse<OAuthCallbackResponse>> kakaoCallback(@RequestParam String code) {
-        OAuthCallbackResponse response = authService.oauthCallback(Provider.KAKAO, code);
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
-    @GetMapping("/google/callback")
-    public ResponseEntity<ApiResponse<OAuthCallbackResponse>> googleCallback(@RequestParam String code) {
-        OAuthCallbackResponse response = authService.oauthCallback(Provider.GOOGLE, code);
+    @GetMapping("/{provider}/callback")
+    public ResponseEntity<ApiResponse<OAuthCallbackResponse>> oauthCallback(
+            @PathVariable String provider,
+            @RequestParam String code) {
+        Provider oauthProvider = Provider.fromString(provider);
+        OAuthCallbackResponse response = authService.oauthCallback(oauthProvider, code);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
