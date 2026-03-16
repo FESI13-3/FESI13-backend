@@ -1,0 +1,68 @@
+name: Auto Create Branch with ISSUE
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: read
+
+jobs:
+  create-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: dev  # dev 브랜치 체크아웃
+
+      - name: Pull latest dev
+        run: git pull origin dev
+
+      - name: Extract Label
+        id: extract-label
+        run: |
+          if [ -z "${{ toJson(github.event.issue.labels) }}" ]; then
+            echo "label=other" >> $GITHUB_ENV
+          else
+            LABEL=$(echo '${{ toJson(github.event.issue.labels) }}' | jq -r '.[0].name')
+            echo "label=${LABEL}" >> $GITHUB_ENV
+          fi
+      - name: Extract Keyword
+        id: extract-keyword
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const body = context.payload.issue.body;
+            const keywordMatch = body.match(/### 🔑 Keyword\s*\n+([^\n]+)/);
+            let keyword = keywordMatch ? keywordMatch[1].trim() : null;
+            if (keyword === null) {
+                keyword = `issue-${context.payload.issue.number}`;
+            } else {
+                keyword = keyword.toLowerCase();
+                keyword = keyword.replace(/[^a-z0-9-]+/g, '-');
+                keyword = keyword.replace(/-{2,}/g, '-');
+                keyword = keyword.replace(/^-+|-+$/g, '');
+            
+                if (!keyword) {
+                    keyword = `issue-${context.payload.issue.number}`;
+                }
+            }
+            core.setOutput('keyword', keyword);
+
+      - name: Sanitize Label
+        id: sanitize-label
+        run: |
+          RAW_LABEL="${{ env.label }}"
+          SANITIZED_LABEL=$(echo "$RAW_LABEL" | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]-' | sed 's/--/-/g')
+          echo "sanitized_label=${SANITIZED_LABEL}" >> $GITHUB_ENV
+
+      - name: Create Branch
+        run: |
+          ISSUE_NUMBER=${{ github.event.issue.number }}
+          BRANCH_NAME="${{ env.sanitized_label }}/$ISSUE_NUMBER/${{ steps.extract-keyword.outputs.keyword }}"
+          
+          # dev 브랜치를 기준으로 새 브랜치 생성
+          git checkout -b "$BRANCH_NAME"
+          git push origin "$BRANCH_NAME"
