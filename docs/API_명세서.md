@@ -18,7 +18,8 @@
 8. [알림 (Notifications)](#8-알림-notifications)
 9. [리뷰 (Reviews)](#9-리뷰-reviews)
 10. [결과 리포트 (Reports)](#10-결과-리포트-reports)
-11. [공통 에러 코드](#11-공통-에러-코드)
+11. [찜하기 (Likes)](#11-찜하기-likes)
+12. [공통 에러 코드](#12-공통-에러-코드)
 
 ---
 
@@ -334,6 +335,7 @@
       "startDate": "2025-03-22",
       "endDate": "2025-04-19",
       "status": "RECRUITING",
+      "isLiked": true,
       "leader": { "id": 1, "nickname": "마감왕", "profileImage": "https://..." }
     }
   ],
@@ -432,9 +434,10 @@
   "endDate": "2025-04-19",
   "totalWeeks": 4,
   "images" : [
-    {"url": "https://example.com/meeting1.jpg", "order": 0}
+    {"url": "https://example.com/meeting1.jpg", "displayOrder": 0}
   ],
   "status": "RECRUITING",
+  "isLiked": true,
   "leader": { "id": 1, "nickname": "마감왕", "profileImage": "https://..." },
   "weeklyPlans": [
     { "week": 1, "title": "JSX, 컴포넌트, Props", "startDate": "2025-03-22", "endDate": "2025-03-28" }
@@ -995,7 +998,62 @@
 
 ---
 
-## 11. 공통 에러 코드
+## 11. 찜하기 (Likes)
+
+### Post `/gatherings/:gatheringId/likes` 🔒
+> 모임 찜하기
+
+**Path Parameters**
+
+| 파라미터 | 타입 | 설명 |
+|---|---|---|
+| `gatheringId` | number | 모임 ID |
+
+**Response `201`**
+```json
+{ "success": true }
+```
+**에러**
+- `409` — 이미 찜한 모임인 경우
+
+---
+
+### DELETE `/gatherings/:gatheringId/likes` 🔒
+> 모임 찜 취소
+
+**Path Parameters**
+
+| 파라미터 | 타입 | 설명 |
+|---|---|---|
+| `gatheringId` | number | 모임 ID |
+
+**Response `200`**
+```json
+{ "success": true }
+```
+**에러**
+- `404` — 찜한 이력이 없는 경우
+
+---
+
+### GET `/users/me/likes` 🔒
+> 내가 찜한 모임 목록 조회
+
+**Query Parameters**
+
+| 파라미터 | 타입 | 기본값 | 설명 |
+|---|---|---|---|
+| `page` | number | `1` | 페이지 번호 |
+| `limit` | number | `20` | 페이지당 개수 |
+
+**Response `200`**
+```json
+{ "success": true }
+```
+
+---
+
+## 12. 공통 에러 코드
 
 | HTTP 코드 | Error Code | 설명 |
 |---|---|---|
