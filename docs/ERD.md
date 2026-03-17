@@ -20,7 +20,8 @@ gatherings ───────────────────────
   │  1:N  weekly_plans (gathering_id)                                       │
   │  1:N  applications (gathering_id)                                       │
   │  1:N  gathering_members (gathering_id)                                  │
-  │  1:N  todos (gathering_id)                                              │
+  │  1:N  gathering_images (gathering_id)                                   |
+  |  1:N  todos (gathering_id)                                              │
   │  1:N  notifications (gathering_id)                                      │
   │  1:N  reviews (gathering_id)                                            │
   │  1:1  gathering_reports (gathering_id)                                  │
@@ -76,12 +77,16 @@ gatherings ───────────────────────
 
 ### `gathering_images` — 모임 이미지
 
-| 컬럼명            | 타입 | NULL | KEY | 설명 |
-|----------------|--|---|---|----|
-| `id`           | BIGINT | NOT NULL | PK | Auto Increment |
-| `gathering_id` | BIGINT | NOT NULL | FK → gatherings.id |    |
-| `image_url`    | TEXT | NULL | 모임 이미지 URL |
-
+| 컬럼명 | 타입 | NULL | KEY | 설명 |
+|------|-----|---|---|------|
+| `id` | BIGINT | NOT NULL | PK | Auto Increment |
+| `gathering_id` | BIGINT | NOT NULL | FK → gatherings.id |  |
+| `image_url` | VARCHAR(500) | NOT NULL | 모임 이미지 URL |
+| `display_order` | TINYINT | NOT NULL | | 이미지 정렬 순서 |
+| `created_at` | TIMESTAMP | NOT NULL | | 생성일시 |
+| `updated_at` | TIMESTAMP | NOT NULL | | 수정일시 |
+> **UNIQUE:** `(gathering_id, display_order)` — 중복 순서 방지
+> 
 ---
 
 ### `gathering_tags` — 모임 태그
@@ -248,6 +253,7 @@ gatherings ───────────────────────
 | `gatherings` | `(type, category)` | 필터링 |
 | `applications` | `(gathering_id, applicant_id)` UNIQUE | 중복 신청 방지 |
 | `gathering_members` | `(gathering_id, user_id)` UNIQUE | 멤버 중복 방지 |
+| `gathering_images` | `(gathering_id, display_order)` | 모임별 이미지 조회 및 정렬 |
 | `todos` | `(gathering_id, user_id, week_number)` | Todo 조회 |
 | `notifications` | `(user_id, is_read)` | 읽지 않은 알림 조회 |
 | `reviews` | `(gathering_id, reviewer_id, target_user_id)` UNIQUE | 중복 리뷰 방지 |

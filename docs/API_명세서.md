@@ -147,6 +147,7 @@
 > Google OAuth 콜백
 
 **Query Parameters**
+
 | 파라미터 | 타입 | 설명 |
 |---|---|---|
 | `code` | string | Google 인증 코드 |
@@ -166,6 +167,7 @@
 > 이메일 중복 확인
 
 **Query Parameters**
+
 | 파라미터 | 타입 | 설명 |
 |---|---|---|
 | `email` | string | 확인할 이메일 |
@@ -181,6 +183,7 @@
 > 닉네임 중복 확인
 
 **Query Parameters**
+
 | 파라미터 | 타입 | 설명 |
 |---|---|---|
 | `nickname` | string | 확인할 닉네임 |
@@ -219,6 +222,7 @@
 > 내 프로필 수정 (multipart/form-data)
 
 **Request Body**
+
 | 필드 | 타입 | 필수 | 설명 |
 |---|---|---|---|
 | `nickname` | string | 선택 | 2~10자 |
@@ -277,6 +281,7 @@
 > 특정 유저 공개 프로필 조회
 
 **Path Parameters**
+
 | 파라미터 | 타입 | 설명 |
 |---|---|---|
 | `userId` | number | 대상 유저 ID |
@@ -301,6 +306,7 @@
 > 모임 목록 조회 (모임 찾기)
 
 **Query Parameters**
+
 | 파라미터 | 타입 | 기본값 | 설명 |
 |---|---|---|---|
 | `type` | string | - | `스터디` \| `프로젝트` |
@@ -342,6 +348,9 @@
 ### POST `/gatherings` 🔒
 > 모임 생성
 
+**Content-Type**
+> multipart/form-data
+
 **Request Body**
 ```json
 {
@@ -372,6 +381,7 @@
 
 **비고**
 - 생성자는 자동으로 `LEADER` + 첫 번째 멤버로 등록
+- 이미지는 여러 장 등록 가능
 
 ---
 
@@ -379,6 +389,7 @@
 > 메인 페이지용 모임 데이터 (ISR, revalidate 60s)
 
 **Query Parameters**
+
 | 파라미터 | 타입 | 기본값 | 설명 |
 |---|---|---|---|
 | `limit` | number | `5` | 섹션별 최대 개수 |
@@ -398,6 +409,7 @@
 > 모임 상세 조회
 
 **Path Parameters**
+
 | 파라미터 | 타입 | 설명 |
 |---|---|---|
 | `gatheringId` | number | 모임 ID |
@@ -419,7 +431,9 @@
   "startDate": "2025-03-22",
   "endDate": "2025-04-19",
   "totalWeeks": 4,
-  "image" : ["https://example.com/meeting1.jpg", "https://example.com/meeting2.jpg"],
+  "images" : [
+    {"url": "https://example.com/meeting1.jpg", "order": 0}
+  ],
   "status": "RECRUITING",
   "leader": { "id": 1, "nickname": "마감왕", "profileImage": "https://..." },
   "weeklyPlans": [
@@ -442,6 +456,7 @@
 > 모임 수정 (모임장 전용)
 
 **Path Parameters**
+
 | 파라미터 | 타입 | 설명 |
 |---|---|---|
 | `gatheringId` | number | 모임 ID |
@@ -463,6 +478,7 @@
 > 모임 삭제 (모임장 전용)
 
 **Path Parameters**
+
 | 파라미터 | 타입 | 설명 |
 |---|---|---|
 | `gatheringId` | number | 모임 ID |
@@ -618,6 +634,7 @@
 > 멤버 퇴출 (모임장 전용)
 
 **Path Parameters**
+
 | 파라미터 | 타입 | 설명 |
 |---|---|---|
 | `gatheringId` | number | 모임 ID |
@@ -652,6 +669,7 @@
 > 모임 전체 Todo 조회 (참여 멤버만)
 
 **Query Parameters**
+
 | 파라미터 | 타입 | 설명 |
 |---|---|---|
 | `week` | number | (선택) 주차 번호. 없으면 전체 반환 |
@@ -679,6 +697,7 @@
 > 내 Todo 조회 + 달성률
 
 **Query Parameters**
+
 | 파라미터 | 타입 | 설명 |
 |---|---|---|
 | `week` | number | (선택) 주차 번호 |
@@ -832,6 +851,7 @@
 ```
 
 **알림 타입**
+
 | type | 설명 |
 |---|---|
 | `APPLICATION_RECEIVED` | 모임에 신청이 들어옴 (모임장 수신) |
@@ -909,6 +929,7 @@
 > 유저가 받은 리뷰 목록
 
 **Query Parameters**
+
 | 파라미터 | 타입 | 기본값 | 설명 |
 |---|---|---|---|
 | `page` | number | `1` | 페이지 번호 |
