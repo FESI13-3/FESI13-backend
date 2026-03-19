@@ -612,6 +612,59 @@
 
 ## 5. 모임 멤버십 (Memberships)
 
+### GET `/users/me/gatherings` 🔒
+> 내가 참여 중인 모임 목록 조회
+
+**Query Parameters**
+
+| 파라미터 | 타입 | 기본값  | 설명 |
+|---|---|------|----|
+| `status` | string | `all`  | `recruiting` \| `in_progress` \| `completed` \| `all` |
+| `page` | number | `1`  | 페이지 번호 |
+| `limit` | number | `12` | 페이지당 개수 |
+
+**Response `200`**
+```json
+{
+  "gatherings": [
+    {
+      "id": 1,
+      "type": "스터디",
+      "category": "개발",
+      "title": "React 완전 정복 스터디",
+      "shortDescription": "리액트 공식문서를 같이 읽어요",
+      "tags": ["React", "프론트엔드"],
+      "maxMembers": 6,
+      "currentMembers": 3,
+      "startDate": "2025-03-22",
+      "endDate": "2025-04-19",
+      "status": "IN_PROGRESS",
+      "myRole": "LEADER",
+      "isLiked": true
+    },
+    {
+      "id": 2,
+      "type": "프로젝트",
+      "category": "개발",
+      "title": "사이드 프로젝트 팀원 모집",
+      "shortDescription": "Spring Boot 기반 협업 프로젝트",
+      "tags": ["Spring", "백엔드"],
+      "maxMembers": 5,
+      "currentMembers": 4,
+      "startDate": "2025-04-01",
+      "endDate": "2025-05-30",
+      "status": "RECRUITING",
+      "myRole": "MEMBER",
+      "isLiked": false
+    }
+  ],
+  "totalCount": 2,
+  "totalPages": 1,
+  "currentPage": 1
+}
+```
+
+
 ### GET `/gatherings/:gatheringId/members` 🔒
 > 모임 멤버 목록 조회 (참여 멤버만 접근)
 
