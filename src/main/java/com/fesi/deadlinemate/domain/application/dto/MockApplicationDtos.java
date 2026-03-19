@@ -1,9 +1,10 @@
-package com.fesi.deadlinemate.domain.gathering.dto.mock;
+package com.fesi.deadlinemate.domain.application.dto;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 
-public class ApplicationDtos {
+public class MockApplicationDtos {
     public record CreateApplicationRequest(
             String personalGoal,
             String selfIntroduction
@@ -31,7 +32,7 @@ public class ApplicationDtos {
 
     public record MyApplicationItemDto(
             Long id,
-            Object gathering,
+            Map<String, Object> gathering,
             String personalGoal,
             String status,
             OffsetDateTime createdAt
@@ -44,14 +45,4 @@ public class ApplicationDtos {
     public record MyApplicationListResponse(
             List<MyApplicationItemDto> applications
     ) {}
-
-    public static class ApplicationEntity {
-        public Long id;
-        public Long gatheringId;
-        public Long applicantId;
-        public String personalGoal;
-        public String selfIntroduction;
-        public String status;
-        public OffsetDateTime createdAt;
-    }
 }

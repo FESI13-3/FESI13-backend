@@ -1,8 +1,8 @@
-package com.fesi.deadlinemate.domain.gathering.dto.mock;
+package com.fesi.deadlinemate.domain.achievement.dto;
 
 import java.util.List;
 
-public class AchievementDtos {
+public class MockAchievementDtos {
     public record WeeklyRateDto(
             Integer week,
             Double rate

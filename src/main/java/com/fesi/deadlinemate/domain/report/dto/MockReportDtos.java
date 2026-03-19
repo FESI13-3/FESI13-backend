@@ -1,10 +1,10 @@
-package com.fesi.deadlinemate.domain.gathering.dto.mock;
+package com.fesi.deadlinemate.domain.report.dto;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-public class ReportDtos {
+public class MockReportDtos {
     public record ReportGatheringDto(
             String title,
             LocalDate startDate,

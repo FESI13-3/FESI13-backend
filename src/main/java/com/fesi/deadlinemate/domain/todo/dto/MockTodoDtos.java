@@ -1,9 +1,9 @@
-package com.fesi.deadlinemate.domain.gathering.dto.mock;
+package com.fesi.deadlinemate.domain.todo.dto;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 
-public class TodoDtos {
+public class MockTodoDtos {
     public record CreateTodoRequest(
             Integer week,
             String content
@@ -33,14 +33,4 @@ public class TodoDtos {
             Double weeklyAchievementRate,
             Double overallAchievementRate
     ) {}
-
-    public static class TodoEntity {
-        public Long id;
-        public Long gatheringId;
-        public Long userId;
-        public Integer week;
-        public String content;
-        public Boolean isCompleted;
-        public OffsetDateTime createdAt;
-    }
 }

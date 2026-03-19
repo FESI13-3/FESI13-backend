@@ -1,8 +1,10 @@
-package com.fesi.deadlinemate.domain.gathering.repository.mock;
+package com.fesi.deadlinemate.global.mock;
 
-import com.fesi.deadlinemate.domain.gathering.dto.mock.ApplicationDtos.ApplicationEntity;
-import com.fesi.deadlinemate.domain.gathering.dto.mock.GatheringDtos.GatheringEntity;
-import com.fesi.deadlinemate.domain.gathering.dto.mock.TodoDtos.TodoEntity;
+import com.fesi.deadlinemate.domain.application.dto.MockApplicationEntity;
+
+import com.fesi.deadlinemate.domain.gathering.dto.MockGatheringDtos.WeeklyGuideRequest;
+import com.fesi.deadlinemate.domain.gathering.dto.MockGatheringEntity;
+import com.fesi.deadlinemate.domain.todo.dto.MockTodoEntity;
 import jakarta.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -15,9 +17,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.stereotype.Component;
 
 @Component
-public class MockStore {public final Map<Long, GatheringEntity> gatherings = new ConcurrentHashMap<>();
-    public final Map<Long, ApplicationEntity> applications = new ConcurrentHashMap<>();
-    public final Map<Long, TodoEntity> todos = new ConcurrentHashMap<>();
+public class MockStore {
+    public final Map<Long, MockGatheringEntity> gatherings = new ConcurrentHashMap<>();
+    public final Map<Long, MockApplicationEntity> applications = new ConcurrentHashMap<>();
+    public final Map<Long, MockTodoEntity> todos = new ConcurrentHashMap<>();
+
     public final Map<Long, Set<Long>> gatheringMembers = new ConcurrentHashMap<>();
     public final Map<Long, Set<Long>> gatheringLikes = new ConcurrentHashMap<>();
 
@@ -27,7 +31,7 @@ public class MockStore {public final Map<Long, GatheringEntity> gatherings = new
 
     @PostConstruct
     void init() {
-        GatheringEntity g = new GatheringEntity();
+        MockGatheringEntity g = new MockGatheringEntity();
         g.id = gatheringSeq.getAndIncrement();
         g.type = "스터디";
         g.category = "개발";
@@ -44,8 +48,8 @@ public class MockStore {public final Map<Long, GatheringEntity> gatherings = new
         g.status = "RECRUITING";
         g.leaderId = 1L;
         g.weeklyGuides = List.of(
-                new com.fesi.deadlinemate.domain.gathering.dto.mock.GatheringDtos.WeeklyGuideRequest(1, "JSX, 컴포넌트, Props", "공식문서 1~3챕터 읽기"),
-                new com.fesi.deadlinemate.domain.gathering.dto.mock.GatheringDtos.WeeklyGuideRequest(2, "State, 이벤트 처리", "공식문서 4~6챕터 읽기")
+                new WeeklyGuideRequest(1, "JSX, 컴포넌트, Props", "공식문서 1~3챕터 읽기"),
+                new WeeklyGuideRequest(2, "State, 이벤트 처리", "공식문서 4~6챕터 읽기")
         );
         g.images = List.of(Map.of("url", "https://example.com/meeting1.jpg", "displayOrder", 0));
         g.createdAt = OffsetDateTime.now();
