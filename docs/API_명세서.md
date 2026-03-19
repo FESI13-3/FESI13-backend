@@ -540,8 +540,26 @@
         "id": 5,
         "nickname": "열정맨",
         "profileImage": "https://...",
-        "reputationScore": 37.2
+        "reputationScore": 37.2,
+        "reviewSummary": {
+          "reviewCount": 12,
+          "topTags": ["성실해요", "소통이 좋아요"]
+        },
+
+        "recentReviews": [
+          {
+            "id": 30,
+            "comment": "항상 열심히 참여해주셨어요!",
+            "tags": ["성실해요", "소통이 좋아요"]
+          },
+          {
+            "id": 31,
+            "comment": "시간 약속을 잘 지켜요",
+            "tags": ["시간을 잘 지켜요"]
+          }
+        ]
       },
+      
       "personalGoal": "React 기초 완벽 이해...",
       "selfIntroduction": "프론트엔드 3개월차...",
       "status": "PENDING",
