@@ -73,6 +73,7 @@ jobs:
             [ -n "$GOOGLE_CLIENT_SECRET" ]   && echo "GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET" >> .env
             echo "GOOGLE_REDIRECT_URI=$BASE_URL/api/v1/auth/google/callback" >> .env
 
+            docker compose up -d mysql
             docker compose pull app
             docker compose up -d --no-deps app
             docker image prune -f
