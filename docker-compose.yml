@@ -1,0 +1,45 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: fesi13-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-fesi13root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-fesi13db}
+      MYSQL_USER: ${DB_USERNAME:-fesi13user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-fesi13pass}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - backend
+
+  app:
+    image: ${DOCKER_IMAGE}
+    container_name: fesi13-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-fesi13db}?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
+      DB_USERNAME: ${DB_USERNAME:-fesi13user}
+      DB_PASSWORD: ${DB_PASSWORD:-fesi13pass}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION:-3600000}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-604800000}
+      KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
+      KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET:-}
+      KAKAO_REDIRECT_URI: ${KAKAO_REDIRECT_URI}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
+    depends_on:
+      - mysql
+    networks:
+      - backend
+
+volumes:
+  mysql_data:
+
+networks:
+  backend:
+    driver: bridge
