@@ -267,6 +267,7 @@ gatherings ───────────────────────
 | `gatherings` | `(type, category)` | 필터링 |
 | `applications` | `(gathering_id, applicant_id)` UNIQUE | 중복 신청 방지 |
 | `gathering_members` | `(gathering_id, user_id)` UNIQUE | 멤버 중복 방지 |
+| `gathering_members` | `(user_id, is_active)` | 내가 참여 중인 모임 조회 |
 | `gathering_images` | `(gathering_id, display_order)` | 모임별 이미지 조회 및 정렬 |
 | `gathering_likes` | `(user_id, created_at)` | 찜한 모임 목록 조회 |
 | `gathering_likes` | `(gathering_id, user_id)` UNIQUE | 중복 찜 방지/찜 여부 조회 |
