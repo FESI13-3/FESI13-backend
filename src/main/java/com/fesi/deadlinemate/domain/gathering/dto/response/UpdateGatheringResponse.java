@@ -10,7 +10,7 @@ import lombok.Builder;
 @Builder
 public record UpdateGatheringResponse(
         Long id,
-        GatheringType type,
+        String type,
         String category,
         String title,
         String shortDescription,
@@ -28,7 +28,7 @@ public record UpdateGatheringResponse(
     public static UpdateGatheringResponse from(Gathering gathering, List<String> tags) {
         return UpdateGatheringResponse.builder()
                 .id(gathering.getId())
-                .type(gathering.getType())
+                .type(gathering.getType().getDisplayName())
                 .category(gathering.getCategory())
                 .title(gathering.getTitle())
                 .shortDescription(gathering.getShortDescription())

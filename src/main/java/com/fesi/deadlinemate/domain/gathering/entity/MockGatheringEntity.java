@@ -1,4 +1,4 @@
-package com.fesi.deadlinemate.domain.gathering.dto;
+package com.fesi.deadlinemate.domain.gathering.entity;
 
 import com.fesi.deadlinemate.domain.gathering.dto.MockGatheringDtos.WeeklyGuideRequest;
 import java.time.LocalDate;

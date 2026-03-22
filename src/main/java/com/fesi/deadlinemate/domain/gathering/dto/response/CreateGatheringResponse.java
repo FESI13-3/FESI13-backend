@@ -1,6 +1,7 @@
 package com.fesi.deadlinemate.domain.gathering.dto.response;
 
 import com.fesi.deadlinemate.domain.gathering.entity.Gathering;
+import com.fesi.deadlinemate.domain.gathering.entity.GatheringStatus;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.Builder;
@@ -22,13 +23,13 @@ public record CreateGatheringResponse(
         LocalDate startDate,
         LocalDate endDate,
         int totalWeeks,
-        String status,
+        GatheringStatus status,
         List<String> imageUrls
 ) {
     public static CreateGatheringResponse from(Gathering gathering, List<String> tags) {
         return CreateGatheringResponse.builder()
                 .id(gathering.getId())
-                .type(gathering.getType().name())
+                .type(gathering.getType().getDisplayName())
                 .category(gathering.getCategory())
                 .title(gathering.getTitle())
                 .shortDescription(gathering.getShortDescription())
@@ -41,7 +42,7 @@ public record CreateGatheringResponse(
                 .startDate(gathering.getStartDate())
                 .endDate(gathering.getEndDate())
                 .totalWeeks(gathering.getTotalWeeks())
-                .status(gathering.getStatus().name())
+                .status(gathering.getStatus())
                 .build();
     }
 }
