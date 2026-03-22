@@ -1,6 +1,9 @@
 package com.fesi.deadlinemate.domain.gathering.entity;
 
+import com.fesi.deadlinemate.domain.gathering.command.UpdateGatheringCommand;
 import com.fesi.deadlinemate.global.common.BaseTimeEntity;
+import com.fesi.deadlinemate.global.error.BusinessException;
+import com.fesi.deadlinemate.global.error.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -114,5 +117,41 @@ public class Gathering extends BaseTimeEntity {
         this.totalWeeks = totalWeeks;
         this.status = status;
         this.viewCount = viewCount;
+    }
+
+    public void updateRecruitingInfo(
+            GatheringType type,
+            String category,
+            String title,
+            String shortDescription,
+            String description,
+            String goal,
+            int maxMembers,
+            LocalDate recruitDeadline,
+            LocalDate startDate,
+            LocalDate endDate,
+            int totalWeeks
+    ) {
+        this.type = type;
+        this.category = category;
+        this.title = title;
+        this.shortDescription = shortDescription;
+        this.description = description;
+        this.goal = goal;
+        this.maxMembers = maxMembers;
+        this.recruitDeadline = recruitDeadline;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.totalWeeks = totalWeeks;
+    }
+
+    public void updateInProgressInfo(
+            String description,
+            LocalDate endDate,
+            int totalWeeks
+    ) {
+        this.description = description;
+        this.endDate = endDate;
+        this.totalWeeks = totalWeeks;
     }
 }
