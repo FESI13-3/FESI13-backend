@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
+import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import lombok.AccessLevel;
@@ -26,11 +27,12 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Gathering extends BaseTimeEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "leader_id", nullable = false)
+    @Column(nullable = false)
     private Long leaderId;
 
     @Enumerated(EnumType.STRING)
@@ -43,53 +45,60 @@ public class Gathering extends BaseTimeEntity {
     @Column(nullable = false, length = 60)
     private String title;
 
-    @Column(name = "short_description", nullable = false, length = 100)
+    @Column(nullable = false, length = 100)
     private String shortDescription;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Lob
+    @Column(nullable = false)
     private String description;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Lob
+    @Column(nullable = false)
     private String goal;
 
-    @Column(name = "max_members", nullable = false)
-    private Integer maxMembers;
+    @Column(nullable = false)
+    private int maxMembers;
 
-    @Column(name = "current_members", nullable = false)
-    private Integer currentMembers;
+    @Column(nullable = false)
+    private int currentMembers;
 
-    @Column(name = "recruit_deadline", nullable = false)
+    @Column(nullable = false)
     private LocalDate recruitDeadline;
 
-    @Column(name = "start_date", nullable = false)
+    @Column(nullable = false)
     private LocalDate startDate;
 
-    @Column(name = "end_date", nullable = false)
+    @Column(nullable = false)
     private LocalDate endDate;
 
-    @Column(name = "total_weeks", nullable = false)
-    private Integer totalWeeks;
+    @Column(nullable = false)
+    private int totalWeeks;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private GatheringStatus status;
 
-    @Column(name = "view_count", nullable = false)
-    private Integer viewCount;
+    @Column(nullable = false)
+    private int viewCount;
 
     @Builder
-    public Gathering(Long leaderId,
-                     GatheringType type,
-                     String category,
-                     String title,
-                     String shortDescription,
-                     String description,
-                     String goal,
-                     Integer maxMembers,
-                     LocalDate recruitDeadline,
-                     LocalDate startDate,
-                     LocalDate endDate,
-                     Integer totalWeeks) {
+    public Gathering(
+            Long leaderId,
+            GatheringType type,
+            String category,
+            String title,
+            String shortDescription,
+            String description,
+            String goal,
+            int maxMembers,
+            int currentMembers,
+            LocalDate recruitDeadline,
+            LocalDate startDate,
+            LocalDate endDate,
+            int totalWeeks,
+            GatheringStatus status,
+            int viewCount
+    ) {
         this.leaderId = leaderId;
         this.type = type;
         this.category = category;
@@ -98,12 +107,12 @@ public class Gathering extends BaseTimeEntity {
         this.description = description;
         this.goal = goal;
         this.maxMembers = maxMembers;
-        this.currentMembers = 1;
+        this.currentMembers = currentMembers;
         this.recruitDeadline = recruitDeadline;
         this.startDate = startDate;
         this.endDate = endDate;
         this.totalWeeks = totalWeeks;
-        this.status = GatheringStatus.RECRUITING;
-        this.viewCount = 0;
+        this.status = status;
+        this.viewCount = viewCount;
     }
 }
