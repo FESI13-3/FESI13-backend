@@ -1,6 +1,5 @@
 package com.fesi.deadlinemate.domain.gathering.entity;
 
-import com.fesi.deadlinemate.domain.gathering.command.UpdateGatheringCommand;
 import com.fesi.deadlinemate.global.common.BaseTimeEntity;
 import com.fesi.deadlinemate.global.error.BusinessException;
 import com.fesi.deadlinemate.global.error.ErrorCode;
@@ -15,6 +14,9 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -30,6 +32,9 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Gathering extends BaseTimeEntity {
+
+    private static final int MIN_MEMBERS = 2;
+    private static final int MAX_MEMBERS = 10;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -102,6 +107,10 @@ public class Gathering extends BaseTimeEntity {
             GatheringStatus status,
             int viewCount
     ) {
+        validateMaxMembers(maxMembers);
+        validateRecruitDeadline(recruitDeadline, startDate);
+        validateDateRange(startDate, endDate);
+
         this.leaderId = leaderId;
         this.type = type;
         this.category = category;
@@ -119,7 +128,19 @@ public class Gathering extends BaseTimeEntity {
         this.viewCount = viewCount;
     }
 
-    public void updateRecruitingInfo(
+    public void validateLeader(Long requesterId) {
+        if (requesterId == null || !this.leaderId.equals(requesterId)) {
+            throw new BusinessException(ErrorCode.INVALID_GATHERING_LEADER);
+        }
+    }
+
+    public void validateDeletable() {
+        if (this.status == GatheringStatus.IN_PROGRESS) {
+            throw new BusinessException(ErrorCode.GATHERING_DELETE_NOT_ALLOWED);
+        }
+    }
+
+    public void updateRecruiting(
             GatheringType type,
             String category,
             String title,
@@ -129,9 +150,13 @@ public class Gathering extends BaseTimeEntity {
             int maxMembers,
             LocalDate recruitDeadline,
             LocalDate startDate,
-            LocalDate endDate,
-            int totalWeeks
+            LocalDate endDate
     ) {
+        ensureRecruitingStatus();
+        validateMaxMembers(maxMembers);
+        validateRecruitDeadline(recruitDeadline, startDate);
+        validateDateRange(startDate, endDate);
+
         this.type = type;
         this.category = category;
         this.title = title;
@@ -142,16 +167,108 @@ public class Gathering extends BaseTimeEntity {
         this.recruitDeadline = recruitDeadline;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.totalWeeks = totalWeeks;
+        this.totalWeeks = calculateTotalWeeks(startDate, endDate);
     }
 
-    public void updateInProgressInfo(
+    public void updateInProgress(
+            GatheringType type,
+            String category,
+            String title,
+            String shortDescription,
             String description,
+            String goal,
+            int maxMembers,
+            LocalDate recruitDeadline,
+            LocalDate startDate,
             LocalDate endDate,
-            int totalWeeks
+            List<String> requestedTags,
+            List<String> currentTags
     ) {
+        ensureInProgressStatus();
+        validateDateRange(this.startDate, endDate);
+        validateInProgressImmutableFields(
+                type,
+                category,
+                title,
+                shortDescription,
+                goal,
+                maxMembers,
+                recruitDeadline,
+                startDate,
+                requestedTags,
+                currentTags
+        );
+
         this.description = description;
         this.endDate = endDate;
-        this.totalWeeks = totalWeeks;
+        this.totalWeeks = calculateTotalWeeks(this.startDate, endDate);
+    }
+
+    public void increaseViewCount() {
+        this.viewCount++;
+    }
+
+    private void ensureRecruitingStatus() {
+        if (this.status != GatheringStatus.RECRUITING) {
+            throw new BusinessException(ErrorCode.GATHERING_UPDATE_FORBIDDEN_IN_PROGRESS);
+        }
+    }
+
+    private void ensureInProgressStatus() {
+        if (this.status != GatheringStatus.IN_PROGRESS) {
+            throw new BusinessException(ErrorCode.GATHERING_UPDATE_FORBIDDEN_IN_PROGRESS);
+        }
+    }
+
+    private void validateInProgressImmutableFields(
+            GatheringType type,
+            String category,
+            String title,
+            String shortDescription,
+            String goal,
+            int maxMembers,
+            LocalDate recruitDeadline,
+            LocalDate startDate,
+            List<String> requestedTags,
+            List<String> currentTags
+    ) {
+        boolean typeChanged = type != this.type;
+        boolean categoryChanged = !Objects.equals(category, this.category);
+        boolean titleChanged = !Objects.equals(title, this.title);
+        boolean shortDescriptionChanged = !Objects.equals(shortDescription, this.shortDescription);
+        boolean goalChanged = !Objects.equals(goal, this.goal);
+        boolean maxMembersChanged = maxMembers != this.maxMembers;
+        boolean recruitDeadlineChanged = !Objects.equals(recruitDeadline, this.recruitDeadline);
+        boolean startDateChanged = !Objects.equals(startDate, this.startDate);
+        boolean tagsChanged = !Objects.equals(requestedTags, currentTags);
+
+        if (typeChanged || categoryChanged || titleChanged || shortDescriptionChanged
+                || goalChanged || maxMembersChanged || recruitDeadlineChanged
+                || startDateChanged || tagsChanged) {
+            throw new BusinessException(ErrorCode.INVALID_IN_PROGRESS_UPDATE_ITEMS);
+        }
+    }
+
+    private static void validateMaxMembers(int maxMembers) {
+        if (maxMembers < MIN_MEMBERS || maxMembers > MAX_MEMBERS) {
+            throw new BusinessException(ErrorCode.INVALID_MAX_MEMBERS);
+        }
+    }
+
+    private static void validateRecruitDeadline(LocalDate recruitDeadline, LocalDate startDate) {
+        if (recruitDeadline.isAfter(startDate)) {
+            throw new BusinessException(ErrorCode.INVALID_RECRUIT_DEADLINE);
+        }
+    }
+
+    private static void validateDateRange(LocalDate startDate, LocalDate endDate) {
+        if (endDate.isBefore(startDate)) {
+            throw new BusinessException(ErrorCode.INVALID_GATHERING_DATE);
+        }
+    }
+
+    private static int calculateTotalWeeks(LocalDate startDate, LocalDate endDate) {
+        long days = ChronoUnit.DAYS.between(startDate, endDate);
+        return (int) (days / 7) + 1;
     }
 }

@@ -45,7 +45,7 @@ public class GatheringService {
     @Transactional
     public CreateGatheringResponse create(CreateGatheringCommand command) {
         validateLeaderExists(command.leaderId());
-        validateCreateCommand(command);
+        validateSequentialWeeks(extractCreateGuideWeeks(command.weeklyGuides()));
 
         Gathering gathering = Gathering.builder()
                 .leaderId(command.leaderId())
@@ -88,24 +88,20 @@ public class GatheringService {
     @Transactional
     public UpdateGatheringResponse update(Long gatheringId, UpdateGatheringCommand command) {
         Gathering gathering = findGathering(gatheringId);
-        validateLeaderPermission(gathering, command.requesterId());
+        gathering.validateLeader(command.requesterId());
 
-        if (gathering.getStatus() == GatheringStatus.RECRUITING) {
-            return updateRecruitingGathering(gathering, command);
-        }
-
-        if (gathering.getStatus() == GatheringStatus.IN_PROGRESS) {
-            return updateInProgressGathering(gathering, command);
-        }
-
-        throw new BusinessException(ErrorCode.GATHERING_UPDATE_FORBIDDEN_IN_PROGRESS);
+        return switch (gathering.getStatus()) {
+            case RECRUITING -> updateRecruitingGathering(gathering, command);
+            case IN_PROGRESS -> updateInProgressGathering(gathering, command);
+            default -> throw new BusinessException(ErrorCode.GATHERING_UPDATE_FORBIDDEN_IN_PROGRESS);
+        };
     }
 
     @Transactional
     public void delete(Long gatheringId, Long requesterId) {
         Gathering gathering = findGathering(gatheringId);
-        validateLeaderPermission(gathering, requesterId);
-        validateDeletableStatus(gathering);
+        gathering.validateLeader(requesterId);
+        gathering.validateDeletable();
 
         weeklyPlanRepository.deleteByGatheringId(gatheringId);
         gatheringTagRepository.deleteByGatheringId(gatheringId);
@@ -120,9 +116,9 @@ public class GatheringService {
     }
 
     private UpdateGatheringResponse updateRecruitingGathering(Gathering gathering, UpdateGatheringCommand command) {
-        validateRecruitingUpdate(command);
+        validateSequentialWeeks(extractUpdateGuideWeeks(command.weeklyGuides()));
 
-        gathering.updateRecruitingInfo(
+        gathering.updateRecruiting(
                 command.type(),
                 command.category(),
                 command.title(),
@@ -132,8 +128,7 @@ public class GatheringService {
                 command.maxMembers(),
                 command.recruitDeadline(),
                 command.startDate(),
-                command.endDate(),
-                calculateTotalWeeks(command.startDate(), command.endDate())
+                command.endDate()
         );
 
         List<String> normalizedTags = normalizeTags(command.tags());
@@ -146,20 +141,30 @@ public class GatheringService {
         );
 
         publishGatheringUpdatedEvent(gathering);
-
         return UpdateGatheringResponse.from(gathering, normalizedTags);
     }
 
     private UpdateGatheringResponse updateInProgressGathering(Gathering gathering, UpdateGatheringCommand command) {
+        validateSequentialWeeks(extractUpdateGuideWeeks(command.weeklyGuides()));
+
         List<String> currentTags = findTags(gathering.getId());
+        List<String> requestedTags = normalizeTags(command.tags());
 
-        validateInProgressUpdate(command, gathering, currentTags);
-
-        gathering.updateInProgressInfo(
+        gathering.updateInProgress(
+                command.type(),
+                command.category(),
+                command.title(),
+                command.shortDescription(),
                 command.description(),
+                command.goal(),
+                command.maxMembers(),
+                command.recruitDeadline(),
+                command.startDate(),
                 command.endDate(),
-                calculateTotalWeeks(gathering.getStartDate(), command.endDate())
+                requestedTags,
+                currentTags
         );
+
 
         replaceWeeklyPlansFromUpdate(
                 gathering.getId(),
@@ -169,7 +174,6 @@ public class GatheringService {
         );
 
         publishGatheringUpdatedEvent(gathering);
-
         return UpdateGatheringResponse.from(gathering, currentTags);
     }
 
@@ -189,84 +193,6 @@ public class GatheringService {
     private void validateLeaderExists(Long leaderId) {
         if (leaderId == null || !userClient.existsById(leaderId)) {
             throw new BusinessException(ErrorCode.USER_NOT_FOUND);
-        }
-    }
-
-    private void validateLeaderPermission(Gathering gathering, Long requesterId) {
-        if (requesterId == null || !gathering.getLeaderId().equals(requesterId)) {
-            throw new BusinessException(ErrorCode.INVALID_GATHERING_LEADER);
-        }
-    }
-
-    private void validateDeletableStatus(Gathering gathering) {
-        if (gathering.getStatus() == GatheringStatus.IN_PROGRESS) {
-            throw new BusinessException(ErrorCode.GATHERING_DELETE_NOT_ALLOWED);
-        }
-    }
-
-    private void validateCreateCommand(CreateGatheringCommand command) {
-        validateMaxMembers(command.maxMembers());
-        validateRecruitDeadline(command.recruitDeadline(), command.startDate());
-        validateDateRange(command.startDate(), command.endDate());
-        validateSequentialWeeks(
-                extractCreateGuideWeeks(command.weeklyGuides())
-        );
-    }
-
-    private void validateRecruitingUpdate(UpdateGatheringCommand command) {
-        validateMaxMembers(command.maxMembers());
-        validateRecruitDeadline(command.recruitDeadline(), command.startDate());
-        validateDateRange(command.startDate(), command.endDate());
-        validateSequentialWeeks(
-                extractUpdateGuideWeeks(command.weeklyGuides())
-        );
-    }
-
-    private void validateInProgressUpdate(
-            UpdateGatheringCommand command,
-            Gathering gathering,
-            List<String> currentTags
-    ) {
-        validateDateRange(gathering.getStartDate(), command.endDate());
-
-        List<String> requestedTags = normalizeTags(command.tags());
-
-        boolean typeChanged = command.type() != gathering.getType();
-        boolean categoryChanged = !Objects.equals(command.category(), gathering.getCategory());
-        boolean titleChanged = !Objects.equals(command.title(), gathering.getTitle());
-        boolean shortDescriptionChanged = !Objects.equals(command.shortDescription(), gathering.getShortDescription());
-        boolean goalChanged = !Objects.equals(command.goal(), gathering.getGoal());
-        boolean maxMembersChanged = !Objects.equals(command.maxMembers(), gathering.getMaxMembers());
-        boolean recruitDeadlineChanged = !Objects.equals(command.recruitDeadline(), gathering.getRecruitDeadline());
-        boolean startDateChanged = !Objects.equals(command.startDate(), gathering.getStartDate());
-        boolean tagsChanged = !Objects.equals(requestedTags, currentTags);
-
-        if (typeChanged || categoryChanged || titleChanged || shortDescriptionChanged
-                || goalChanged || maxMembersChanged || recruitDeadlineChanged
-                || startDateChanged || tagsChanged) {
-            throw new BusinessException(ErrorCode.INVALID_IN_PROGRESS_UPDATE_ITEMS);
-        }
-
-        validateSequentialWeeks(
-                extractUpdateGuideWeeks(command.weeklyGuides())
-        );
-    }
-
-    private void validateMaxMembers(int maxMembers) {
-        if (maxMembers < 2 || maxMembers > 10) {
-            throw new BusinessException(ErrorCode.INVALID_MAX_MEMBERS);
-        }
-    }
-
-    private void validateRecruitDeadline(LocalDate recruitDeadline, LocalDate startDate) {
-        if (recruitDeadline.isAfter(startDate)) {
-            throw new BusinessException(ErrorCode.INVALID_RECRUIT_DEADLINE);
-        }
-    }
-
-    private void validateDateRange(LocalDate startDate, LocalDate endDate) {
-        if (endDate.isBefore(startDate)) {
-            throw new BusinessException(ErrorCode.INVALID_GATHERING_DATE);
         }
     }
 
