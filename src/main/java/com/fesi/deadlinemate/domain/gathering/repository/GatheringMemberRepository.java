@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface GatheringMemberRepository extends JpaRepository<GatheringMember, Long> {
+    boolean existsByGatheringIdAndUserIdAndIsActiveTrue(Long gatheringId, Long userId);
     void deleteByGatheringId(Long gatheringId);
     List<GatheringMember> findByGatheringIdAndIsActiveTrueOrderByIdAsc(Long gatheringId);
 }

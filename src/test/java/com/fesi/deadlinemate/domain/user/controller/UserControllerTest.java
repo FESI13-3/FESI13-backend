@@ -1,6 +1,7 @@
 package com.fesi.deadlinemate.domain.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fesi.deadlinemate.domain.gatheringApplication.service.GatheringApplicationService;
 import com.fesi.deadlinemate.domain.user.dto.request.ChangePasswordRequest;
 import com.fesi.deadlinemate.domain.user.dto.request.UpdateProfileRequest;
 import com.fesi.deadlinemate.domain.user.entity.Provider;
@@ -41,6 +42,9 @@ class UserControllerTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private GatheringApplicationService gatheringApplicationService;
 
     @BeforeEach
     void setUp() {

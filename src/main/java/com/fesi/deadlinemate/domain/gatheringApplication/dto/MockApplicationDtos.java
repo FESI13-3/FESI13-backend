@@ -1,4 +1,4 @@
-package com.fesi.deadlinemate.domain.application.dto;
+package com.fesi.deadlinemate.domain.gatheringApplication.dto;
 
 import java.time.OffsetDateTime;
 import java.util.List;

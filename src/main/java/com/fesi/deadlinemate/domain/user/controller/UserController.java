@@ -1,5 +1,7 @@
 package com.fesi.deadlinemate.domain.user.controller;
 
+import com.fesi.deadlinemate.domain.gatheringApplication.dto.response.MyApplicationListResponse;
+import com.fesi.deadlinemate.domain.gatheringApplication.service.GatheringApplicationService;
 import com.fesi.deadlinemate.domain.user.dto.request.ChangePasswordRequest;
 import com.fesi.deadlinemate.domain.user.dto.request.UpdateProfileRequest;
 import com.fesi.deadlinemate.domain.user.dto.response.PublicProfileResponse;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final GatheringApplicationService gatheringApplicationService;
 
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserProfileResponse>> getMyProfile(Authentication authentication) {
@@ -56,5 +59,11 @@ public class UserController {
     public ResponseEntity<ApiResponse<PublicProfileResponse>> getUserProfile(@PathVariable Long userId) {
         User user = userService.findById(userId);
         return ResponseEntity.ok(ApiResponse.success(PublicProfileResponse.from(user)));
+    }
+
+    @GetMapping("/me/applications")
+    public ApiResponse<MyApplicationListResponse> getMyApplications(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ApiResponse.success(gatheringApplicationService.getMyApplications(userId));
     }
 }
