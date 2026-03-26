@@ -1,6 +1,8 @@
 package com.fesi.deadlinemate.domain.gathering.entity;
 
 import com.fesi.deadlinemate.global.common.BaseTimeEntity;
+import com.fesi.deadlinemate.global.error.BusinessException;
+import com.fesi.deadlinemate.global.error.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -9,8 +11,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
+import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,11 +32,15 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Gathering extends BaseTimeEntity {
+
+    private static final int MIN_MEMBERS = 2;
+    private static final int MAX_MEMBERS = 10;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "leader_id", nullable = false)
+    @Column(nullable = false)
     private Long leaderId;
 
     @Enumerated(EnumType.STRING)
@@ -43,53 +53,64 @@ public class Gathering extends BaseTimeEntity {
     @Column(nullable = false, length = 60)
     private String title;
 
-    @Column(name = "short_description", nullable = false, length = 100)
+    @Column(nullable = false, length = 100)
     private String shortDescription;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Lob
+    @Column(nullable = false)
     private String description;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Lob
+    @Column(nullable = false)
     private String goal;
 
-    @Column(name = "max_members", nullable = false)
-    private Integer maxMembers;
+    @Column(nullable = false)
+    private int maxMembers;
 
-    @Column(name = "current_members", nullable = false)
-    private Integer currentMembers;
+    @Column(nullable = false)
+    private int currentMembers;
 
-    @Column(name = "recruit_deadline", nullable = false)
+    @Column(nullable = false)
     private LocalDate recruitDeadline;
 
-    @Column(name = "start_date", nullable = false)
+    @Column(nullable = false)
     private LocalDate startDate;
 
-    @Column(name = "end_date", nullable = false)
+    @Column(nullable = false)
     private LocalDate endDate;
 
-    @Column(name = "total_weeks", nullable = false)
-    private Integer totalWeeks;
+    @Column(nullable = false)
+    private int totalWeeks;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private GatheringStatus status;
 
-    @Column(name = "view_count", nullable = false)
-    private Integer viewCount;
+    @Column(nullable = false)
+    private int viewCount;
 
     @Builder
-    public Gathering(Long leaderId,
-                     GatheringType type,
-                     String category,
-                     String title,
-                     String shortDescription,
-                     String description,
-                     String goal,
-                     Integer maxMembers,
-                     LocalDate recruitDeadline,
-                     LocalDate startDate,
-                     LocalDate endDate,
-                     Integer totalWeeks) {
+    public Gathering(
+            Long leaderId,
+            GatheringType type,
+            String category,
+            String title,
+            String shortDescription,
+            String description,
+            String goal,
+            int maxMembers,
+            int currentMembers,
+            LocalDate recruitDeadline,
+            LocalDate startDate,
+            LocalDate endDate,
+            int totalWeeks,
+            GatheringStatus status,
+            int viewCount
+    ) {
+        validateMaxMembers(maxMembers);
+        validateRecruitDeadline(recruitDeadline, startDate);
+        validateDateRange(startDate, endDate);
+
         this.leaderId = leaderId;
         this.type = type;
         this.category = category;
@@ -98,12 +119,156 @@ public class Gathering extends BaseTimeEntity {
         this.description = description;
         this.goal = goal;
         this.maxMembers = maxMembers;
-        this.currentMembers = 1;
+        this.currentMembers = currentMembers;
         this.recruitDeadline = recruitDeadline;
         this.startDate = startDate;
         this.endDate = endDate;
         this.totalWeeks = totalWeeks;
-        this.status = GatheringStatus.RECRUITING;
-        this.viewCount = 0;
+        this.status = status;
+        this.viewCount = viewCount;
+    }
+
+    public void validateLeader(Long requesterId) {
+        if (requesterId == null || !this.leaderId.equals(requesterId)) {
+            throw new BusinessException(ErrorCode.INVALID_GATHERING_LEADER);
+        }
+    }
+
+    public void validateDeletable() {
+        if (this.status == GatheringStatus.IN_PROGRESS) {
+            throw new BusinessException(ErrorCode.GATHERING_DELETE_NOT_ALLOWED);
+        }
+    }
+
+    public void updateRecruiting(
+            GatheringType type,
+            String category,
+            String title,
+            String shortDescription,
+            String description,
+            String goal,
+            int maxMembers,
+            LocalDate recruitDeadline,
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+        ensureRecruitingStatus();
+        validateMaxMembers(maxMembers);
+        validateRecruitDeadline(recruitDeadline, startDate);
+        validateDateRange(startDate, endDate);
+
+        this.type = type;
+        this.category = category;
+        this.title = title;
+        this.shortDescription = shortDescription;
+        this.description = description;
+        this.goal = goal;
+        this.maxMembers = maxMembers;
+        this.recruitDeadline = recruitDeadline;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.totalWeeks = calculateTotalWeeks(startDate, endDate);
+    }
+
+    public void updateInProgress(
+            GatheringType type,
+            String category,
+            String title,
+            String shortDescription,
+            String description,
+            String goal,
+            int maxMembers,
+            LocalDate recruitDeadline,
+            LocalDate startDate,
+            LocalDate endDate,
+            List<String> requestedTags,
+            List<String> currentTags
+    ) {
+        ensureInProgressStatus();
+        validateDateRange(this.startDate, endDate);
+        validateInProgressImmutableFields(
+                type,
+                category,
+                title,
+                shortDescription,
+                goal,
+                maxMembers,
+                recruitDeadline,
+                startDate,
+                requestedTags,
+                currentTags
+        );
+
+        this.description = description;
+        this.endDate = endDate;
+        this.totalWeeks = calculateTotalWeeks(this.startDate, endDate);
+    }
+
+    public void increaseViewCount() {
+        this.viewCount++;
+    }
+
+    private void ensureRecruitingStatus() {
+        if (this.status != GatheringStatus.RECRUITING) {
+            throw new BusinessException(ErrorCode.GATHERING_UPDATE_FORBIDDEN_IN_PROGRESS);
+        }
+    }
+
+    private void ensureInProgressStatus() {
+        if (this.status != GatheringStatus.IN_PROGRESS) {
+            throw new BusinessException(ErrorCode.GATHERING_UPDATE_FORBIDDEN_IN_PROGRESS);
+        }
+    }
+
+    private void validateInProgressImmutableFields(
+            GatheringType type,
+            String category,
+            String title,
+            String shortDescription,
+            String goal,
+            int maxMembers,
+            LocalDate recruitDeadline,
+            LocalDate startDate,
+            List<String> requestedTags,
+            List<String> currentTags
+    ) {
+        boolean typeChanged = type != this.type;
+        boolean categoryChanged = !Objects.equals(category, this.category);
+        boolean titleChanged = !Objects.equals(title, this.title);
+        boolean shortDescriptionChanged = !Objects.equals(shortDescription, this.shortDescription);
+        boolean goalChanged = !Objects.equals(goal, this.goal);
+        boolean maxMembersChanged = maxMembers != this.maxMembers;
+        boolean recruitDeadlineChanged = !Objects.equals(recruitDeadline, this.recruitDeadline);
+        boolean startDateChanged = !Objects.equals(startDate, this.startDate);
+        boolean tagsChanged = !Objects.equals(requestedTags, currentTags);
+
+        if (typeChanged || categoryChanged || titleChanged || shortDescriptionChanged
+                || goalChanged || maxMembersChanged || recruitDeadlineChanged
+                || startDateChanged || tagsChanged) {
+            throw new BusinessException(ErrorCode.INVALID_IN_PROGRESS_UPDATE_ITEMS);
+        }
+    }
+
+    private static void validateMaxMembers(int maxMembers) {
+        if (maxMembers < MIN_MEMBERS || maxMembers > MAX_MEMBERS) {
+            throw new BusinessException(ErrorCode.INVALID_MAX_MEMBERS);
+        }
+    }
+
+    private static void validateRecruitDeadline(LocalDate recruitDeadline, LocalDate startDate) {
+        if (recruitDeadline.isAfter(startDate)) {
+            throw new BusinessException(ErrorCode.INVALID_RECRUIT_DEADLINE);
+        }
+    }
+
+    private static void validateDateRange(LocalDate startDate, LocalDate endDate) {
+        if (endDate.isBefore(startDate)) {
+            throw new BusinessException(ErrorCode.INVALID_GATHERING_DATE);
+        }
+    }
+
+    private static int calculateTotalWeeks(LocalDate startDate, LocalDate endDate) {
+        long days = ChronoUnit.DAYS.between(startDate, endDate);
+        return (int) (days / 7) + 1;
     }
 }

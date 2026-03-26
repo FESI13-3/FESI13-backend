@@ -8,7 +8,7 @@ import com.fesi.deadlinemate.domain.application.dto.MockApplicationDtos.MyApplic
 import com.fesi.deadlinemate.domain.application.dto.MockApplicationDtos.MyApplicationListResponse;
 import com.fesi.deadlinemate.domain.application.dto.MockApplicationDtos.UpdateApplicationStatusRequest;
 import com.fesi.deadlinemate.domain.application.dto.MockApplicationEntity;
-import com.fesi.deadlinemate.domain.gathering.dto.MockGatheringEntity;
+import com.fesi.deadlinemate.domain.gathering.entity.MockGatheringEntity;
 import com.fesi.deadlinemate.global.mock.MockStore;
 import com.fesi.deadlinemate.global.mock.support.MockAuthContext;
 import com.fesi.deadlinemate.global.mock.support.MockFinder;

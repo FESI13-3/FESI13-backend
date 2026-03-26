@@ -9,7 +9,7 @@ import com.fesi.deadlinemate.domain.gathering.dto.MockGatheringDtos.MainGatherin
 import com.fesi.deadlinemate.domain.gathering.dto.MockGatheringDtos.MemberDto;
 import com.fesi.deadlinemate.domain.gathering.dto.MockGatheringDtos.UpdateGatheringRequest;
 import com.fesi.deadlinemate.domain.gathering.dto.MockGatheringDtos.WeeklyPlanDto;
-import com.fesi.deadlinemate.domain.gathering.dto.MockGatheringEntity;
+import com.fesi.deadlinemate.domain.gathering.entity.MockGatheringEntity;
 import com.fesi.deadlinemate.global.mock.MockStore;
 import com.fesi.deadlinemate.global.mock.support.MockAuthContext;
 import com.fesi.deadlinemate.global.mock.support.MockFinder;

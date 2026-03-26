@@ -1,6 +1,6 @@
 package com.fesi.deadlinemate.domain.report.service;
 
-import com.fesi.deadlinemate.domain.gathering.dto.MockGatheringEntity;
+import com.fesi.deadlinemate.domain.gathering.entity.MockGatheringEntity;
 import com.fesi.deadlinemate.domain.report.dto.MockReportDtos.MemberResultDto;
 import com.fesi.deadlinemate.domain.report.dto.MockReportDtos.ReportGatheringDto;
 import com.fesi.deadlinemate.domain.report.dto.MockReportDtos.ReportResponse;

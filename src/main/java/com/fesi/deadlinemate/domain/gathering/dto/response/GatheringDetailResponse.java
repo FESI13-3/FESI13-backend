@@ -1,26 +1,65 @@
 package com.fesi.deadlinemate.domain.gathering.dto.response;
 
+import com.fesi.deadlinemate.domain.gathering.entity.GatheringRole;
+import com.fesi.deadlinemate.domain.gathering.entity.GatheringStatus;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.Builder;
-import lombok.Getter;
 
-@Getter
 @Builder
-public class GatheringDetailResponse {
-    private Long id;
-    private String type;
-    private String category;
-    private String title;
-    private String shortDescription;
-    private String description;
-    private String goal;
-    private List<String> tags;
-    private Integer maxMembers;
-    private Integer currentMembers;
-    private LocalDate recruitDeadline;
-    private LocalDate startDate;
-    private LocalDate endDate;
-    private Integer totalWeeks;
-    private String status;
+public record GatheringDetailResponse(
+        Long id,
+        String type,
+        String category,
+        String title,
+        String shortDescription,
+        String description,
+        List<String> tags,
+        String goal,
+        int maxMembers,
+        int currentMembers,
+        LocalDate recruitDeadline,
+        LocalDate startDate,
+        LocalDate endDate,
+        int totalWeeks,
+        List<ImageResponse> images,
+        GatheringStatus status,
+        boolean isLiked,
+        LeaderResponse leader,
+        List<WeeklyPlanResponse> weeklyPlans,
+        List<MemberResponse> members,
+        String myApplicationStatus
+) {
+    @Builder
+    public record ImageResponse(
+            String url,
+            int displayOrder
+    ) {
+    }
+
+    @Builder
+    public record LeaderResponse(
+            Long id,
+            String nickname,
+            String profileImage
+    ) {
+    }
+
+    @Builder
+    public record WeeklyPlanResponse(
+            int week,
+            String title,
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+    }
+
+    @Builder
+    public record MemberResponse(
+            Long userId,
+            String nickname,
+            String profileImage,
+            GatheringRole role
+    ) {
+    }
 }

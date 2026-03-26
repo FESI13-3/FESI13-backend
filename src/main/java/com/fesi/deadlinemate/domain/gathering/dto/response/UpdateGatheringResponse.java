@@ -2,20 +2,19 @@ package com.fesi.deadlinemate.domain.gathering.dto.response;
 
 import com.fesi.deadlinemate.domain.gathering.entity.Gathering;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringStatus;
+import com.fesi.deadlinemate.domain.gathering.entity.GatheringType;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.Builder;
-import lombok.Getter;
 
 @Builder
-public record CreateGatheringResponse(
+public record UpdateGatheringResponse(
         Long id,
         String type,
         String category,
         String title,
         String shortDescription,
         String description,
-        List<String> tags,
         String goal,
         int maxMembers,
         int currentMembers,
@@ -24,17 +23,16 @@ public record CreateGatheringResponse(
         LocalDate endDate,
         int totalWeeks,
         GatheringStatus status,
-        List<String> imageUrls
+        List<String> tags
 ) {
-    public static CreateGatheringResponse from(Gathering gathering, List<String> tags) {
-        return CreateGatheringResponse.builder()
+    public static UpdateGatheringResponse from(Gathering gathering, List<String> tags) {
+        return UpdateGatheringResponse.builder()
                 .id(gathering.getId())
                 .type(gathering.getType().getDisplayName())
                 .category(gathering.getCategory())
                 .title(gathering.getTitle())
                 .shortDescription(gathering.getShortDescription())
                 .description(gathering.getDescription())
-                .tags(tags == null ? List.of() : tags)
                 .goal(gathering.getGoal())
                 .maxMembers(gathering.getMaxMembers())
                 .currentMembers(gathering.getCurrentMembers())
@@ -43,6 +41,7 @@ public record CreateGatheringResponse(
                 .endDate(gathering.getEndDate())
                 .totalWeeks(gathering.getTotalWeeks())
                 .status(gathering.getStatus())
+                .tags(tags)
                 .build();
     }
 }
