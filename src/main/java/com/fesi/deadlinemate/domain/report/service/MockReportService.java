@@ -4,7 +4,7 @@ import com.fesi.deadlinemate.domain.gathering.entity.MockGatheringEntity;
 import com.fesi.deadlinemate.domain.report.dto.MockReportDtos.MemberResultDto;
 import com.fesi.deadlinemate.domain.report.dto.MockReportDtos.ReportGatheringDto;
 import com.fesi.deadlinemate.domain.report.dto.MockReportDtos.ReportResponse;
-import com.fesi.deadlinemate.domain.todo.dto.MockTodoEntity;
+import com.fesi.deadlinemate.domain.todo.entity.MockTodoEntity;
 import com.fesi.deadlinemate.global.mock.MockStore;
 import com.fesi.deadlinemate.global.mock.support.MockAchievementCalculator;
 import com.fesi.deadlinemate.global.mock.support.MockFinder;

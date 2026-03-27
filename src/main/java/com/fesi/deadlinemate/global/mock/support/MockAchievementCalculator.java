@@ -1,6 +1,6 @@
 package com.fesi.deadlinemate.global.mock.support;
 
-import com.fesi.deadlinemate.domain.todo.dto.MockTodoEntity;
+import com.fesi.deadlinemate.domain.todo.entity.MockTodoEntity;
 import java.util.List;
 import org.springframework.stereotype.Component;
 

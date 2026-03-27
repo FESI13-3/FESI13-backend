@@ -4,7 +4,7 @@ import com.fesi.deadlinemate.domain.application.dto.MockApplicationEntity;
 
 import com.fesi.deadlinemate.domain.gathering.dto.MockGatheringDtos.WeeklyGuideRequest;
 import com.fesi.deadlinemate.domain.gathering.entity.MockGatheringEntity;
-import com.fesi.deadlinemate.domain.todo.dto.MockTodoEntity;
+import com.fesi.deadlinemate.domain.todo.entity.MockTodoEntity;
 import jakarta.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
