@@ -204,6 +204,25 @@ public class Gathering extends BaseTimeEntity {
         this.totalWeeks = calculateTotalWeeks(this.startDate, endDate);
     }
 
+    public void complete() {
+        if (this.status != GatheringStatus.IN_PROGRESS) {
+            throw new BusinessException(ErrorCode.GATHERING_COMPLETE_NOT_ALLOWED);
+        }
+        this.status = GatheringStatus.COMPLETED;
+    }
+
+    public void validateRecruiting() {
+        if (this.status != GatheringStatus.RECRUITING) {
+            throw new BusinessException(ErrorCode.GATHERING_NOT_RECRUITING);
+        }
+    }
+
+    public void validateCapacity() {
+        if (this.currentMembers >= this.maxMembers) {
+            throw new BusinessException(ErrorCode.GATHERING_FULL);
+        }
+    }
+
     public void increaseViewCount() {
         this.viewCount++;
     }

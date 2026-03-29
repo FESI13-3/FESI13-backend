@@ -1,4 +1,4 @@
-package com.fesi.deadlinemate.domain.achievement;
+package com.fesi.deadlinemate.domain.achievement.controller;
 
 import com.fesi.deadlinemate.domain.achievement.service.MockAchievementService;
 import com.fesi.deadlinemate.global.common.ApiResponse;
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/mock")
 public class MockAchievementController {
     private final MockAchievementService service;
 

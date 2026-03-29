@@ -10,6 +10,7 @@ import com.fesi.deadlinemate.domain.gathering.entity.GatheringRole;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringStatus;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringTag;
 import com.fesi.deadlinemate.domain.gathering.entity.WeeklyPlan;
+import com.fesi.deadlinemate.domain.gathering.event.GatheringCompletedEvent;
 import com.fesi.deadlinemate.domain.gathering.event.GatheringCreatedEvent;
 import com.fesi.deadlinemate.domain.gathering.event.GatheringDeletedEvent;
 import com.fesi.deadlinemate.domain.gathering.event.GatheringUpdatedEvent;
@@ -17,6 +18,7 @@ import com.fesi.deadlinemate.domain.gathering.repository.GatheringMemberReposito
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringTagRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.WeeklyPlanRepository;
+import com.fesi.deadlinemate.domain.like.repository.GatheringLikeRepository;
 import com.fesi.deadlinemate.domain.user.client.UserClient;
 import com.fesi.deadlinemate.global.error.BusinessException;
 import com.fesi.deadlinemate.global.error.ErrorCode;
@@ -32,17 +34,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class GatheringService {
 
     private final GatheringRepository gatheringRepository;
     private final GatheringTagRepository gatheringTagRepository;
     private final WeeklyPlanRepository weeklyPlanRepository;
     private final GatheringMemberRepository gatheringMemberRepository;
+    private final GatheringLikeRepository gatheringLikeRepository;
     private final UserClient userClient;
     private final ApplicationEventPublisher eventPublisher;
 
-    @Transactional
     public CreateGatheringResponse create(CreateGatheringCommand command) {
         validateLeaderExists(command.leaderId());
         validateSequentialWeeks(extractCreateGuideWeeks(command.weeklyGuides()));
@@ -85,7 +87,6 @@ public class GatheringService {
         return CreateGatheringResponse.from(saved, normalizeTags(command.tags()));
     }
 
-    @Transactional
     public UpdateGatheringResponse update(Long gatheringId, UpdateGatheringCommand command) {
         Gathering gathering = findGathering(gatheringId);
         gathering.validateLeader(command.requesterId());
@@ -97,7 +98,6 @@ public class GatheringService {
         };
     }
 
-    @Transactional
     public void delete(Long gatheringId, Long requesterId) {
         Gathering gathering = findGathering(gatheringId);
         gathering.validateLeader(requesterId);
@@ -106,6 +106,7 @@ public class GatheringService {
         weeklyPlanRepository.deleteByGatheringId(gatheringId);
         gatheringTagRepository.deleteByGatheringId(gatheringId);
         gatheringMemberRepository.deleteByGatheringId(gatheringId);
+        gatheringLikeRepository.deleteByGatheringId(gatheringId);
         gatheringRepository.delete(gathering);
 
         eventPublisher.publishEvent(new GatheringDeletedEvent(
@@ -113,6 +114,23 @@ public class GatheringService {
                 gathering.getLeaderId(),
                 gathering.getTitle()
         ));
+    }
+
+    public void completeEndedGatherings(LocalDate today) {
+        List<Gathering> gatherings = gatheringRepository.findByStatusAndEndDateLessThanEqual(
+                GatheringStatus.IN_PROGRESS,
+                today
+        );
+
+        for (Gathering gathering : gatherings) {
+            gathering.complete();
+
+            eventPublisher.publishEvent(new GatheringCompletedEvent(
+                    gathering.getId(),
+                    gathering.getLeaderId(),
+                    gathering.getTitle()
+            ));
+        }
     }
 
     private UpdateGatheringResponse updateRecruitingGathering(Gathering gathering, UpdateGatheringCommand command) {
