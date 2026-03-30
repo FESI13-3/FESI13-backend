@@ -44,7 +44,8 @@ class NotificationCommandServiceTest {
 
             SendNotificationCommand command = new SendNotificationCommand(
                     1L, NotificationType.APPLICATION_ACCEPTED,
-                    "'React 스터디' 참여가 수락되었어요!", "/gatherings/1/dashboard"
+                    "'React 스터디' 참여가 수락되었어요!", "/gatherings/1/dashboard",
+                    1L, "GATHERING"
             );
 
             notificationCommandService.send(command);
