@@ -3,6 +3,7 @@ package com.fesi.deadlinemate.domain.user.client;
 import com.fesi.deadlinemate.domain.user.client.dto.UserInfo;
 import com.fesi.deadlinemate.domain.user.entity.User;
 import com.fesi.deadlinemate.domain.user.service.UserService;
+import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -26,5 +27,11 @@ public class UserInternalClient implements UserClient {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    @Override
+    public void addReputationScore(Long userId, BigDecimal delta) {
+        User user = userService.findById(userId);
+        user.addReputationScore(delta);
     }
 }
