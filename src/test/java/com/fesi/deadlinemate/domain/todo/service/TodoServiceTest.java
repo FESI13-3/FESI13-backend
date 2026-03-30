@@ -33,6 +33,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -353,12 +354,16 @@ class TodoServiceTest {
                     .reputationScore(BigDecimal.valueOf(40.0))
                     .build();
 
+            Map<Long, UserInfo> userMap = Map.of(
+                    200L, user1,
+                    201L, user2
+            );
+
             when(gatheringRepository.findById(100L)).thenReturn(Optional.of(gathering));
             when(gatheringMemberRepository.existsByGatheringIdAndUserIdAndIsActiveTrue(100L, 200L)).thenReturn(true);
             when(todoRepository.findByGatheringIdOrderByWeekNumberAscCreatedAtAsc(100L))
                     .thenReturn(List.of(todo1, todo2));
-            when(userClient.findById(200L)).thenReturn(user1);
-            when(userClient.findById(201L)).thenReturn(user2);
+            when(userClient.findByIds(List.of(200L, 201L))).thenReturn(userMap);
 
             TodoListResponse response = todoService.getTodos(100L, 200L, null);
 

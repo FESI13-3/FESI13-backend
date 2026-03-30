@@ -22,7 +22,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -241,7 +240,6 @@ public class TodoService {
         return calculateRate(completedCount, totalCount);
     }
 
-
     private Integer resolveWeekForRead(Gathering gathering, Integer requestedWeek) {
         if (requestedWeek != null) {
             return requestedWeek;
@@ -282,10 +280,10 @@ public class TodoService {
             return Map.of();
         }
 
-        Map<Long, UserInfo> result = new HashMap<>();
-        for (Long userId : userIds) {
-            result.put(userId, userClient.findById(userId));
-        }
-        return result;
+        List<Long> distinctUserIds = userIds.stream()
+                .distinct()
+                .toList();
+
+        return userClient.findByIds(distinctUserIds);
     }
 }
