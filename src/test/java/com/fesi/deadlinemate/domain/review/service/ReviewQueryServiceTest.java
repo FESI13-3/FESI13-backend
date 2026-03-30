@@ -5,8 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 import com.fesi.deadlinemate.domain.gathering.client.GatheringClient;
-import com.fesi.deadlinemate.domain.gathering.client.dto.GatheringInfo;
-import com.fesi.deadlinemate.domain.gathering.entity.GatheringStatus;
 import com.fesi.deadlinemate.domain.review.dto.response.ReviewListResponse;
 import com.fesi.deadlinemate.domain.review.entity.Review;
 import com.fesi.deadlinemate.domain.review.entity.ReviewTag;
@@ -15,7 +13,7 @@ import com.fesi.deadlinemate.domain.user.client.UserClient;
 import com.fesi.deadlinemate.domain.user.client.dto.UserInfo;
 import java.lang.reflect.Field;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,21 +32,22 @@ class ReviewQueryServiceTest {
     @InjectMocks private ReviewQueryService reviewQueryService;
 
     @Test
-    @DisplayName("GatheringClient와 UserClient를 통해 리뷰 목록을 조회한다")
+    @DisplayName("배치 메서드로 리뷰어/모임 정보를 한 번에 조회한다")
     void getReviews() {
         Review review = createReview(1L, 1L, 10L, 20L);
         given(reviewRepository.findByTargetUserIdOrderByCreatedAtDesc(any(), any(Pageable.class)))
                 .willReturn(new PageImpl<>(List.of(review)));
-        given(userClient.findById(10L)).willReturn(
-                UserInfo.builder().id(10L).nickname("reviewer").build());
-        given(gatheringClient.findById(1L)).willReturn(Optional.of(
-                GatheringInfo.builder().id(1L).title("Test").status(GatheringStatus.COMPLETED).build()));
+        given(userClient.findByIds(List.of(10L))).willReturn(
+                Map.of(10L, UserInfo.builder().id(10L).nickname("reviewer").build()));
+        given(gatheringClient.findTitlesByIds(List.of(1L))).willReturn(
+                Map.of(1L, "Test Gathering"));
 
         ReviewListResponse response = reviewQueryService.getReviews(20L, 1);
 
         assertThat(response.reviews()).hasSize(1);
+        assertThat(response.totalCount()).isEqualTo(1L);
         assertThat(response.reviews().get(0).reviewerNickname()).isEqualTo("reviewer");
-        assertThat(response.reviews().get(0).gatheringTitle()).isEqualTo("Test");
+        assertThat(response.reviews().get(0).gatheringTitle()).isEqualTo("Test Gathering");
         assertThat(response.reviews().get(0).tags()).containsExactly("성실해요");
     }
 

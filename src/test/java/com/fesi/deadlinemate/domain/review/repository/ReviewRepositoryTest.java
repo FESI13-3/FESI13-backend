@@ -131,12 +131,7 @@ class ReviewRepositoryTest {
     }
 
     private Review review(Long gatheringId, Long reviewerId, Long targetUserId, List<ReviewTag> tags) {
-        return Review.builder()
-                .gatheringId(gatheringId)
-                .reviewerId(reviewerId)
-                .targetUserId(targetUserId)
-                .tags(tags)
-                .comment("테스트 리뷰")
-                .build();
+        List<String> tagDisplayNames = tags.stream().map(ReviewTag::getDisplayName).toList();
+        return Review.create(gatheringId, reviewerId, targetUserId, tagDisplayNames, "테스트 리뷰");
     }
 }

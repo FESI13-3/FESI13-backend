@@ -3,13 +3,14 @@ package com.fesi.deadlinemate.domain.review.dto.request;
 import com.fesi.deadlinemate.domain.review.command.CreateReviewCommand;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public record CreateReviewRequest(
         @Valid @NotEmpty List<ReviewItem> reviews
 ) {
     public record ReviewItem(
-            Long targetUserId,
+            @NotNull Long targetUserId,
             @NotEmpty List<String> tags,
             String comment
     ) {}

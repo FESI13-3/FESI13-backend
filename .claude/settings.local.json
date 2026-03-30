@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed -e 's/\\\\.review\\\\.service/.review.application.service/' -e 's/\\\\.review\\\\.dto\\\\.request/.review.application.dto.request/' -e 's/\\\\.review\\\\.dto\\\\.response/.review.application.dto.response/' -e 's/\\\\.review\\\\.entity/.review.domain.entity/' -e 's/\\\\.review\\\\.repository/.review.domain.repository/' -e 's/\\\\.gathering\\\\.entity/.gathering.entity/' -e 's/\\\\.user\\\\.entity/.user.entity/' /tmp/ref/ReviewService.java)",
+      "Bash(sed -e 's/\\\\.review\\\\.dto\\\\.request/.review.application.dto.request/' -e 's/\\\\.review\\\\.entity/.review.domain.entity/' /tmp/ref/CreateReviewRequest.java)",
+      "Bash(sed -e 's/\\\\.review\\\\.dto\\\\.response/.review.application.dto.response/' -e 's/\\\\.review\\\\.entity/.review.domain.entity/' /tmp/ref/ReviewListResponse.java)",
+      "Bash(cd:*)",
+      "Bash(cp /tmp/ref/GatheringController_20.java src/main/java/com/fesi/deadlinemate/domain/gathering/controller/GatheringController.java)",
+      "Bash(cp /tmp/ref/UserController_20.java src/main/java/com/fesi/deadlinemate/domain/user/controller/UserController.java)",
+      "Bash(grep -v \"^--$\")"
+    ]
+  }
+}

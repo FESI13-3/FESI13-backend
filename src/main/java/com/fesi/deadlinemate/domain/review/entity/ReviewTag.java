@@ -1,5 +1,7 @@
 package com.fesi.deadlinemate.domain.review.entity;
 
+import com.fesi.deadlinemate.global.error.BusinessException;
+import com.fesi.deadlinemate.global.error.ErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -21,6 +23,6 @@ public enum ReviewTag {
                 return tag;
             }
         }
-        throw new IllegalArgumentException("Unknown display name: " + displayName);
+        throw new BusinessException(ErrorCode.INVALID_REVIEW_TAG);
     }
 }
