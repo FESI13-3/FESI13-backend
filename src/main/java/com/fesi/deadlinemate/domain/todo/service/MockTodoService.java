@@ -5,7 +5,7 @@ import com.fesi.deadlinemate.domain.todo.dto.MockTodoDtos.MyTodoResponse;
 import com.fesi.deadlinemate.domain.todo.dto.MockTodoDtos.TodoItemDto;
 import com.fesi.deadlinemate.domain.todo.dto.MockTodoDtos.TodoListResponse;
 import com.fesi.deadlinemate.domain.todo.dto.MockTodoDtos.UpdateTodoRequest;
-import com.fesi.deadlinemate.domain.todo.dto.MockTodoEntity;
+import com.fesi.deadlinemate.domain.todo.entity.MockTodoEntity;
 import com.fesi.deadlinemate.global.mock.MockStore;
 import com.fesi.deadlinemate.global.mock.support.MockAchievementCalculator;
 import com.fesi.deadlinemate.global.mock.support.MockAuthContext;

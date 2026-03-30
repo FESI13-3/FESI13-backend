@@ -54,6 +54,17 @@ public enum ErrorCode {
     APPLICATION_CANCEL_FORBIDDEN(HttpStatus.FORBIDDEN, "본인의 신청만 취소할 수 있습니다."),
     APPLICATION_CANCEL_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "대기 중인 신청만 취소할 수 있습니다."),
 
+    // Todo
+    TODO_NOT_FOUND(HttpStatus.NOT_FOUND, "할 일을 찾을 수 없습니다."),
+    TODO_UPDATE_FORBIDDEN(HttpStatus.FORBIDDEN, "본인의 할 일만 수정할 수 있습니다."),
+    TODO_NOT_CHANGED(HttpStatus.BAD_REQUEST, "변경된 내용이 없습니다."),
+    TODO_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "본인의 할 일만 삭제할 수 있습니다."),
+    GATHERING_MEMBER_ONLY(HttpStatus.FORBIDDEN, "참여 중인 멤버만 접근할 수 있습니다."),
+    INVALID_TODO_WEEK(HttpStatus.BAD_REQUEST, "유효하지 않은 주차입니다."),
+    INVALID_TODO_CONTENT(HttpStatus.BAD_REQUEST, "할 일 내용이 올바르지 않습니다."),
+    INVALID_TODO_WEEK_ACCESS(HttpStatus.BAD_REQUEST, "현재 진행 중인 주차의 할 일만 작성하거나 수정할 수 있습니다."),
+    INVALID_TODO_PERIOD(HttpStatus.BAD_REQUEST, "현재 모임 진행 기간이 아닙니다."),
+
     //WeeklyPlan
     INVALID_WEEKLY_GUIDE_SEQUENCE(HttpStatus.BAD_REQUEST,"주차 가이드는 1주차부터 순차적으로 입력되어야 합니다.");
 
