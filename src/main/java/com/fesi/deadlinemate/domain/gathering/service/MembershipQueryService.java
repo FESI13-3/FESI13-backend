@@ -5,6 +5,7 @@ import com.fesi.deadlinemate.domain.gathering.dto.response.MyGatheringListRespon
 import com.fesi.deadlinemate.domain.gathering.entity.Gathering;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringMember;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringStatus;
+import com.fesi.deadlinemate.domain.gathering.entity.GatheringTag;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringMemberRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringTagRepository;
@@ -12,9 +13,10 @@ import com.fesi.deadlinemate.domain.user.client.UserClient;
 import com.fesi.deadlinemate.domain.user.client.dto.UserInfo;
 import com.fesi.deadlinemate.global.error.BusinessException;
 import com.fesi.deadlinemate.global.error.ErrorCode;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -49,19 +51,25 @@ public class MembershipQueryService {
         PageRequest pageable = PageRequest.of(validatedPage - 1, validatedLimit);
         Page<Gathering> result = resolveGatheringPage(gatheringIds, status, pageable);
 
-        Map<Long, GatheringMember> memberMap = new HashMap<>();
-        result.getContent().forEach(g -> {
-            gatheringMemberRepository.findByGatheringIdAndUserId(g.getId(), userId)
-                    .ifPresent(m -> memberMap.put(g.getId(), m));
-        });
+        List<Long> resultGatheringIds = result.getContent().stream()
+                .map(Gathering::getId).toList();
+
+        Map<Long, GatheringMember> memberMap = gatheringMemberRepository
+                .findByGatheringIdInAndUserIdAndIsActiveTrue(resultGatheringIds, userId).stream()
+                .collect(Collectors.toMap(GatheringMember::getGatheringId, m -> m));
+
+        Map<Long, List<String>> tagsMap = gatheringTagRepository
+                .findByGatheringIdInOrderByGatheringIdAscIdAsc(resultGatheringIds).stream()
+                .collect(Collectors.groupingBy(
+                        GatheringTag::getGatheringId,
+                        LinkedHashMap::new,
+                        Collectors.mapping(GatheringTag::getTag, Collectors.toList())
+                ));
 
         List<MyGatheringListResponse.MyGatheringItem> items = result.getContent().stream()
                 .map(gathering -> {
                     GatheringMember member = memberMap.get(gathering.getId());
-                    List<String> tags = gatheringTagRepository
-                            .findByGatheringIdOrderByIdAsc(gathering.getId()).stream()
-                            .map(t -> t.getTag())
-                            .toList();
+                    List<String> tags = tagsMap.getOrDefault(gathering.getId(), List.of());
                     return MyGatheringListResponse.MyGatheringItem.of(
                             gathering,
                             member != null ? member.getRole() : null,
@@ -84,8 +92,8 @@ public class MembershipQueryService {
         List<GatheringMember> members = gatheringMemberRepository
                 .findByGatheringIdAndIsActiveTrueOrderByIdAsc(gatheringId);
 
-        Map<Long, UserInfo> userMap = new HashMap<>();
-        members.forEach(m -> userMap.put(m.getUserId(), userClient.findById(m.getUserId())));
+        List<Long> userIds = members.stream().map(GatheringMember::getUserId).distinct().toList();
+        Map<Long, UserInfo> userMap = userClient.findByIds(userIds);
 
         return MemberListResponse.of(members, userMap);
     }

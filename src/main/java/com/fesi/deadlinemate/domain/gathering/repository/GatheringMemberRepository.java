@@ -15,4 +15,6 @@ public interface GatheringMemberRepository extends JpaRepository<GatheringMember
 
     @Query("SELECT gm.gatheringId FROM GatheringMember gm WHERE gm.userId = :userId AND gm.isActive = true")
     List<Long> findActiveGatheringIdsByUserId(@Param("userId") Long userId);
+
+    List<GatheringMember> findByGatheringIdInAndUserIdAndIsActiveTrue(List<Long> gatheringIds, Long userId);
 }
