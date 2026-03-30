@@ -6,7 +6,6 @@ import com.fesi.deadlinemate.domain.review.entity.Review;
 import com.fesi.deadlinemate.domain.review.repository.ReviewRepository;
 import com.fesi.deadlinemate.domain.user.client.UserClient;
 import com.fesi.deadlinemate.domain.user.client.dto.UserInfo;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -32,15 +31,11 @@ public class ReviewQueryService {
 
         List<Long> reviewerIds = result.getContent().stream()
                 .map(Review::getReviewerId).distinct().toList();
-        Map<Long, UserInfo> reviewerMap = new HashMap<>();
-        reviewerIds.forEach(id -> reviewerMap.put(id, userClient.findById(id)));
+        Map<Long, UserInfo> reviewerMap = userClient.findByIds(reviewerIds);
 
         List<Long> gatheringIds = result.getContent().stream()
                 .map(Review::getGatheringId).distinct().toList();
-        Map<Long, String> gatheringTitleMap = new HashMap<>();
-        gatheringIds.forEach(id ->
-                gatheringClient.findById(id).ifPresent(info -> gatheringTitleMap.put(id, info.getTitle()))
-        );
+        Map<Long, String> gatheringTitleMap = gatheringClient.findTitlesByIds(gatheringIds);
 
         return ReviewListResponse.of(result.getContent(), result.getTotalElements(),
                 reviewerMap, gatheringTitleMap);
