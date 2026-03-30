@@ -171,7 +171,7 @@ public class TodoService {
                 ? todoRepository.findByGatheringIdAndUserIdOrderByWeekNumberAscCreatedAtAsc(gatheringId, requesterId)
                 : todoRepository.findByGatheringIdAndUserIdAndWeekNumberOrderByCreatedAtAsc(gatheringId, requesterId, week);
 
-        BigDecimal weeklyAchievementRate = calculateWeeklyAchievementRate(gatheringId, requesterId, week);
+        BigDecimal weeklyAchievementRate = calculateWeeklyAchievementRate(gathering, requesterId, week);
         BigDecimal overallAchievementRate = calculateOverallAchievementRate(gatheringId, requesterId);
 
         List<MyTodoListResponse.MyTodoItemResponse> responses = todos.stream()
@@ -220,19 +220,45 @@ public class TodoService {
         return (int) (days / 7) + 1;
     }
 
-    private BigDecimal calculateWeeklyAchievementRate(Long gatheringId, Long userId, Integer week) {
-        int targetWeek = week != null ? week : findCurrentWeekIfInProgress(gatheringId);
+    private BigDecimal calculateWeeklyAchievementRate(Gathering gathering, Long userId, Integer week) {
+        Integer targetWeek = resolveWeekForRead(gathering, week);
 
-        long totalCount = todoRepository.countByGatheringIdAndUserIdAndWeekNumber(gatheringId, userId, targetWeek);
+        if (targetWeek == null) {
+            return BigDecimal.ZERO.setScale(1, RoundingMode.HALF_UP);
+        }
+
+        long totalCount = todoRepository.countByGatheringIdAndUserIdAndWeekNumber(
+                gathering.getId(), userId, targetWeek
+        );
         if (totalCount == 0) {
-            return BigDecimal.ZERO.setScale(1);
+            return BigDecimal.ZERO.setScale(1, RoundingMode.HALF_UP);
         }
 
         long completedCount = todoRepository.countByGatheringIdAndUserIdAndWeekNumberAndIsCompletedTrue(
-                gatheringId, userId, targetWeek
+                gathering.getId(), userId, targetWeek
         );
 
         return calculateRate(completedCount, totalCount);
+    }
+
+
+    private Integer resolveWeekForRead(Gathering gathering, Integer requestedWeek) {
+        if (requestedWeek != null) {
+            return requestedWeek;
+        }
+
+        LocalDate today = LocalDate.now();
+
+        if (today.isBefore(gathering.getStartDate())) {
+            return null;
+        }
+
+        if (today.isAfter(gathering.getEndDate())) {
+            return gathering.getTotalWeeks();
+        }
+
+        long days = ChronoUnit.DAYS.between(gathering.getStartDate(), today);
+        return (int) (days / 7) + 1;
     }
 
     private BigDecimal calculateOverallAchievementRate(Long gatheringId, Long userId) {
@@ -243,11 +269,6 @@ public class TodoService {
 
         long completedCount = todoRepository.countByGatheringIdAndUserIdAndIsCompletedTrue(gatheringId, userId);
         return calculateRate(completedCount, totalCount);
-    }
-
-    private int findCurrentWeekIfInProgress(Long gatheringId) {
-        Gathering gathering = findGathering(gatheringId);
-        return calculateCurrentWeek(gathering.getStartDate(), gathering.getEndDate());
     }
 
     private BigDecimal calculateRate(long completedCount, long totalCount) {
