@@ -204,6 +204,18 @@ public class Gathering extends BaseTimeEntity {
         this.totalWeeks = calculateTotalWeeks(this.startDate, endDate);
     }
 
+    public void validateRecruiting() {
+        if (this.status != GatheringStatus.RECRUITING) {
+            throw new BusinessException(ErrorCode.GATHERING_NOT_RECRUITING);
+        }
+    }
+
+    public void validateCapacity() {
+        if (this.currentMembers >= this.maxMembers) {
+            throw new BusinessException(ErrorCode.GATHERING_FULL);
+        }
+    }
+
     public void increaseViewCount() {
         this.viewCount++;
     }
@@ -270,5 +282,9 @@ public class Gathering extends BaseTimeEntity {
     private static int calculateTotalWeeks(LocalDate startDate, LocalDate endDate) {
         long days = ChronoUnit.DAYS.between(startDate, endDate);
         return (int) (days / 7) + 1;
+    }
+
+    public void increaseCurrentMembers() {
+        this.currentMembers++;
     }
 }

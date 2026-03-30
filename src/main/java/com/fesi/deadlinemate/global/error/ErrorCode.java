@@ -43,6 +43,17 @@ public enum ErrorCode {
     INVALID_MAX_MEMBERS(HttpStatus.BAD_REQUEST, "최대 인원은 2명 이상 10명 이하여야 합니다."),
     GATHERING_NOT_FOUND(HttpStatus.NOT_FOUND, "모임을 찾을 수 없습니다."),
 
+    // GatheringApplication
+    DUPLICATE_GATHERING_APPLICATION(HttpStatus.CONFLICT, "이미 신청한 모임입니다."),
+    GATHERING_NOT_RECRUITING(HttpStatus.BAD_REQUEST, "현재 모집 중인 모임만 신청할 수 있습니다."),
+    GATHERING_FULL(HttpStatus.BAD_REQUEST, "모집 인원이 마감되었습니다."),
+    ALREADY_GATHERING_MEMBER(HttpStatus.CONFLICT, "이미 해당 모임의 멤버입니다."),
+    GATHERING_LEADER_CANNOT_APPLY(HttpStatus.BAD_REQUEST, "모임장은 본인 모임에 신청할 수 없습니다."),
+    APPLICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 신청입니다."),
+    INVALID_APPLICATION_STATUS_CHANGE(HttpStatus.BAD_REQUEST, "변경할 수 없는 신청 상태입니다."),
+    APPLICATION_CANCEL_FORBIDDEN(HttpStatus.FORBIDDEN, "본인의 신청만 취소할 수 있습니다."),
+    APPLICATION_CANCEL_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "대기 중인 신청만 취소할 수 있습니다."),
+
     //WeeklyPlan
     INVALID_WEEKLY_GUIDE_SEQUENCE(HttpStatus.BAD_REQUEST,"주차 가이드는 1주차부터 순차적으로 입력되어야 합니다.");
 
