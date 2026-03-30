@@ -1,6 +1,5 @@
 package com.fesi.deadlinemate.domain.gathering.service;
 
-import com.fesi.deadlinemate.domain.gathering.entity.Gathering;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringMember;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringMemberRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
@@ -48,7 +47,6 @@ public class MembershipCommandService {
     }
 
     private void decreaseCurrentMembers(Long gatheringId) {
-        gatheringRepository.findById(gatheringId)
-                .ifPresent(Gathering::decreaseCurrentMembers);
+        gatheringRepository.decreaseCurrentMembers(gatheringId);
     }
 }

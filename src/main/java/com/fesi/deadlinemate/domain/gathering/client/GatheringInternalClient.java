@@ -1,7 +1,7 @@
 package com.fesi.deadlinemate.domain.gathering.client;
 
 import com.fesi.deadlinemate.domain.gathering.client.dto.GatheringInfo;
-import com.fesi.deadlinemate.domain.gathering.client.dto.MyGatheringListInfo;
+import com.fesi.deadlinemate.domain.gathering.dto.response.MyGatheringListResponse;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
 import com.fesi.deadlinemate.domain.gathering.service.MembershipQueryService;
 import java.util.Optional;
@@ -22,9 +22,7 @@ public class GatheringInternalClient implements GatheringClient {
     }
 
     @Override
-    public MyGatheringListInfo getMyGatherings(Long userId, String status, int page, int limit) {
-        return MyGatheringListInfo.from(
-                membershipQueryService.getMyGatherings(userId, status, page, limit)
-        );
+    public MyGatheringListResponse getMyGatherings(Long userId, String status, int page, int limit) {
+        return membershipQueryService.getMyGatherings(userId, status, page, limit);
     }
 }

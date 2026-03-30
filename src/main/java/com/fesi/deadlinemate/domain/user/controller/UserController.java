@@ -1,7 +1,7 @@
 package com.fesi.deadlinemate.domain.user.controller;
 
 import com.fesi.deadlinemate.domain.gathering.client.GatheringClient;
-import com.fesi.deadlinemate.domain.gathering.client.dto.MyGatheringListInfo;
+import com.fesi.deadlinemate.domain.gathering.dto.response.MyGatheringListResponse;
 import com.fesi.deadlinemate.domain.user.dto.request.ChangePasswordRequest;
 import com.fesi.deadlinemate.domain.user.dto.request.UpdateProfileRequest;
 import com.fesi.deadlinemate.domain.user.dto.response.PublicProfileResponse;
@@ -56,7 +56,7 @@ public class UserController {
     }
 
     @GetMapping("/me/gatherings")
-    public ResponseEntity<ApiResponse<MyGatheringListInfo>> getMyGatherings(
+    public ResponseEntity<ApiResponse<MyGatheringListResponse>> getMyGatherings(
             Authentication authentication,
             @RequestParam(defaultValue = "all") String status,
             @RequestParam(defaultValue = "1") int page,

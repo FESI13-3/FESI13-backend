@@ -272,9 +272,4 @@ public class Gathering extends BaseTimeEntity {
         return (int) (days / 7) + 1;
     }
 
-    public void decreaseCurrentMembers() {
-        if (this.currentMembers > 0) {
-            this.currentMembers--;
-        }
-    }
 }

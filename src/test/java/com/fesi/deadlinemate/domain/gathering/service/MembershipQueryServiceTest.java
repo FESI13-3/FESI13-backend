@@ -3,7 +3,6 @@ package com.fesi.deadlinemate.domain.gathering.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 import com.fesi.deadlinemate.domain.gathering.dto.response.MemberListResponse;
@@ -23,8 +22,9 @@ import com.fesi.deadlinemate.global.error.ErrorCode;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -38,14 +38,10 @@ import org.springframework.data.domain.Pageable;
 @ExtendWith(MockitoExtension.class)
 class MembershipQueryServiceTest {
 
-    @Mock
-    private GatheringMemberRepository gatheringMemberRepository;
-    @Mock
-    private GatheringRepository gatheringRepository;
-    @Mock
-    private GatheringTagRepository gatheringTagRepository;
-    @Mock
-    private UserClient userClient;
+    @Mock private GatheringMemberRepository gatheringMemberRepository;
+    @Mock private GatheringRepository gatheringRepository;
+    @Mock private GatheringTagRepository gatheringTagRepository;
+    @Mock private UserClient userClient;
 
     @InjectMocks
     private MembershipQueryService membershipQueryService;
@@ -66,7 +62,7 @@ class MembershipQueryServiceTest {
         }
 
         @Test
-        @DisplayName("참여 중인 모임 목록을 반환한다")
+        @DisplayName("참여 중인 모임 목록과 역할을 반환한다")
         void getMyGatherings() {
             Gathering gathering = gathering(1L, 3);
             GatheringMember member = member(1L, 1L, 10L, GatheringRole.MEMBER);
@@ -74,13 +70,15 @@ class MembershipQueryServiceTest {
             given(gatheringMemberRepository.findActiveGatheringIdsByUserId(10L)).willReturn(List.of(1L));
             given(gatheringRepository.findByIdInOrderByCreatedAtDesc(any(), any(Pageable.class)))
                     .willReturn(new PageImpl<>(List.of(gathering)));
-            given(gatheringMemberRepository.findByGatheringIdAndUserId(1L, 10L))
-                    .willReturn(Optional.of(member));
-            given(gatheringTagRepository.findByGatheringIdOrderByIdAsc(1L)).willReturn(List.of());
+            given(gatheringMemberRepository.findByGatheringIdInAndUserIdAndIsActiveTrue(List.of(1L), 10L))
+                    .willReturn(List.of(member));
+            given(gatheringTagRepository.findByGatheringIdInOrderByGatheringIdAscIdAsc(any(Collection.class)))
+                    .willReturn(List.of());
 
             MyGatheringListResponse response = membershipQueryService.getMyGatherings(10L, "all", 1, 12);
 
             assertThat(response.gatherings()).hasSize(1);
+            assertThat(response.gatherings().get(0).myRole()).isEqualTo(GatheringRole.MEMBER);
         }
     }
 
@@ -89,13 +87,14 @@ class MembershipQueryServiceTest {
     class GetMembers {
 
         @Test
-        @DisplayName("모임 멤버 목록을 반환한다")
+        @DisplayName("배치로 유저 정보를 조회하여 멤버 목록을 반환한다")
         void getMembers() {
             GatheringMember member = member(1L, 1L, 10L, GatheringRole.LEADER);
             given(gatheringMemberRepository.existsByGatheringIdAndUserIdAndIsActiveTrue(1L, 10L)).willReturn(true);
             given(gatheringMemberRepository.findByGatheringIdAndIsActiveTrueOrderByIdAsc(1L))
                     .willReturn(List.of(member));
-            given(userClient.findById(10L)).willReturn(new UserInfo(10L, "leader", null));
+            given(userClient.findByIds(List.of(10L))).willReturn(
+                    Map.of(10L, UserInfo.builder().id(10L).nickname("leader").build()));
 
             MemberListResponse response = membershipQueryService.getMembers(1L, 10L);
 
