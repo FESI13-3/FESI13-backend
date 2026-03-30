@@ -1,13 +1,13 @@
-package com.fesi.deadlinemate.domain.application.service;
+package com.fesi.deadlinemate.domain.gatheringApplication.service;
 
-import com.fesi.deadlinemate.domain.application.dto.MockApplicationDtos.ApplicantDto;
-import com.fesi.deadlinemate.domain.application.dto.MockApplicationDtos.ApplicationItemDto;
-import com.fesi.deadlinemate.domain.application.dto.MockApplicationDtos.ApplicationListResponse;
-import com.fesi.deadlinemate.domain.application.dto.MockApplicationDtos.CreateApplicationRequest;
-import com.fesi.deadlinemate.domain.application.dto.MockApplicationDtos.MyApplicationItemDto;
-import com.fesi.deadlinemate.domain.application.dto.MockApplicationDtos.MyApplicationListResponse;
-import com.fesi.deadlinemate.domain.application.dto.MockApplicationDtos.UpdateApplicationStatusRequest;
-import com.fesi.deadlinemate.domain.application.dto.MockApplicationEntity;
+import com.fesi.deadlinemate.domain.gatheringApplication.dto.MockApplicationDtos.ApplicantDto;
+import com.fesi.deadlinemate.domain.gatheringApplication.dto.MockApplicationDtos.ApplicationItemDto;
+import com.fesi.deadlinemate.domain.gatheringApplication.dto.MockApplicationDtos.ApplicationListResponse;
+import com.fesi.deadlinemate.domain.gatheringApplication.dto.MockApplicationDtos.CreateApplicationRequest;
+import com.fesi.deadlinemate.domain.gatheringApplication.dto.MockApplicationDtos.MyApplicationItemDto;
+import com.fesi.deadlinemate.domain.gatheringApplication.dto.MockApplicationDtos.MyApplicationListResponse;
+import com.fesi.deadlinemate.domain.gatheringApplication.dto.MockApplicationDtos.UpdateApplicationStatusRequest;
+import com.fesi.deadlinemate.domain.gatheringApplication.entity.MockApplicationEntity;
 import com.fesi.deadlinemate.domain.gathering.entity.MockGatheringEntity;
 import com.fesi.deadlinemate.global.mock.MockStore;
 import com.fesi.deadlinemate.global.mock.support.MockAuthContext;

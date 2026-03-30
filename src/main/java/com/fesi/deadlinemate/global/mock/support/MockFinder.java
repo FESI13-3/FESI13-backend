@@ -1,6 +1,6 @@
 package com.fesi.deadlinemate.global.mock.support;
 
-import com.fesi.deadlinemate.domain.application.dto.MockApplicationEntity;
+import com.fesi.deadlinemate.domain.gatheringApplication.entity.MockApplicationEntity;
 import com.fesi.deadlinemate.domain.gathering.entity.MockGatheringEntity;
 import com.fesi.deadlinemate.domain.todo.entity.MockTodoEntity;
 import com.fesi.deadlinemate.global.mock.MockStore;
