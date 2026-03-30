@@ -44,7 +44,13 @@ public enum ErrorCode {
     GATHERING_NOT_FOUND(HttpStatus.NOT_FOUND, "모임을 찾을 수 없습니다."),
 
     //WeeklyPlan
-    INVALID_WEEKLY_GUIDE_SEQUENCE(HttpStatus.BAD_REQUEST,"주차 가이드는 1주차부터 순차적으로 입력되어야 합니다.");
+    INVALID_WEEKLY_GUIDE_SEQUENCE(HttpStatus.BAD_REQUEST,"주차 가이드는 1주차부터 순차적으로 입력되어야 합니다."),
+
+    // Membership
+    NOT_A_MEMBER(HttpStatus.FORBIDDEN, "모임 멤버만 접근할 수 있습니다."),
+    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 멤버를 찾을 수 없습니다."),
+    CANNOT_KICK_LEADER(HttpStatus.BAD_REQUEST, "모임장은 퇴출할 수 없습니다."),
+    LEADER_CANNOT_LEAVE(HttpStatus.BAD_REQUEST, "모임장은 모임을 탈퇴할 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
