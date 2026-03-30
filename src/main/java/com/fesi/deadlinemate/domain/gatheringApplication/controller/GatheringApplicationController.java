@@ -5,6 +5,7 @@ import com.fesi.deadlinemate.domain.gatheringApplication.dto.request.CreateAppli
 import com.fesi.deadlinemate.domain.gatheringApplication.dto.request.UpdateApplicationRequest;
 import com.fesi.deadlinemate.domain.gatheringApplication.dto.response.ApplicationListResponse;
 import com.fesi.deadlinemate.domain.gatheringApplication.dto.response.CreateApplicationResponse;
+import com.fesi.deadlinemate.domain.gatheringApplication.dto.response.MyApplicationListResponse;
 import com.fesi.deadlinemate.domain.gatheringApplication.dto.response.UpdateApplicationResponse;
 import com.fesi.deadlinemate.domain.gatheringApplication.service.GatheringApplicationService;
 import com.fesi.deadlinemate.global.common.ApiResponse;
@@ -23,12 +24,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/gatherings")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class GatheringApplicationController {
     private final GatheringApplicationService gatheringApplicationService;
 
-    @PostMapping("/{gatheringId}/applications")
+    @PostMapping("/gatherings/{gatheringId}/applications")
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<CreateApplicationResponse> apply(
             @PathVariable Long gatheringId,
@@ -43,7 +44,7 @@ public class GatheringApplicationController {
         return ApiResponse.success(response);
     }
 
-    @GetMapping("/{gatheringId}/applications")
+    @GetMapping("/gatherings/{gatheringId}/applications")
     public ApiResponse<ApplicationListResponse> getApplications(
             @PathVariable Long gatheringId,
             Authentication authentication
@@ -52,7 +53,7 @@ public class GatheringApplicationController {
         return ApiResponse.success(gatheringApplicationService.getApplications(gatheringId, userId));
     }
 
-    @PatchMapping("/{gatheringId}/applications/{applicationId}")
+    @PatchMapping("/gatherings/{gatheringId}/applications/{applicationId}")
     public ApiResponse<UpdateApplicationResponse> updateApplication(
             @PathVariable Long gatheringId,
             @PathVariable Long applicationId,
@@ -68,7 +69,7 @@ public class GatheringApplicationController {
         return ApiResponse.success(response);
     }
 
-    @DeleteMapping("/{gatheringId}/applications/{applicationId}")
+    @DeleteMapping("/gatherings/{gatheringId}/applications/{applicationId}")
     public ApiResponse<Void> cancelApplication(
             @PathVariable Long gatheringId,
             @PathVariable Long applicationId,
@@ -77,5 +78,11 @@ public class GatheringApplicationController {
         Long userId = (Long) authentication.getPrincipal();
         gatheringApplicationService.cancelApplication(gatheringId, applicationId, userId);
         return ApiResponse.success();
+    }
+
+    @GetMapping("users/me/applications")
+    public ApiResponse<MyApplicationListResponse> getMyApplications(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ApiResponse.success(gatheringApplicationService.getMyApplications(userId));
     }
 }

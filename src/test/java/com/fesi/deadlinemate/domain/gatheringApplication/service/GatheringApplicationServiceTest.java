@@ -390,9 +390,12 @@ class GatheringApplicationServiceTest {
                     .build();
             setField(application, "id", 1L);
 
-            when(gatheringRepository.findById(100L)).thenReturn(Optional.of(recruitingGathering));
-            when(gatheringApplicationRepository.findByIdAndGatheringId(1L, 100L)).thenReturn(Optional.of(application));
-            when(gatheringMemberRepository.existsByGatheringIdAndUserIdAndIsActiveTrue(100L, 200L)).thenReturn(false);
+            when(gatheringRepository.findByIdForUpdate(100L))
+                    .thenReturn(Optional.of(recruitingGathering));
+            when(gatheringApplicationRepository.findByIdAndGatheringIdForUpdate(1L, 100L))
+                    .thenReturn(Optional.of(application));
+            when(gatheringMemberRepository.existsByGatheringIdAndUserIdAndIsActiveTrue(100L, 200L))
+                    .thenReturn(false);
 
             UpdateApplicationResponse response = gatheringApplicationService.updateApplication(updateCommand);
 
@@ -464,14 +467,15 @@ class GatheringApplicationServiceTest {
                     .status(ApplicationStatus.PENDING)
                     .build();
 
-            when(gatheringRepository.findById(100L)).thenReturn(Optional.of(recruitingGathering));
-
             assertThatThrownBy(() -> gatheringApplicationService.updateApplication(updateCommand))
                     .isInstanceOf(BusinessException.class)
                     .extracting(ex -> ((BusinessException) ex).getErrorCode())
                     .isEqualTo(ErrorCode.INVALID_APPLICATION_STATUS_CHANGE);
 
+            verify(gatheringRepository, never()).findById(any());
+            verify(gatheringRepository, never()).findByIdForUpdate(any());
             verify(gatheringApplicationRepository, never()).findByIdAndGatheringId(any(), any());
+            verify(gatheringApplicationRepository, never()).findByIdAndGatheringIdForUpdate(any(), any());
         }
 
         @Test
@@ -495,13 +499,17 @@ class GatheringApplicationServiceTest {
                     .build();
             setField(application, "id", 1L);
 
-            when(gatheringRepository.findById(100L)).thenReturn(Optional.of(recruitingGathering));
-            when(gatheringApplicationRepository.findByIdAndGatheringId(1L, 100L)).thenReturn(Optional.of(application));
+            when(gatheringRepository.findByIdForUpdate(100L)).thenReturn(Optional.of(recruitingGathering));
+            when(gatheringApplicationRepository.findByIdAndGatheringIdForUpdate(1L, 100L))
+                    .thenReturn(Optional.of(application));
 
             assertThatThrownBy(() -> gatheringApplicationService.updateApplication(updateCommand))
                     .isInstanceOf(BusinessException.class)
                     .extracting(ex -> ((BusinessException) ex).getErrorCode())
                     .isEqualTo(ErrorCode.GATHERING_FULL);
+
+            verify(gatheringMemberRepository, never()).saveAndFlush(any());
+            verify(eventPublisher, never()).publishEvent(any());
         }
     }
 

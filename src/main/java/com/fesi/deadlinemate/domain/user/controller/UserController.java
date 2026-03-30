@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
-    private final GatheringApplicationService gatheringApplicationService;
 
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserProfileResponse>> getMyProfile(Authentication authentication) {
@@ -59,11 +58,5 @@ public class UserController {
     public ResponseEntity<ApiResponse<PublicProfileResponse>> getUserProfile(@PathVariable Long userId) {
         User user = userService.findById(userId);
         return ResponseEntity.ok(ApiResponse.success(PublicProfileResponse.from(user)));
-    }
-
-    @GetMapping("/me/applications")
-    public ApiResponse<MyApplicationListResponse> getMyApplications(Authentication authentication) {
-        Long userId = (Long) authentication.getPrincipal();
-        return ApiResponse.success(gatheringApplicationService.getMyApplications(userId));
     }
 }

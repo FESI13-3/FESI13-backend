@@ -100,15 +100,10 @@ public class GatheringApplicationService {
 
     @Transactional
     public UpdateApplicationResponse updateApplication(UpdateApplicationCommand command) {
-        Gathering gathering = gatheringRepository.findById(command.gatheringId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.GATHERING_NOT_FOUND));
-
-        gathering.validateLeader(command.requesterId());
         validateUpdatableStatus(command.status());
-
-        GatheringApplication application = gatheringApplicationRepository
-                .findByIdAndGatheringId(command.applicationId(), command.gatheringId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.APPLICATION_NOT_FOUND));
+        Gathering gathering = getGatheringForUpdate(command);
+        gathering.validateLeader(command.requesterId());
+        GatheringApplication application = getApplicationForUpdate(command);
 
         if (command.status() == ApplicationStatus.ACCEPTED) {
             acceptApplication(gathering, application);
@@ -193,6 +188,28 @@ public class GatheringApplicationService {
 
         return MyApplicationListResponse.of(responses);
     }
+
+    private Gathering getGatheringForUpdate(UpdateApplicationCommand command) {
+        if (command.status() == ApplicationStatus.ACCEPTED) {
+            return gatheringRepository.findByIdForUpdate(command.gatheringId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.GATHERING_NOT_FOUND));
+        }
+
+        return gatheringRepository.findById(command.gatheringId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.GATHERING_NOT_FOUND));
+    }
+
+    private GatheringApplication getApplicationForUpdate(UpdateApplicationCommand command) {
+        if (command.status() == ApplicationStatus.ACCEPTED) {
+            return gatheringApplicationRepository
+                    .findByIdAndGatheringIdForUpdate(command.applicationId(), command.gatheringId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.APPLICATION_NOT_FOUND));
+        }
+
+        return gatheringApplicationRepository.findByIdAndGatheringId(command.applicationId(), command.gatheringId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.APPLICATION_NOT_FOUND));
+    }
+
 
     private void acceptApplication(Gathering gathering, GatheringApplication application) {
         gathering.validateCapacity();
