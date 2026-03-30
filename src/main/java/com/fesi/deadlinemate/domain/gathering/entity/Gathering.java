@@ -271,4 +271,10 @@ public class Gathering extends BaseTimeEntity {
         long days = ChronoUnit.DAYS.between(startDate, endDate);
         return (int) (days / 7) + 1;
     }
+
+    public void decreaseCurrentMembers() {
+        if (this.currentMembers > 0) {
+            this.currentMembers--;
+        }
+    }
 }

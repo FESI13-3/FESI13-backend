@@ -56,4 +56,12 @@ public class GatheringMember {
         this.overallAchievementRate = overallAchievementRate;
         this.isActive = isActive;
     }
+
+    public boolean isLeader() {
+        return this.role == GatheringRole.LEADER;
+    }
+
+    public void deactivate() {
+        this.isActive = false;
+    }
 }
