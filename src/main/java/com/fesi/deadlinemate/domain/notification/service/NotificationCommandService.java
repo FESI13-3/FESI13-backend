@@ -22,6 +22,8 @@ public class NotificationCommandService {
                 .type(command.type())
                 .content(command.content())
                 .targetUrl(command.targetUrl())
+                .referenceId(command.referenceId())
+                .referenceType(command.referenceType())
                 .build();
         notificationRepository.save(notification);
     }

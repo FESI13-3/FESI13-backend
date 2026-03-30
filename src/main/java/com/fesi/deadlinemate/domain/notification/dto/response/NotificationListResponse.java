@@ -18,6 +18,8 @@ public record NotificationListResponse(
             String content,
             boolean isRead,
             String targetUrl,
+            Long referenceId,
+            String referenceType,
             LocalDateTime createdAt
     ) {
         public static NotificationItem from(Notification notification) {
@@ -27,6 +29,8 @@ public record NotificationListResponse(
                     .content(notification.getContent())
                     .isRead(notification.isRead())
                     .targetUrl(notification.getTargetUrl())
+                    .referenceId(notification.getReferenceId())
+                    .referenceType(notification.getReferenceType())
                     .createdAt(notification.getCreatedAt())
                     .build();
         }

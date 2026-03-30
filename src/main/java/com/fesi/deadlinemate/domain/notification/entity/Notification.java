@@ -46,12 +46,20 @@ public class Notification extends BaseTimeEntity {
     @Column(length = 200)
     private String targetUrl;
 
+    private Long referenceId;
+
+    @Column(length = 30)
+    private String referenceType;
+
     @Builder
-    public Notification(Long userId, NotificationType type, String content, String targetUrl) {
+    public Notification(Long userId, NotificationType type, String content,
+                        String targetUrl, Long referenceId, String referenceType) {
         this.userId = userId;
         this.type = type;
         this.content = content;
         this.targetUrl = targetUrl;
+        this.referenceId = referenceId;
+        this.referenceType = referenceType;
         this.isRead = false;
     }
 

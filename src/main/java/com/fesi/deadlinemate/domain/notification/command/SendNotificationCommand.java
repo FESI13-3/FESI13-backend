@@ -6,5 +6,7 @@ public record SendNotificationCommand(
         Long userId,
         NotificationType type,
         String content,
-        String targetUrl
+        String targetUrl,
+        Long referenceId,
+        String referenceType
 ) {}
