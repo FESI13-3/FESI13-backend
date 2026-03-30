@@ -6,4 +6,6 @@ import java.util.Optional;
 public interface GatheringClient {
 
     Optional<GatheringInfo> findById(Long gatheringId);
+
+    boolean isMember(Long gatheringId, Long userId);
 }

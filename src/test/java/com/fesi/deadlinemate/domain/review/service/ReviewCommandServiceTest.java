@@ -44,6 +44,8 @@ class ReviewCommandServiceTest {
         @DisplayName("완료된 모임에 리뷰를 작성한다")
         void createReviews() {
             given(gatheringClient.findById(1L)).willReturn(Optional.of(completedGatheringInfo()));
+            given(gatheringClient.isMember(1L, 10L)).willReturn(true);
+            given(gatheringClient.isMember(1L, 20L)).willReturn(true);
             given(reviewRepository.existsByGatheringIdAndReviewerId(1L, 10L)).willReturn(false);
             given(reviewRepository.save(any(Review.class))).willAnswer(inv -> inv.getArgument(0));
 
@@ -77,6 +79,7 @@ class ReviewCommandServiceTest {
         @DisplayName("이미 리뷰를 작성했으면 예외가 발생한다")
         void alreadySubmitted() {
             given(gatheringClient.findById(1L)).willReturn(Optional.of(completedGatheringInfo()));
+            given(gatheringClient.isMember(1L, 10L)).willReturn(true);
             given(reviewRepository.existsByGatheringIdAndReviewerId(1L, 10L)).willReturn(true);
 
             CreateReviewCommand command = new CreateReviewCommand(1L, 10L, List.of(
@@ -89,9 +92,59 @@ class ReviewCommandServiceTest {
         }
 
         @Test
+        @DisplayName("본인에게 리뷰를 작성하면 예외가 발생한다")
+        void selfReviewThrows() {
+            given(gatheringClient.findById(1L)).willReturn(Optional.of(completedGatheringInfo()));
+            given(gatheringClient.isMember(1L, 10L)).willReturn(true);
+            given(reviewRepository.existsByGatheringIdAndReviewerId(1L, 10L)).willReturn(false);
+
+            CreateReviewCommand command = new CreateReviewCommand(1L, 10L, List.of(
+                    new CreateReviewCommand.ReviewItem(10L, List.of("성실해요"), null)
+            ));
+
+            assertThatThrownBy(() -> reviewCommandService.createReviews(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode").isEqualTo(ErrorCode.SELF_REVIEW_NOT_ALLOWED);
+        }
+
+        @Test
+        @DisplayName("모임 멤버가 아닌 사람이 리뷰하면 예외가 발생한다")
+        void nonMemberReviewerThrows() {
+            given(gatheringClient.findById(1L)).willReturn(Optional.of(completedGatheringInfo()));
+            given(gatheringClient.isMember(1L, 10L)).willReturn(false);
+
+            CreateReviewCommand command = new CreateReviewCommand(1L, 10L, List.of(
+                    new CreateReviewCommand.ReviewItem(20L, List.of("성실해요"), null)
+            ));
+
+            assertThatThrownBy(() -> reviewCommandService.createReviews(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode").isEqualTo(ErrorCode.REVIEWER_NOT_A_MEMBER);
+        }
+
+        @Test
+        @DisplayName("리뷰 대상이 모임 멤버가 아니면 예외가 발생한다")
+        void nonMemberTargetThrows() {
+            given(gatheringClient.findById(1L)).willReturn(Optional.of(completedGatheringInfo()));
+            given(gatheringClient.isMember(1L, 10L)).willReturn(true);
+            given(reviewRepository.existsByGatheringIdAndReviewerId(1L, 10L)).willReturn(false);
+            given(gatheringClient.isMember(1L, 20L)).willReturn(false);
+
+            CreateReviewCommand command = new CreateReviewCommand(1L, 10L, List.of(
+                    new CreateReviewCommand.ReviewItem(20L, List.of("성실해요"), null)
+            ));
+
+            assertThatThrownBy(() -> reviewCommandService.createReviews(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode").isEqualTo(ErrorCode.REVIEW_TARGET_NOT_A_MEMBER);
+        }
+
+        @Test
         @DisplayName("태그 수에 비례하여 UserClient.addReputationScore가 호출된다")
         void reputationScoreViaClient() {
             given(gatheringClient.findById(1L)).willReturn(Optional.of(completedGatheringInfo()));
+            given(gatheringClient.isMember(1L, 10L)).willReturn(true);
+            given(gatheringClient.isMember(1L, 20L)).willReturn(true);
             given(reviewRepository.existsByGatheringIdAndReviewerId(1L, 10L)).willReturn(false);
             given(reviewRepository.save(any(Review.class))).willAnswer(inv -> inv.getArgument(0));
 

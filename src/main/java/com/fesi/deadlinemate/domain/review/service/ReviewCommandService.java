@@ -25,12 +25,16 @@ public class ReviewCommandService {
 
     public void createReviews(CreateReviewCommand command) {
         validateGatheringCompleted(command.gatheringId());
+        validateReviewerIsMember(command.gatheringId(), command.reviewerId());
 
         if (reviewRepository.existsByGatheringIdAndReviewerId(command.gatheringId(), command.reviewerId())) {
             throw new BusinessException(ErrorCode.REVIEW_ALREADY_SUBMITTED);
         }
 
         command.reviews().forEach(item -> {
+            validateNotSelfReview(command.reviewerId(), item.targetUserId());
+            validateTargetIsMember(command.gatheringId(), item.targetUserId());
+
             Review review = Review.create(
                     command.gatheringId(), command.reviewerId(),
                     item.targetUserId(), item.tags(), item.comment()
@@ -47,5 +51,23 @@ public class ReviewCommandService {
         gatheringClient.findById(gatheringId)
                 .filter(info -> info.isCompleted())
                 .orElseThrow(() -> new BusinessException(ErrorCode.GATHERING_NOT_COMPLETED));
+    }
+
+    private void validateReviewerIsMember(Long gatheringId, Long reviewerId) {
+        if (!gatheringClient.isMember(gatheringId, reviewerId)) {
+            throw new BusinessException(ErrorCode.REVIEWER_NOT_A_MEMBER);
+        }
+    }
+
+    private void validateTargetIsMember(Long gatheringId, Long targetUserId) {
+        if (!gatheringClient.isMember(gatheringId, targetUserId)) {
+            throw new BusinessException(ErrorCode.REVIEW_TARGET_NOT_A_MEMBER);
+        }
+    }
+
+    private void validateNotSelfReview(Long reviewerId, Long targetUserId) {
+        if (reviewerId.equals(targetUserId)) {
+            throw new BusinessException(ErrorCode.SELF_REVIEW_NOT_ALLOWED);
+        }
     }
 }
