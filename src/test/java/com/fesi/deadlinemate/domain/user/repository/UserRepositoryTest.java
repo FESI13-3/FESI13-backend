@@ -3,6 +3,7 @@ package com.fesi.deadlinemate.domain.user.repository;
 import com.fesi.deadlinemate.domain.user.entity.Provider;
 import com.fesi.deadlinemate.domain.user.entity.User;
 import com.fesi.deadlinemate.global.config.JpaConfig;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,6 +106,32 @@ class UserRepositoryTest {
 
         assertTrue(emailUser.isEmailUser());
         assertFalse(kakaoUser.isEmailUser());
+    }
+
+    @Test
+    @DisplayName("ID 목록으로 사용자들을 조회할 수 있다")
+    void findByIdIn() {
+        User user1 = createEmailUser("user1@example.com", "유저1");
+        User user2 = createEmailUser("user2@example.com", "유저2");
+        User user3 = createEmailUser("user3@example.com", "유저3");
+
+        User saved1 = userRepository.save(user1);
+        User saved2 = userRepository.save(user2);
+        userRepository.save(user3);
+
+        List<User> found = userRepository.findByIdIn(List.of(saved1.getId(), saved2.getId()));
+
+        assertEquals(2, found.size());
+        assertTrue(found.stream().anyMatch(user -> user.getEmail().equals("user1@example.com")));
+        assertTrue(found.stream().anyMatch(user -> user.getEmail().equals("user2@example.com")));
+    }
+
+    @Test
+    @DisplayName("ID 목록에 해당하는 사용자가 없으면 빈 리스트를 반환한다")
+    void findByIdInEmpty() {
+        List<User> found = userRepository.findByIdIn(List.of(999L, 1000L));
+
+        assertTrue(found.isEmpty());
     }
 
     private User createEmailUser(String email, String nickname) {

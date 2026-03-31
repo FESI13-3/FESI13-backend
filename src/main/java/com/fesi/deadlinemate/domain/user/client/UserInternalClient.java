@@ -3,6 +3,10 @@ package com.fesi.deadlinemate.domain.user.client;
 import com.fesi.deadlinemate.domain.user.client.dto.UserInfo;
 import com.fesi.deadlinemate.domain.user.entity.User;
 import com.fesi.deadlinemate.domain.user.service.UserService;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -26,5 +30,17 @@ public class UserInternalClient implements UserClient {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    @Override
+    public Map<Long, UserInfo> findByIds(List<Long> userIds) {
+        List<User> users = userService.findByIds(userIds);
+
+        return users.stream()
+                .map(UserInfo::from)
+                .collect(Collectors.toMap(
+                        UserInfo::getId,
+                        Function.identity()
+                ));
     }
 }

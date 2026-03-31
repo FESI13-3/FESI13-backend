@@ -1,4 +1,4 @@
-package com.fesi.deadlinemate.domain.todo;
+package com.fesi.deadlinemate.domain.todo.controller;
 
 import com.fesi.deadlinemate.domain.todo.dto.MockTodoDtos.CreateTodoRequest;
 import com.fesi.deadlinemate.domain.todo.dto.MockTodoDtos.UpdateTodoRequest;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/mock")
 public class MockTodoController {
     private final MockTodoService service;
 

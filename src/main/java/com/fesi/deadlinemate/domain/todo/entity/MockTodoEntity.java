@@ -1,4 +1,4 @@
-package com.fesi.deadlinemate.domain.todo.dto;
+package com.fesi.deadlinemate.domain.todo.entity;
 
 import java.time.OffsetDateTime;
 

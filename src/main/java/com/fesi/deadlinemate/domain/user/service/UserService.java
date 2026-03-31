@@ -5,6 +5,7 @@ import com.fesi.deadlinemate.domain.user.entity.User;
 import com.fesi.deadlinemate.domain.user.repository.UserRepository;
 import com.fesi.deadlinemate.global.error.BusinessException;
 import com.fesi.deadlinemate.global.error.ErrorCode;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -98,6 +99,10 @@ public class UserService {
     public void deactivate(Long userId) {
         User user = findById(userId);
         user.deactivate();
+    }
+
+    public List<User> findByIds(List<Long> userIds) {
+        return userRepository.findByIdIn(userIds);
     }
 
     private void validateEmailNotExists(String email) {

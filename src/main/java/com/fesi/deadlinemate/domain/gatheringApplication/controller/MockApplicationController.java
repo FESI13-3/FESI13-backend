@@ -1,8 +1,8 @@
-package com.fesi.deadlinemate.domain.application.controller;
+package com.fesi.deadlinemate.domain.gatheringApplication.controller;
 
-import com.fesi.deadlinemate.domain.application.dto.MockApplicationDtos.CreateApplicationRequest;
-import com.fesi.deadlinemate.domain.application.dto.MockApplicationDtos.UpdateApplicationStatusRequest;
-import com.fesi.deadlinemate.domain.application.service.MockApplicationService;
+import com.fesi.deadlinemate.domain.gatheringApplication.dto.MockApplicationDtos.CreateApplicationRequest;
+import com.fesi.deadlinemate.domain.gatheringApplication.dto.MockApplicationDtos.UpdateApplicationStatusRequest;
+import com.fesi.deadlinemate.domain.gatheringApplication.service.MockApplicationService;
 import com.fesi.deadlinemate.global.common.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/mock")
 public class MockApplicationController {
 
     private final MockApplicationService service;
