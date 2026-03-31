@@ -1,4 +1,4 @@
-package com.fesi.deadlinemate.domain.report;
+package com.fesi.deadlinemate.domain.report.controller;
 
 import com.fesi.deadlinemate.domain.report.service.MockReportService;
 import com.fesi.deadlinemate.global.common.ApiResponse;
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/mock")
 public class MockReportController {
     private final MockReportService service;
 

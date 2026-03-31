@@ -42,6 +42,41 @@ public enum ErrorCode {
     GATHERING_DELETE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "진행 중인 모임은 삭제할 수 없습니다."),
     INVALID_MAX_MEMBERS(HttpStatus.BAD_REQUEST, "최대 인원은 2명 이상 10명 이하여야 합니다."),
     GATHERING_NOT_FOUND(HttpStatus.NOT_FOUND, "모임을 찾을 수 없습니다."),
+    GATHERING_COMPLETE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "진행 중인 모임만 종료할 수 있습니다."),
+
+    // GatheringApplication
+    DUPLICATE_GATHERING_APPLICATION(HttpStatus.CONFLICT, "이미 신청한 모임입니다."),
+    GATHERING_NOT_RECRUITING(HttpStatus.BAD_REQUEST, "현재 모집 중인 모임만 신청할 수 있습니다."),
+    GATHERING_FULL(HttpStatus.BAD_REQUEST, "모집 인원이 마감되었습니다."),
+    ALREADY_GATHERING_MEMBER(HttpStatus.CONFLICT, "이미 해당 모임의 멤버입니다."),
+    GATHERING_LEADER_CANNOT_APPLY(HttpStatus.BAD_REQUEST, "모임장은 본인 모임에 신청할 수 없습니다."),
+    APPLICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 신청입니다."),
+    INVALID_APPLICATION_STATUS_CHANGE(HttpStatus.BAD_REQUEST, "변경할 수 없는 신청 상태입니다."),
+    APPLICATION_CANCEL_FORBIDDEN(HttpStatus.FORBIDDEN, "본인의 신청만 취소할 수 있습니다."),
+    APPLICATION_CANCEL_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "대기 중인 신청만 취소할 수 있습니다."),
+
+
+    // Todo
+    TODO_NOT_FOUND(HttpStatus.NOT_FOUND, "할 일을 찾을 수 없습니다."),
+    TODO_UPDATE_FORBIDDEN(HttpStatus.FORBIDDEN, "본인의 할 일만 수정할 수 있습니다."),
+    TODO_NOT_CHANGED(HttpStatus.BAD_REQUEST, "변경된 내용이 없습니다."),
+    TODO_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "본인의 할 일만 삭제할 수 있습니다."),
+    GATHERING_MEMBER_ONLY(HttpStatus.FORBIDDEN, "참여 중인 멤버만 접근할 수 있습니다."),
+    INVALID_TODO_WEEK(HttpStatus.BAD_REQUEST, "유효하지 않은 주차입니다."),
+    INVALID_TODO_CONTENT(HttpStatus.BAD_REQUEST, "할 일 내용이 올바르지 않습니다."),
+    INVALID_TODO_WEEK_ACCESS(HttpStatus.BAD_REQUEST, "현재 진행 중인 주차의 할 일만 작성하거나 수정할 수 있습니다."),
+    INVALID_TODO_PERIOD(HttpStatus.BAD_REQUEST, "현재 모임 진행 기간이 아닙니다."),
+
+    //Like
+    ALREADY_GATHERING_LIKED(HttpStatus.CONFLICT, "이미 찜한 모임입니다."),
+    GATHERING_LIKE_NOT_FOUND(HttpStatus.NOT_FOUND, "찜한 이력이 없습니다."),
+
+    //ACHIEVEMENT & REPORT
+    INVALID_ACHIEVEMENT_RATE(HttpStatus.BAD_REQUEST, "유효하지 않은 달성률입니다."),
+    GATHERING_REPORT_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 결과 리포트가 생성된 모임입니다."),
+    GATHERING_REPORT_NOT_AVAILABLE(HttpStatus.BAD_REQUEST, "모임이 완료 상태가 아니므로 결과 리포트를 조회할 수 없습니다."),
+    GATHERING_REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "모임 결과 리포트를 찾을 수 없습니다."),
+    INVALID_GATHERING_REPORT_DATA(HttpStatus.INTERNAL_SERVER_ERROR, "모임 결과 리포트 데이터가 올바르지 않습니다."),
 
     // GatheringApplication
     DUPLICATE_GATHERING_APPLICATION(HttpStatus.CONFLICT, "이미 신청한 모임입니다."),

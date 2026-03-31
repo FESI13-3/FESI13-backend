@@ -6,7 +6,6 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TodoRepository extends JpaRepository<Todo, Long> {
-
     Optional<Todo> findByIdAndGatheringId(Long todoId, Long gatheringId);
     List<Todo> findByGatheringIdAndUserIdOrderByWeekNumberAscCreatedAtAsc(Long gatheringId, Long userId);
     List<Todo> findByGatheringIdOrderByWeekNumberAscCreatedAtAsc(Long gatheringId);
