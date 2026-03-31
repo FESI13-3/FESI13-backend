@@ -195,16 +195,17 @@ public class AchievementQueryService {
                 .divide(BigDecimal.valueOf(totalCount), 1, RoundingMode.HALF_UP);
     }
 
+
     private Map<Long, UserInfo> loadUsers(List<Long> userIds) {
         if (userIds == null || userIds.isEmpty()) {
             return Map.of();
         }
 
-        Map<Long, UserInfo> result = new HashMap<>();
-        for (Long userId : userIds) {
-            result.put(userId, userClient.findById(userId));
-        }
-        return result;
+        List<Long> distinctUserIds = userIds.stream()
+                .distinct()
+                .toList();
+
+        return userClient.findByIds(distinctUserIds);
     }
 
     private record MemberRateRow(
