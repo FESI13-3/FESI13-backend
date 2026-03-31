@@ -9,6 +9,7 @@ import static org.mockito.BDDMockito.then;
 import com.fesi.deadlinemate.domain.notification.command.SendNotificationCommand;
 import com.fesi.deadlinemate.domain.notification.entity.Notification;
 import com.fesi.deadlinemate.domain.notification.entity.NotificationType;
+import com.fesi.deadlinemate.domain.notification.entity.ReferenceType;
 import com.fesi.deadlinemate.domain.notification.repository.NotificationRepository;
 import com.fesi.deadlinemate.global.error.BusinessException;
 import com.fesi.deadlinemate.global.error.ErrorCode;
@@ -45,7 +46,7 @@ class NotificationCommandServiceTest {
             SendNotificationCommand command = new SendNotificationCommand(
                     1L, NotificationType.APPLICATION_ACCEPTED,
                     "'React 스터디' 참여가 수락되었어요!", "/gatherings/1/dashboard",
-                    1L, "GATHERING"
+                    1L, ReferenceType.GATHERING
             );
 
             notificationCommandService.send(command);

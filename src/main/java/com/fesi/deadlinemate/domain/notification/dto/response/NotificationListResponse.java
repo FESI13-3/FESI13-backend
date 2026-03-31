@@ -2,6 +2,7 @@ package com.fesi.deadlinemate.domain.notification.dto.response;
 
 import com.fesi.deadlinemate.domain.notification.entity.Notification;
 import com.fesi.deadlinemate.domain.notification.entity.NotificationType;
+import com.fesi.deadlinemate.domain.notification.entity.ReferenceType;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
@@ -19,7 +20,7 @@ public record NotificationListResponse(
             boolean isRead,
             String targetUrl,
             Long referenceId,
-            String referenceType,
+            ReferenceType referenceType,
             LocalDateTime createdAt
     ) {
         public static NotificationItem from(Notification notification) {
