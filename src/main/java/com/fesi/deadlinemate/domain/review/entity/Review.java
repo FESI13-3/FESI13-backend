@@ -47,7 +47,7 @@ public class Review extends BaseTimeEntity {
     @Column(nullable = false)
     private Long targetUserId;
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "review_tags", joinColumns = @JoinColumn(name = "review_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "tag", nullable = false, length = 30)
