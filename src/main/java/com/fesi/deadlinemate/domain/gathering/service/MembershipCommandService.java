@@ -28,7 +28,7 @@ public class MembershipCommandService {
 
         GatheringMember target = findActiveMember(gatheringId, targetUserId);
         target.deactivate();
-        decreaseCurrentMembers(gatheringId);
+        gatheringRepository.decreaseCurrentMembers(gatheringId);
     }
 
     public void leaveGathering(Long gatheringId, Long userId) {
@@ -37,16 +37,12 @@ public class MembershipCommandService {
             throw new BusinessException(ErrorCode.LEADER_CANNOT_LEAVE);
         }
         member.deactivate();
-        decreaseCurrentMembers(gatheringId);
+        gatheringRepository.decreaseCurrentMembers(gatheringId);
     }
 
     private GatheringMember findActiveMember(Long gatheringId, Long userId) {
         return gatheringMemberRepository.findByGatheringIdAndUserId(gatheringId, userId)
                 .filter(GatheringMember::isActive)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
-    }
-
-    private void decreaseCurrentMembers(Long gatheringId) {
-        gatheringRepository.decreaseCurrentMembers(gatheringId);
     }
 }

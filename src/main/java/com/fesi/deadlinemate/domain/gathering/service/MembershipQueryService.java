@@ -99,23 +99,11 @@ public class MembershipQueryService {
     }
 
     private Page<Gathering> resolveGatheringPage(List<Long> ids, String status, PageRequest pageable) {
-        GatheringStatus gatheringStatus = parseStatus(status);
+        GatheringStatus gatheringStatus = GatheringStatus.fromString(status);
         if (gatheringStatus != null) {
             return gatheringRepository.findByIdInAndStatusOrderByCreatedAtDesc(ids, gatheringStatus, pageable);
         }
         return gatheringRepository.findByIdInOrderByCreatedAtDesc(ids, pageable);
-    }
-
-    private GatheringStatus parseStatus(String status) {
-        if (status == null || status.isBlank() || "all".equalsIgnoreCase(status)) {
-            return null;
-        }
-        return switch (status.toLowerCase()) {
-            case "recruiting" -> GatheringStatus.RECRUITING;
-            case "in_progress" -> GatheringStatus.IN_PROGRESS;
-            case "completed" -> GatheringStatus.COMPLETED;
-            default -> null;
-        };
     }
 
     private void validateMembership(Long gatheringId, Long userId) {
