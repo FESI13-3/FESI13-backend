@@ -3,14 +3,11 @@ package com.fesi.deadlinemate.domain.like.service;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
 import java.util.List;
 import com.fesi.deadlinemate.domain.like.entity.GatheringLike;
-import com.fesi.deadlinemate.domain.like.event.GatheringLikedEvent;
-import com.fesi.deadlinemate.domain.like.event.GatheringUnlikedEvent;
 import com.fesi.deadlinemate.domain.like.repository.GatheringLikeRepository;
 import com.fesi.deadlinemate.domain.user.client.UserClient;
 import com.fesi.deadlinemate.global.error.BusinessException;
 import com.fesi.deadlinemate.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +20,6 @@ public class GatheringLikeService {
     private final GatheringRepository gatheringRepository;
     private final GatheringLikeRepository gatheringLikeRepository;
     private final UserClient userClient;
-    private final ApplicationEventPublisher eventPublisher;
 
     public List<Long> getLikedGatheringIds(Long userId) {
         return gatheringLikeRepository.findGatheringIdsByUserId(userId);
@@ -44,8 +40,6 @@ public class GatheringLikeService {
         } catch (DataIntegrityViolationException e) {
             throw new BusinessException(ErrorCode.ALREADY_GATHERING_LIKED);
         }
-
-        eventPublisher.publishEvent(new GatheringLikedEvent(gatheringId, userId));
     }
 
     @Transactional
@@ -57,8 +51,6 @@ public class GatheringLikeService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.GATHERING_LIKE_NOT_FOUND));
 
         gatheringLikeRepository.delete(gatheringLike);
-
-        eventPublisher.publishEvent(new GatheringUnlikedEvent(gatheringId, userId));
     }
 
     private void validateUserExists(Long userId) {

@@ -11,8 +11,6 @@ import static org.mockito.Mockito.when;
 
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
 import com.fesi.deadlinemate.domain.like.entity.GatheringLike;
-import com.fesi.deadlinemate.domain.like.event.GatheringLikedEvent;
-import com.fesi.deadlinemate.domain.like.event.GatheringUnlikedEvent;
 import com.fesi.deadlinemate.domain.like.repository.GatheringLikeRepository;
 import com.fesi.deadlinemate.domain.user.client.UserClient;
 import com.fesi.deadlinemate.global.error.BusinessException;
@@ -26,7 +24,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,9 +37,6 @@ class GatheringLikeServiceTest {
 
     @Mock
     private UserClient userClient;
-
-    @Mock
-    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private GatheringLikeService gatheringLikeService;
@@ -78,7 +72,7 @@ class GatheringLikeServiceTest {
     }
 
     @Test
-    @DisplayName("모임을 찜하면 찜 정보를 저장하고 이벤트를 발행한다")
+    @DisplayName("모임을 찜하면 찜 정보를 저장한다")
     void like_success() {
         // given
         Long gatheringId = 1L;
@@ -97,13 +91,6 @@ class GatheringLikeServiceTest {
         GatheringLike saved = likeCaptor.getValue();
         assertThat(saved.getGatheringId()).isEqualTo(gatheringId);
         assertThat(saved.getUserId()).isEqualTo(userId);
-
-        ArgumentCaptor<GatheringLikedEvent> eventCaptor = ArgumentCaptor.forClass(GatheringLikedEvent.class);
-        verify(eventPublisher).publishEvent(eventCaptor.capture());
-
-        GatheringLikedEvent event = eventCaptor.getValue();
-        assertThat(event.gatheringId()).isEqualTo(gatheringId);
-        assertThat(event.userId()).isEqualTo(userId);
     }
 
     @Test
@@ -124,12 +111,10 @@ class GatheringLikeServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting(ex -> ((BusinessException) ex).getErrorCode())
                 .isEqualTo(ErrorCode.ALREADY_GATHERING_LIKED);
-
-        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
-    @DisplayName("찜한 모임을 취소하면 찜 정보를 삭제하고 이벤트를 발행한다")
+    @DisplayName("찜한 모임을 취소하면 찜 정보를 삭제한다")
     void unlike_success() {
         // given
         Long gatheringId = 1L;
@@ -150,13 +135,6 @@ class GatheringLikeServiceTest {
 
         // then
         verify(gatheringLikeRepository).delete(gatheringLike);
-
-        ArgumentCaptor<GatheringUnlikedEvent> eventCaptor = ArgumentCaptor.forClass(GatheringUnlikedEvent.class);
-        verify(eventPublisher).publishEvent(eventCaptor.capture());
-
-        GatheringUnlikedEvent event = eventCaptor.getValue();
-        assertThat(event.gatheringId()).isEqualTo(gatheringId);
-        assertThat(event.userId()).isEqualTo(userId);
     }
 
     @Test
@@ -178,6 +156,5 @@ class GatheringLikeServiceTest {
                 .isEqualTo(ErrorCode.GATHERING_LIKE_NOT_FOUND);
 
         verify(gatheringLikeRepository, never()).delete(any());
-        verify(eventPublisher, never()).publishEvent(any());
     }
 }

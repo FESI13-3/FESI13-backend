@@ -11,7 +11,6 @@ public interface GatheringLikeRepository extends JpaRepository<GatheringLike, Lo
     boolean existsByGatheringIdAndUserId(Long gatheringId, Long userId);
     Optional<GatheringLike> findByGatheringIdAndUserId(Long gatheringId, Long userId);
     void deleteByGatheringId(Long gatheringId);
-    List<GatheringLike> findByUserIdOrderByCreatedAtDesc(Long userId);
 
     @Query("SELECT gl.gatheringId FROM GatheringLike gl WHERE gl.userId = :userId ORDER BY gl.createdAt DESC")
     List<Long> findGatheringIdsByUserId(@Param("userId") Long userId);
