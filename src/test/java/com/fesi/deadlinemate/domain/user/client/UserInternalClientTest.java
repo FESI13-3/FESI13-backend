@@ -3,6 +3,7 @@ package com.fesi.deadlinemate.domain.user.client;
 import com.fesi.deadlinemate.domain.user.client.dto.UserInfo;
 import com.fesi.deadlinemate.domain.user.entity.Provider;
 import com.fesi.deadlinemate.domain.user.entity.User;
+import com.fesi.deadlinemate.domain.user.repository.UserRepository;
 import com.fesi.deadlinemate.domain.user.service.UserService;
 import com.fesi.deadlinemate.global.error.BusinessException;
 import com.fesi.deadlinemate.global.error.ErrorCode;
@@ -26,6 +27,9 @@ class UserInternalClientTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private UserRepository userRepository;
 
     @Test
     @DisplayName("UserClient로 유저 정보를 조회할 수 있다")
@@ -64,7 +68,7 @@ class UserInternalClientTest {
         User user1 = createUser(1L, "user1@example.com", "마감왕1");
         User user2 = createUser(2L, "user2@example.com", "마감왕2");
 
-        given(userService.findByIds(List.of(1L, 2L)))
+        given(userRepository.findByIdIn(List.of(1L, 2L)))
                 .willReturn(List.of(user1, user2));
 
         Map<Long, UserInfo> result = userInternalClient.findByIds(List.of(1L, 2L));
@@ -89,7 +93,7 @@ class UserInternalClientTest {
     @Test
     @DisplayName("유저가 없으면 빈 Map을 반환한다")
     void findByIdsEmpty() {
-        given(userService.findByIds(List.of(1L, 2L)))
+        given(userRepository.findByIdIn(List.of(1L, 2L)))
                 .willReturn(List.of());
 
         Map<Long, UserInfo> result = userInternalClient.findByIds(List.of(1L, 2L));

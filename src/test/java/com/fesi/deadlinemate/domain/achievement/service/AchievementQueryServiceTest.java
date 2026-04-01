@@ -17,6 +17,7 @@ import com.fesi.deadlinemate.domain.user.client.UserClient;
 import com.fesi.deadlinemate.domain.user.client.dto.UserInfo;
 import com.fesi.deadlinemate.global.error.BusinessException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -89,8 +90,8 @@ class AchievementQueryServiceTest {
         UserInfo user2 = mock(UserInfo.class);
         when(user2.getNickname()).thenReturn("user2");
 
-        when(userClient.findById(USER_ID_1)).thenReturn(user1);
-        when(userClient.findById(USER_ID_2)).thenReturn(user2);
+        when(userClient.findByIds(List.of(USER_ID_1, USER_ID_2)))
+                .thenReturn(Map.of(USER_ID_1, user1, USER_ID_2, user2));
 
         // when
         AchievementResponse response =
