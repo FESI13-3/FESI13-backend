@@ -81,4 +81,8 @@ public class User extends BaseTimeEntity {
     public boolean isEmailUser() {
         return this.provider == Provider.EMAIL;
     }
+
+    public void addReputationScore(java.math.BigDecimal delta) {
+        this.reputationScore = this.reputationScore.add(delta);
+    }
 }
