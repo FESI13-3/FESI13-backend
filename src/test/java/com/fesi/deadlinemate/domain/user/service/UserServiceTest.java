@@ -5,6 +5,7 @@ import com.fesi.deadlinemate.domain.user.entity.User;
 import com.fesi.deadlinemate.domain.user.repository.UserRepository;
 import com.fesi.deadlinemate.global.error.BusinessException;
 import com.fesi.deadlinemate.global.error.ErrorCode;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -111,6 +112,37 @@ class UserServiceTest {
         userService.deactivate(1L);
 
         assertFalse(user.isActive());
+    }
+
+    @Test
+    @DisplayName("ID 목록으로 사용자들을 조회할 수 있다")
+    void findByIds() {
+        User user1 = createTestUser(1L);
+        User user2 = createTestUser(2L);
+
+        given(userRepository.findByIdIn(List.of(1L, 2L)))
+                .willReturn(List.of(user1, user2));
+
+        List<User> result = userService.findByIds(List.of(1L, 2L));
+
+        assertEquals(2, result.size());
+        assertTrue(result.contains(user1));
+        assertTrue(result.contains(user2));
+
+        verify(userRepository).findByIdIn(List.of(1L, 2L));
+    }
+
+    @Test
+    @DisplayName("ID 목록에 해당하는 사용자가 없으면 빈 리스트를 반환한다")
+    void findByIdsEmpty() {
+        given(userRepository.findByIdIn(List.of(1L, 2L)))
+                .willReturn(List.of());
+
+        List<User> result = userService.findByIds(List.of(1L, 2L));
+
+        assertTrue(result.isEmpty());
+
+        verify(userRepository).findByIdIn(List.of(1L, 2L));
     }
 
     private User createTestUser(Long id) {

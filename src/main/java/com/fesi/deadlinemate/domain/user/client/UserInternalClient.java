@@ -4,7 +4,6 @@ import com.fesi.deadlinemate.domain.user.client.dto.UserInfo;
 import com.fesi.deadlinemate.domain.user.entity.User;
 import com.fesi.deadlinemate.domain.user.repository.UserRepository;
 import com.fesi.deadlinemate.domain.user.service.UserService;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;

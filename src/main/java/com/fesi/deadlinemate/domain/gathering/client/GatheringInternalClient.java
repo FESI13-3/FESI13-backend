@@ -30,8 +30,10 @@ public class GatheringInternalClient implements GatheringClient {
     @Override
     public MyGatheringListResponse getMyGatherings(Long userId, String status, int page, int limit) {
         return membershipQueryService.getMyGatherings(userId, status, page, limit);
+    }
 
-      public Map<Long, String> findTitlesByIds(List<Long> gatheringIds) {
+    @Override
+    public Map<Long, String> findTitlesByIds(List<Long> gatheringIds) {
         return gatheringRepository.findByIdIn(gatheringIds).stream()
                 .collect(Collectors.toMap(Gathering::getId, Gathering::getTitle));
     }

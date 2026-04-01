@@ -230,13 +230,14 @@ gatherings ───────────────────────
 ### `gathering_reports` — 모임 결과 리포트
 
 | 컬럼명 | 타입 | NULL | KEY | 설명 |
-|---|---|---|---|---|
+|-----|---|---|---|----|
 | `id` | BIGINT | NOT NULL | PK | Auto Increment |
 | `gathering_id` | BIGINT | NOT NULL | FK → gatherings.id | UNIQUE (1:1) |
 | `team_overall_rate` | DECIMAL(5,2) | NOT NULL | | 팀 전체 달성률 |
 | `mvp_user_id` | BIGINT | NULL | FK → users.id | MVP |
 | `longest_streak_user_id` | BIGINT | NULL | FK → users.id | 최장 스트릭 |
 | `most_improved_user_id` | BIGINT | NULL | FK → users.id | 가장 성장한 멤버 |
+| `attendance_user_id` | BIGINT | NULL | FK → users.id | 매주 Todo 1개 이상 완료한 멤버 |
 | `weekly_rates` | JSON | NOT NULL | | `[{ "week": 1, "rate": 80.0 }, ...]` |
 | `created_at` | TIMESTAMP | NOT NULL | | 생성일시 |
 

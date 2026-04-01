@@ -6,6 +6,8 @@ import com.fesi.deadlinemate.domain.user.entity.User;
 import com.fesi.deadlinemate.domain.user.service.UserService;
 import com.fesi.deadlinemate.global.error.BusinessException;
 import com.fesi.deadlinemate.global.error.ErrorCode;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,11 +58,54 @@ class UserInternalClientTest {
         assertFalse(userInternalClient.existsById(999L));
     }
 
+    @Test
+    @DisplayName("여러 유저를 한번에 조회해 id를 key로 하는 Map으로 반환한다")
+    void findByIds() {
+        User user1 = createUser(1L, "user1@example.com", "마감왕1");
+        User user2 = createUser(2L, "user2@example.com", "마감왕2");
+
+        given(userService.findByIds(List.of(1L, 2L)))
+                .willReturn(List.of(user1, user2));
+
+        Map<Long, UserInfo> result = userInternalClient.findByIds(List.of(1L, 2L));
+
+        assertEquals(2, result.size());
+
+        UserInfo userInfo1 = result.get(1L);
+        assertNotNull(userInfo1);
+        assertEquals(1L, userInfo1.getId());
+        assertEquals("user1@example.com", userInfo1.getEmail());
+        assertEquals("마감왕1", userInfo1.getNickname());
+        assertEquals(Provider.EMAIL, userInfo1.getProvider());
+
+        UserInfo userInfo2 = result.get(2L);
+        assertNotNull(userInfo2);
+        assertEquals(2L, userInfo2.getId());
+        assertEquals("user2@example.com", userInfo2.getEmail());
+        assertEquals("마감왕2", userInfo2.getNickname());
+        assertEquals(Provider.EMAIL, userInfo2.getProvider());
+    }
+
+    @Test
+    @DisplayName("유저가 없으면 빈 Map을 반환한다")
+    void findByIdsEmpty() {
+        given(userService.findByIds(List.of(1L, 2L)))
+                .willReturn(List.of());
+
+        Map<Long, UserInfo> result = userInternalClient.findByIds(List.of(1L, 2L));
+
+        assertTrue(result.isEmpty());
+    }
+
     private User createUser(Long id) {
+        return createUser(id, "test@example.com", "마감왕");
+    }
+
+    private User createUser(Long id, String email, String nickname) {
         User user = User.builder()
-                .email("test@example.com")
+                .email(email)
                 .passwordHash("$2a$10$hash")
-                .nickname("마감왕")
+                .nickname(nickname)
                 .provider(Provider.EMAIL)
                 .build();
         try {
