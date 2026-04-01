@@ -1,12 +1,14 @@
 package com.fesi.deadlinemate.domain.gathering.client;
 
 import com.fesi.deadlinemate.domain.gathering.client.dto.GatheringInfo;
+import com.fesi.deadlinemate.domain.gathering.dto.response.MyGatheringListResponse;
+import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
+import com.fesi.deadlinemate.domain.gathering.service.MembershipQueryService;
+import java.util.Optional;
 import com.fesi.deadlinemate.domain.gathering.entity.Gathering;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringMemberRepository;
-import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Component;
 public class GatheringInternalClient implements GatheringClient {
 
     private final GatheringRepository gatheringRepository;
+    private final MembershipQueryService membershipQueryService;
     private final GatheringMemberRepository gatheringMemberRepository;
 
     @Override
@@ -25,7 +28,10 @@ public class GatheringInternalClient implements GatheringClient {
     }
 
     @Override
-    public Map<Long, String> findTitlesByIds(List<Long> gatheringIds) {
+    public MyGatheringListResponse getMyGatherings(Long userId, String status, int page, int limit) {
+        return membershipQueryService.getMyGatherings(userId, status, page, limit);
+
+      public Map<Long, String> findTitlesByIds(List<Long> gatheringIds) {
         return gatheringRepository.findByIdIn(gatheringIds).stream()
                 .collect(Collectors.toMap(Gathering::getId, Gathering::getTitle));
     }

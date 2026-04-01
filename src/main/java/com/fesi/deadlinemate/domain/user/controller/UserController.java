@@ -1,5 +1,7 @@
 package com.fesi.deadlinemate.domain.user.controller;
 
+import com.fesi.deadlinemate.domain.gathering.client.GatheringClient;
+import com.fesi.deadlinemate.domain.gathering.dto.response.MyGatheringListResponse;
 import com.fesi.deadlinemate.domain.user.dto.request.ChangePasswordRequest;
 import com.fesi.deadlinemate.domain.user.dto.request.UpdateProfileRequest;
 import com.fesi.deadlinemate.domain.user.dto.response.PublicProfileResponse;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final GatheringClient gatheringClient;
 
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserProfileResponse>> getMyProfile(Authentication authentication) {
@@ -50,6 +53,19 @@ public class UserController {
         Long userId = (Long) authentication.getPrincipal();
         userService.deactivate(userId);
         return ResponseEntity.ok(ApiResponse.success());
+    }
+
+    @GetMapping("/me/gatherings")
+    public ResponseEntity<ApiResponse<MyGatheringListResponse>> getMyGatherings(
+            Authentication authentication,
+            @RequestParam(defaultValue = "all") String status,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "12") int limit
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(ApiResponse.success(
+                gatheringClient.getMyGatherings(userId, status, page, limit)
+        ));
     }
 
     @GetMapping("/{userId}")

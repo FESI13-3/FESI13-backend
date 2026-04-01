@@ -271,4 +271,5 @@ public class Gathering extends BaseTimeEntity {
         long days = ChronoUnit.DAYS.between(startDate, endDate);
         return (int) (days / 7) + 1;
     }
+
 }

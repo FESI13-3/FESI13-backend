@@ -205,10 +205,6 @@ public class GatheringQueryService {
             return Map.of();
         }
 
-        Map<Long, UserInfo> result = new HashMap<>();
-        for (Long userId : userIds) {
-            result.put(userId, userClient.findById(userId));
-        }
-        return result;
+        return userClient.findByIds(userIds);
     }
 }

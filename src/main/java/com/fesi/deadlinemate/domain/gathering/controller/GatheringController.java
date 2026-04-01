@@ -10,8 +10,11 @@ import com.fesi.deadlinemate.domain.gathering.dto.response.GatheringListResponse
 import com.fesi.deadlinemate.domain.gathering.dto.response.GatheringMainResponse;
 import com.fesi.deadlinemate.domain.gathering.dto.response.UpdateGatheringResponse;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringType;
+import com.fesi.deadlinemate.domain.gathering.dto.response.MemberListResponse;
 import com.fesi.deadlinemate.domain.gathering.service.GatheringQueryService;
 import com.fesi.deadlinemate.domain.gathering.service.GatheringService;
+import com.fesi.deadlinemate.domain.gathering.service.MembershipCommandService;
+import com.fesi.deadlinemate.domain.gathering.service.MembershipQueryService;
 import com.fesi.deadlinemate.global.common.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +39,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class GatheringController {
     private final GatheringService gatheringService;
     private final GatheringQueryService gatheringQueryService;
+    private final MembershipCommandService membershipCommandService;
+    private final MembershipQueryService membershipQueryService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
@@ -99,5 +104,35 @@ public class GatheringController {
             @PathVariable Long gatheringId
     ) {
         return ApiResponse.success(gatheringQueryService.getGatheringDetail(gatheringId));
+    }
+
+    @GetMapping("/{gatheringId}/members")
+    public ApiResponse<MemberListResponse> getMembers(
+            @PathVariable Long gatheringId,
+            Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ApiResponse.success(membershipQueryService.getMembers(gatheringId, userId));
+    }
+
+    @DeleteMapping("/{gatheringId}/members/{targetUserId}")
+    public ApiResponse<Void> kickMember(
+            @PathVariable Long gatheringId,
+            @PathVariable Long targetUserId,
+            Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        membershipCommandService.kickMember(gatheringId, targetUserId, userId);
+        return ApiResponse.success();
+    }
+
+    @DeleteMapping("/{gatheringId}/members/me")
+    public ApiResponse<Void> leaveGathering(
+            @PathVariable Long gatheringId,
+            Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        membershipCommandService.leaveGathering(gatheringId, userId);
+        return ApiResponse.success();
     }
 }
