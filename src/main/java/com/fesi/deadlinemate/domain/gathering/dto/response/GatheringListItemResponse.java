@@ -19,7 +19,6 @@ public record GatheringListItemResponse(
         LocalDate startDate,
         LocalDate endDate,
         GatheringStatus status,
-        boolean isLiked,
         LeaderSummary leader
 ) {
     @Builder

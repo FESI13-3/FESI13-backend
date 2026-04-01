@@ -1,6 +1,7 @@
 package com.fesi.deadlinemate.domain.like.service;
 
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
+import java.util.List;
 import com.fesi.deadlinemate.domain.like.entity.GatheringLike;
 import com.fesi.deadlinemate.domain.like.event.GatheringLikedEvent;
 import com.fesi.deadlinemate.domain.like.event.GatheringUnlikedEvent;
@@ -23,6 +24,10 @@ public class GatheringLikeService {
     private final GatheringLikeRepository gatheringLikeRepository;
     private final UserClient userClient;
     private final ApplicationEventPublisher eventPublisher;
+
+    public List<Long> getLikedGatheringIds(Long userId) {
+        return gatheringLikeRepository.findGatheringIdsByUserId(userId);
+    }
 
     @Transactional
     public void like(Long gatheringId, Long userId) {
