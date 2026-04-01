@@ -46,6 +46,7 @@ public enum ErrorCode {
     //WeeklyPlan
     INVALID_WEEKLY_GUIDE_SEQUENCE(HttpStatus.BAD_REQUEST,"주차 가이드는 1주차부터 순차적으로 입력되어야 합니다."),
 
+
     // Review
     REVIEW_ALREADY_SUBMITTED(HttpStatus.CONFLICT, "이미 리뷰를 작성했습니다."),
     GATHERING_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "모임이 완료된 후에만 리뷰를 작성할 수 있습니다."),
@@ -53,6 +54,10 @@ public enum ErrorCode {
     REVIEWER_NOT_A_MEMBER(HttpStatus.FORBIDDEN, "해당 모임의 멤버만 리뷰를 작성할 수 있습니다."),
     REVIEW_TARGET_NOT_A_MEMBER(HttpStatus.BAD_REQUEST, "리뷰 대상이 해당 모임의 멤버가 아닙니다."),
     INVALID_REVIEW_TAG(HttpStatus.BAD_REQUEST, "유효하지 않은 리뷰 태그입니다.");
+
+    // Notification
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다.");
+
 
     private final HttpStatus httpStatus;
     private final String message;
