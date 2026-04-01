@@ -33,10 +33,21 @@ public enum ErrorCode {
     SOCIAL_USER_PASSWORD_CHANGE(HttpStatus.FORBIDDEN, "소셜 로그인 사용자는 비밀번호를 변경할 수 없습니다."),
 
     // Gathering
-    INVALID_GATHERING_DATE(HttpStatus.BAD_REQUEST, "모임 날짜가 올바르지 않습니다."),
+    INVALID_GATHERING_DATE(HttpStatus.BAD_REQUEST, "모임 종료일은 시작일보다 빠를 수 없습니다."),
+    INVALID_GATHERING_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 모임 타입입니다."),
+    INVALID_GATHERING_LEADER(HttpStatus.FORBIDDEN, "해당 기능은 모임장만 가능합니다."),
     INVALID_RECRUIT_DEADLINE(HttpStatus.BAD_REQUEST, "모집 마감일은 시작일 이전이어야 합니다."),
+    INVALID_IN_PROGRESS_UPDATE_ITEMS(HttpStatus.BAD_REQUEST, "진행 중인 모임은 description, weeklyGuides, endDate만 수정할 수 있습니다."),
+    GATHERING_UPDATE_FORBIDDEN_IN_PROGRESS(HttpStatus.BAD_REQUEST,"현재 상태의 모임은 수정할 수 없습니다."),
+    GATHERING_DELETE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "진행 중인 모임은 삭제할 수 없습니다."),
     INVALID_MAX_MEMBERS(HttpStatus.BAD_REQUEST, "최대 인원은 2명 이상 10명 이하여야 합니다."),
-    GATHERING_NOT_FOUND(HttpStatus.NOT_FOUND, "모임을 찾을 수 없습니다.");
+    GATHERING_NOT_FOUND(HttpStatus.NOT_FOUND, "모임을 찾을 수 없습니다."),
+
+    //WeeklyPlan
+    INVALID_WEEKLY_GUIDE_SEQUENCE(HttpStatus.BAD_REQUEST,"주차 가이드는 1주차부터 순차적으로 입력되어야 합니다."),
+
+    // Notification
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
