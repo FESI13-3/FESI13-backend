@@ -9,8 +9,11 @@ import org.springframework.data.repository.query.Param;
 
 public interface GatheringMemberRepository extends JpaRepository<GatheringMember, Long> {
     void deleteByGatheringId(Long gatheringId);
+    
     List<GatheringMember> findByGatheringIdAndIsActiveTrueOrderByIdAsc(Long gatheringId);
+    
     Optional<GatheringMember> findByGatheringIdAndUserId(Long gatheringId, Long userId);
+      
     boolean existsByGatheringIdAndUserIdAndIsActiveTrue(Long gatheringId, Long userId);
 
     @Query("SELECT gm.gatheringId FROM GatheringMember gm WHERE gm.userId = :userId AND gm.isActive = true")

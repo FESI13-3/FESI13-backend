@@ -4,6 +4,8 @@ import com.fesi.deadlinemate.domain.user.client.dto.UserInfo;
 import com.fesi.deadlinemate.domain.user.entity.User;
 import com.fesi.deadlinemate.domain.user.repository.UserRepository;
 import com.fesi.deadlinemate.domain.user.service.UserService;
+
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,5 +39,11 @@ public class UserInternalClient implements UserClient {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    @Override
+    public void addReputationScore(Long userId, BigDecimal delta) {
+        User user = userService.findById(userId);
+        user.addReputationScore(delta);
     }
 }

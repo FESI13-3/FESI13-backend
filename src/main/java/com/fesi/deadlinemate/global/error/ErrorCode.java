@@ -52,6 +52,17 @@ public enum ErrorCode {
     CANNOT_KICK_LEADER(HttpStatus.BAD_REQUEST, "모임장은 퇴출할 수 없습니다."),
     LEADER_CANNOT_LEAVE(HttpStatus.BAD_REQUEST, "모임장은 모임을 탈퇴할 수 없습니다.");
 
+    // Review
+    REVIEW_ALREADY_SUBMITTED(HttpStatus.CONFLICT, "이미 리뷰를 작성했습니다."),
+    GATHERING_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "모임이 완료된 후에만 리뷰를 작성할 수 있습니다."),
+    SELF_REVIEW_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "본인에게 리뷰를 작성할 수 없습니다."),
+    REVIEWER_NOT_A_MEMBER(HttpStatus.FORBIDDEN, "해당 모임의 멤버만 리뷰를 작성할 수 있습니다."),
+    REVIEW_TARGET_NOT_A_MEMBER(HttpStatus.BAD_REQUEST, "리뷰 대상이 해당 모임의 멤버가 아닙니다."),
+    INVALID_REVIEW_TAG(HttpStatus.BAD_REQUEST, "유효하지 않은 리뷰 태그입니다.");
+
+    // Notification
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다.");
+
     private final HttpStatus httpStatus;
     private final String message;
 }
