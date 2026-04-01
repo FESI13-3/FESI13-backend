@@ -459,14 +459,27 @@
   ],
   "members": [
     { "userId": 1, "nickname": "마감왕", "profileImage": "https://...", "role": "LEADER" }
-  ],
-  "myApplicationStatus": "PENDING"
+  ]
 }
 ```
 
 **비고**
 - 비로그인도 조회 가능
-- `myApplicationStatus`는 로그인 시에만 포함: `null` \| `PENDING` \| `ACCEPTED` \| `REJECTED`
+
+---
+
+### GET `/gatherings/{gatheringId}/application-status` 🔒
+> 모임 신청 상태 조회
+
+**Response `200`**
+```json
+{
+  "myApplicationStatus": "PENDING"
+}
+```
+
+**비고**
+- `myApplicationStatus`: `null` \| `PENDING` \| `ACCEPTED` \| `REJECTED`
 
 ---
 
