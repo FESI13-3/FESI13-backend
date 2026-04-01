@@ -309,9 +309,9 @@
 **Query Parameters**
 
 | 파라미터 | 타입 | 기본값 | 설명 |
-|---|---|---|---|
+|------|----|---|----|
 | `type` | string | - | `스터디` \| `프로젝트` |
-| `category` | string | - | 개발/어학/독서/자격증 등 |
+| `categoryIds` | number[] | - | 개발/어학/독서/자격증 등 반복 파라미터 |
 | `sort` | string | `latest` | `latest` \| `popular` \| `deadline` |
 | `status` | string | `recruiting` | `recruiting` \| `all` |
 | `query` | string | - | 제목/소개/태그 검색어 |
@@ -325,7 +325,7 @@
     {
       "id": 1,
       "type": "스터디",
-      "category": "개발",
+      "categories": ["개발", "자격증"],
       "title": "React 완전 정복 스터디",
       "shortDescription": "리액트 공식문서를 같이 읽어요",
       "tags": ["React", "프론트엔드"],
@@ -347,6 +347,21 @@
 
 ---
 
+### GET `/gatherings/categories`
+> 카테고리 조회용
+
+**Response `200`**
+```json
+{
+  "categories": [
+    { "id": 1, "name": "개발" },
+    { "id": 2, "name": "어학" }
+  ]
+}
+```
+
+---
+
 ### POST `/gatherings` 🔒
 > 모임 생성
 
@@ -357,7 +372,7 @@
 ```json
 {
   "type": "스터디",
-  "category": "개발",
+  "categoryIds": [1, 2],
   "title": "React 완전 정복 스터디",
   "shortDescription": "리액트 공식문서를 같이 읽어요",
   "description": "매주 공식문서 1챕터씩 읽고 블로그를 작성합니다...",
@@ -421,7 +436,7 @@
 {
   "id": 1,
   "type": "스터디",
-  "category": "개발",
+  "categories": ["개발", "자격증"],
   "title": "React 완전 정복 스터디",
   "shortDescription": "리액트 공식문서를 같이 읽어요",
   "description": "...",
@@ -474,6 +489,9 @@
   "gathering": { "...": "수정된 모임 정보" }
 }
 ```
+
+**비고**
+- categoryIds: number[] (카테고리 수정 가능)
 
 ---
 
@@ -648,7 +666,7 @@
     {
       "id": 1,
       "type": "스터디",
-      "category": "개발",
+      "categories": ["개발", "자격증"],
       "title": "React 완전 정복 스터디",
       "shortDescription": "리액트 공식문서를 같이 읽어요",
       "tags": ["React", "프론트엔드"],
@@ -663,7 +681,7 @@
     {
       "id": 2,
       "type": "프로젝트",
-      "category": "개발",
+      "categories": ["개발", "자격증"],
       "title": "사이드 프로젝트 팀원 모집",
       "shortDescription": "Spring Boot 기반 협업 프로젝트",
       "tags": ["Spring", "백엔드"],
@@ -1143,7 +1161,7 @@
       {
         "id": 1,
         "type": "스터디",
-        "category": "개발",
+        "categories": ["개발", "자격증"],
         "title": "React 완전 정복",
         "shortDescription": "리액트 끝내기",
         "tags": ["React", "프론트엔드"],
