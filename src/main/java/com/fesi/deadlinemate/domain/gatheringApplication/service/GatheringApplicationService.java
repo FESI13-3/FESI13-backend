@@ -9,7 +9,6 @@ import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
 import com.fesi.deadlinemate.domain.gatheringApplication.command.CreateApplicationCommand;
 import com.fesi.deadlinemate.domain.gatheringApplication.command.UpdateApplicationCommand;
 import com.fesi.deadlinemate.domain.gatheringApplication.dto.response.ApplicationListResponse;
-import com.fesi.deadlinemate.domain.gatheringApplication.dto.response.ApplicationListResponse.ApplicationItemResponse;
 import com.fesi.deadlinemate.domain.gatheringApplication.dto.response.CreateApplicationResponse;
 import com.fesi.deadlinemate.domain.gatheringApplication.dto.response.MyApplicationListResponse;
 import com.fesi.deadlinemate.domain.gatheringApplication.dto.response.UpdateApplicationResponse;
@@ -19,6 +18,8 @@ import com.fesi.deadlinemate.domain.gatheringApplication.event.GatheringApplicat
 import com.fesi.deadlinemate.domain.gatheringApplication.event.GatheringApplicationCreatedEvent;
 import com.fesi.deadlinemate.domain.gatheringApplication.event.GatheringApplicationUpdatedEvent;
 import com.fesi.deadlinemate.domain.gatheringApplication.repository.GatheringApplicationRepository;
+import com.fesi.deadlinemate.domain.review.client.ReviewClient;
+import com.fesi.deadlinemate.domain.review.client.dto.ApplicantReviewInfo;
 import com.fesi.deadlinemate.domain.user.client.UserClient;
 import com.fesi.deadlinemate.domain.user.client.dto.UserInfo;
 import com.fesi.deadlinemate.global.error.BusinessException;
@@ -43,6 +44,7 @@ public class GatheringApplicationService {
     private final GatheringApplicationRepository gatheringApplicationRepository;
     private final GatheringMemberRepository gatheringMemberRepository;
     private final UserClient userClient;
+    private final ReviewClient reviewClient;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
@@ -92,8 +94,21 @@ public class GatheringApplicationService {
         List<GatheringApplication> applications =
                 gatheringApplicationRepository.findByGatheringIdOrderByCreatedAtAsc(gatheringId);
 
-        List<ApplicationItemResponse> responses = applications.stream()
-                .map(this::toApplicationItemResponse)
+        List<Long> applicantIds = applications.stream()
+                .map(GatheringApplication::getApplicantId)
+                .distinct()
+                .toList();
+
+        Map<Long, UserInfo> applicantMap = userClient.findByIds(applicantIds);
+        Map<Long, ApplicantReviewInfo> applicantReviewInfoMap =
+                reviewClient.getApplicantReviewInfos(applicantIds);
+
+        List<ApplicationListResponse.ApplicationItemResponse> responses = applications.stream()
+                .map(application -> toApplicationItemResponse(
+                        application,
+                        applicantMap.get(application.getApplicantId()),
+                        applicantReviewInfoMap.get(application.getApplicantId())
+                ))
                 .toList();
 
         return ApplicationListResponse.of(responses);
@@ -295,8 +310,30 @@ public class GatheringApplicationService {
         return trimmed.isBlank() ? null : trimmed;
     }
 
-    private ApplicationListResponse.ApplicationItemResponse toApplicationItemResponse(GatheringApplication application) {
-        UserInfo applicant = userClient.findById(application.getApplicantId());
+    private ApplicationListResponse.ApplicationItemResponse toApplicationItemResponse(
+            GatheringApplication application,
+            UserInfo applicant,
+            ApplicantReviewInfo reviewInfo
+    ) {
+        if (applicant == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        ApplicationListResponse.ReviewSummaryResponse reviewSummary =
+                ApplicationListResponse.ReviewSummaryResponse.builder()
+                        .reviewCount(reviewInfo == null ? 0 : reviewInfo.reviewCount())
+                        .topTags(reviewInfo == null ? List.of() : reviewInfo.topTags())
+                        .build();
+
+        List<ApplicationListResponse.RecentReviewResponse> recentReviews =
+                reviewInfo == null ? List.of() : reviewInfo.recentReviews().stream()
+                        .map(review -> ApplicationListResponse.RecentReviewResponse.builder()
+                                .id(review.id())
+                                .comment(review.comment())
+                                .tags(review.tags())
+                                .build())
+                        .toList();
+
         return ApplicationListResponse.ApplicationItemResponse.builder()
                 .id(application.getId())
                 .applicant(ApplicationListResponse.ApplicantResponse.builder()
@@ -304,6 +341,8 @@ public class GatheringApplicationService {
                         .nickname(applicant.getNickname())
                         .profileImage(applicant.getProfileImage())
                         .reputationScore(applicant.getReputationScore())
+                        .reviewSummary(reviewSummary)
+                        .recentReviews(recentReviews)
                         .build())
                 .personalGoal(application.getPersonalGoal())
                 .selfIntroduction(application.getSelfIntroduction())
@@ -311,4 +350,5 @@ public class GatheringApplicationService {
                 .createdAt(application.getCreatedAt())
                 .build();
     }
+
 }
