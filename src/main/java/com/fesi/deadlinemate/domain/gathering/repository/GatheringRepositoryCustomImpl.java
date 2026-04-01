@@ -206,6 +206,46 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
         return Optional.ofNullable(row);
     }
 
+    @Override
+    public Page<GatheringListRow> findByIdIn(List<Long> gatheringIds, Pageable pageable) {
+        QGathering gathering = QGathering.gathering;
+
+        if (gatheringIds.isEmpty()) {
+            return new PageImpl<>(List.of(), pageable, 0L);
+        }
+
+        List<GatheringListRow> content = queryFactory
+                .select(Projections.constructor(
+                        GatheringListRow.class,
+                        gathering.id,
+                        gathering.leaderId,
+                        gathering.type,
+                        gathering.category,
+                        gathering.title,
+                        gathering.shortDescription,
+                        gathering.maxMembers,
+                        gathering.currentMembers,
+                        gathering.recruitDeadline,
+                        gathering.startDate,
+                        gathering.endDate,
+                        gathering.status
+                ))
+                .from(gathering)
+                .where(gathering.id.in(gatheringIds))
+                .orderBy(gathering.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long total = queryFactory
+                .select(gathering.count())
+                .from(gathering)
+                .where(gathering.id.in(gatheringIds))
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total == null ? 0L : total);
+    }
+
     private OrderSpecifier<?>[] resolveOrderSpecifiers(String sort) {
         QGathering gathering = QGathering.gathering;
 

@@ -14,4 +14,5 @@ public interface GatheringRepositoryCustom {
     List<GatheringListRow> findMainDeadline(int limit);
     List<GatheringListRow> findMainLatest(int limit);
     Optional<GatheringDetailRow> findDetailRowById(Long gatheringId);
+    Page<GatheringListRow> findByIdIn(List<Long> gatheringIds, Pageable pageable);
 }

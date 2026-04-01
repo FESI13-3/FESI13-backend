@@ -15,7 +15,6 @@ import com.fesi.deadlinemate.domain.like.repository.GatheringLikeRepository;
 import com.fesi.deadlinemate.domain.user.client.UserClient;
 import com.fesi.deadlinemate.global.error.BusinessException;
 import com.fesi.deadlinemate.global.error.ErrorCode;
-import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,36 +39,6 @@ class GatheringLikeServiceTest {
 
     @InjectMocks
     private GatheringLikeService gatheringLikeService;
-
-    @Test
-    @DisplayName("찜한 모임 ID 목록을 조회한다")
-    void getLikedGatheringIds_success() {
-        // given
-        Long userId = 100L;
-        List<Long> expectedIds = List.of(1L, 3L, 7L);
-        when(gatheringLikeRepository.findGatheringIdsByUserId(userId)).thenReturn(expectedIds);
-
-        // when
-        List<Long> result = gatheringLikeService.getLikedGatheringIds(userId);
-
-        // then
-        assertThat(result).containsExactly(1L, 3L, 7L);
-        verify(gatheringLikeRepository).findGatheringIdsByUserId(userId);
-    }
-
-    @Test
-    @DisplayName("찜한 모임이 없으면 빈 목록을 반환한다")
-    void getLikedGatheringIds_empty() {
-        // given
-        Long userId = 100L;
-        when(gatheringLikeRepository.findGatheringIdsByUserId(userId)).thenReturn(List.of());
-
-        // when
-        List<Long> result = gatheringLikeService.getLikedGatheringIds(userId);
-
-        // then
-        assertThat(result).isEmpty();
-    }
 
     @Test
     @DisplayName("모임을 찜하면 찜 정보를 저장한다")

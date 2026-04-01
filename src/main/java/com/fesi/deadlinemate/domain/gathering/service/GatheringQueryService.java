@@ -14,6 +14,7 @@ import com.fesi.deadlinemate.domain.gathering.repository.GatheringMemberReposito
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringTagRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.WeeklyPlanRepository;
+import com.fesi.deadlinemate.domain.like.repository.GatheringLikeRepository;
 import com.fesi.deadlinemate.domain.user.client.UserClient;
 import com.fesi.deadlinemate.domain.user.client.dto.UserInfo;
 import com.fesi.deadlinemate.global.error.BusinessException;
@@ -40,6 +41,7 @@ public class GatheringQueryService {
     private final GatheringImageRepository gatheringImageRepository;
     private final WeeklyPlanRepository weeklyPlanRepository;
     private final GatheringMemberRepository gatheringMemberRepository;
+    private final GatheringLikeRepository gatheringLikeRepository;
     private final UserClient userClient;
 
     public GatheringListResponse getGatherings(GatheringSearchCondition condition, int page, int limit) {
@@ -72,6 +74,25 @@ public class GatheringQueryService {
                 toListItemResponses(gatheringRepository.findMainLatest(validatedLimit));
 
         return GatheringMainResponse.of(popular, deadline, latest);
+    }
+
+    public GatheringListResponse getMyLikedGatherings(Long userId, int page, int limit) {
+        int validatedPage = Math.max(page, 1);
+        int validatedLimit = Math.max(limit, 1);
+
+        List<Long> likedGatheringIds = gatheringLikeRepository.findGatheringIdsByUserId(userId);
+
+        Pageable pageable = PageRequest.of(validatedPage - 1, validatedLimit);
+        Page<GatheringListRow> result = gatheringRepository.findByIdIn(likedGatheringIds, pageable);
+
+        List<GatheringListItemResponse> items = toListItemResponses(result.getContent());
+
+        return GatheringListResponse.of(
+                items,
+                result.getTotalElements(),
+                result.getTotalPages(),
+                validatedPage
+        );
     }
 
     public GatheringDetailResponse getGatheringDetail(Long gatheringId) {

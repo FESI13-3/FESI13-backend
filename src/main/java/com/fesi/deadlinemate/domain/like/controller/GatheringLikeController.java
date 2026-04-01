@@ -1,8 +1,9 @@
 package com.fesi.deadlinemate.domain.like.controller;
 
+import com.fesi.deadlinemate.domain.gathering.dto.response.GatheringListResponse;
+import com.fesi.deadlinemate.domain.gathering.service.GatheringQueryService;
 import com.fesi.deadlinemate.domain.like.service.GatheringLikeService;
 import com.fesi.deadlinemate.global.common.ApiResponse;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,11 +22,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class GatheringLikeController {
 
     private final GatheringLikeService gatheringLikeService;
+    private final GatheringQueryService gatheringQueryService;
 
-    @GetMapping("/likes/ids")
-    public ApiResponse<List<Long>> getLikedGatheringIds(Authentication authentication) {
+    @GetMapping("/users/me/likes")
+    public ApiResponse<GatheringListResponse> getMyLikedGatherings(
+            Authentication authentication,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int limit
+    ) {
         Long userId = (Long) authentication.getPrincipal();
-        return ApiResponse.success(gatheringLikeService.getLikedGatheringIds(userId));
+        return ApiResponse.success(gatheringQueryService.getMyLikedGatherings(userId, page, limit));
     }
 
     @PostMapping("/gatherings/{gatheringId}/likes")
