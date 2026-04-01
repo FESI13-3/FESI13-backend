@@ -1,5 +1,6 @@
 package com.fesi.deadlinemate.domain.gatheringApplication.service;
 
+import com.fesi.deadlinemate.domain.gathering.dto.response.MyApplicationStatusResponse;
 import com.fesi.deadlinemate.domain.gathering.entity.Gathering;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringMember;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringRole;
@@ -187,6 +188,16 @@ public class GatheringApplicationService {
                 .toList();
 
         return MyApplicationListResponse.of(responses);
+    }
+
+    public MyApplicationStatusResponse getMyApplicationStatus(Long gatheringId, Long userId) {
+        GatheringApplication application = gatheringApplicationRepository
+                .findByGatheringIdAndApplicantId(gatheringId, userId)
+                .orElse(null);
+
+        return MyApplicationStatusResponse.of(
+                application == null ? null : application.getStatus().name()
+        );
     }
 
     private Gathering getGatheringForUpdate(UpdateApplicationCommand command) {

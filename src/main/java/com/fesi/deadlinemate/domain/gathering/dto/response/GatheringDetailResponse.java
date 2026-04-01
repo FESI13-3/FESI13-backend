@@ -27,8 +27,7 @@ public record GatheringDetailResponse(
         boolean isLiked,
         LeaderResponse leader,
         List<WeeklyPlanResponse> weeklyPlans,
-        List<MemberResponse> members,
-        String myApplicationStatus
+        List<MemberResponse> members
 ) {
     @Builder
     public record ImageResponse(

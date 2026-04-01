@@ -18,7 +18,6 @@ import com.fesi.deadlinemate.domain.user.client.UserClient;
 import com.fesi.deadlinemate.domain.user.client.dto.UserInfo;
 import com.fesi.deadlinemate.global.error.BusinessException;
 import com.fesi.deadlinemate.global.error.ErrorCode;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -146,7 +145,6 @@ public class GatheringQueryService {
                         .build())
                 .weeklyPlans(weeklyPlans)
                 .members(memberResponses)
-                .myApplicationStatus(null)
                 .build();
     }
 
