@@ -1071,7 +1071,7 @@
 
 ## 11. 찜하기 (Likes)
 
-### Post `/gatherings/:gatheringId/likes` 🔒
+### POST `/gatherings/:gatheringId/likes` 🔒
 > 모임 찜하기
 
 **Path Parameters**
@@ -1107,8 +1107,26 @@
 
 ---
 
+### GET `/users/me/likes/ids` 🔒
+> 내가 찜한 모임 ID 목록 조회 (찜 상태 확인용)
+
+**Response `200`**
+```json
+{ "success": true,
+  "data": {
+    "gatheringIds": [1, 5, 12, 34]
+  }
+}
+```
+
+**비고**
+- 하트 표시, 찜 여부 매핑, 낙관적 업데이트를 위한 경량 API
+- 카드 정보가 아닌 ID 목록만 반환
+
+---
+
 ### GET `/users/me/likes` 🔒
-> 내가 찜한 모임 목록 조회
+> 내가 찜한 모임 목록 조회 (마이페이지용)
 
 **Query Parameters**
 
@@ -1119,7 +1137,33 @@
 
 **Response `200`**
 ```json
-{ "success": true }
+{ "success": true,
+  "data": {
+    "gatherings": [
+      {
+        "id": 1,
+        "type": "스터디",
+        "category": "개발",
+        "title": "React 완전 정복",
+        "shortDescription": "리액트 끝내기",
+        "tags": ["React", "프론트엔드"],
+        "maxMembers": 6,
+        "currentMembers": 3,
+        "recruitDeadline": "2025-03-20",
+        "startDate": "2025-03-22",
+        "endDate": "2025-04-19",
+        "status": "RECRUITING",
+        "leader": {
+          "id": 10,
+          "nickname": "마감왕",
+          "profileImage": "https://..."
+        }
+      }
+    ],
+    "totalCount": 10,
+    "totalPages": 1,
+    "currentPage": 1
+  } }
 ```
 
 ---
