@@ -23,6 +23,7 @@ gatherings ───────────────────────
   │  1:N  gathering_members (gathering_id)                                  │
   │  1:N  gathering_images (gathering_id)                                   │
   │  1:N  gathering_likes (gathering_id)                                    │
+  │  1:N  gathering_categories (gathering_id)                               │
   │  1:N  todos (gathering_id)                                              │
   │  1:N  notifications (gathering_id)                                      │
   │  1:N  reviews (gathering_id)                                            │
@@ -59,7 +60,6 @@ gatherings ───────────────────────
 | `id` | BIGINT | NOT NULL | PK | Auto Increment |
 | `leader_id` | BIGINT | NOT NULL | FK → users.id | 모임장 |
 | `type` | ENUM | NOT NULL | | `STUDY` \| `PROJECT` |
-| `category` | VARCHAR(50) | NOT NULL | | 개발/어학/독서/자격증 등 |
 | `title` | VARCHAR(60) | NOT NULL | | 모임 제목 (2~30자) |
 | `short_description` | VARCHAR(100) | NOT NULL | | 한 줄 소개 (2~50자) |
 | `description` | TEXT | NOT NULL | | 상세 설명 (10~1000자) |
@@ -98,6 +98,29 @@ gatherings ───────────────────────
 | `id` | BIGINT | NOT NULL | PK | Auto Increment |
 | `gathering_id` | BIGINT | NOT NULL | FK → gatherings.id | |
 | `tag` | VARCHAR(30) | NOT NULL | | 태그명 (최대 15자) |
+
+---
+
+### `categories` — 모임 카테고리
+
+| 컬럼명          | 타입          | NULL | KEY    | 설명              |
+|--------------|-------------|---|--------|-----------------|
+| `id`         | BIGINT      | NOT NULL | PK     | Auto Increment  |
+| `name`       | VARCHAR(50) | NOT NULL | UNIQUE | 카테고리명(개발, 어학 등) |
+| `created_at` | TIMESTAMP | NOT NULL | | 생성일시 |
+| `updated_at` | TIMESTAMP | NOT NULL | | 수정일시 |
+
+---
+
+### `gathering_categories` — 모임 카테고리 매핑
+
+| 컬럼명 | 타입 | NULL | KEY | 설명 |
+|------|----|---|-----|----|
+| `id` | BIGINT | NOT NULL | PK  | Auto Increment |
+| `gathering_id` | BIGINT | NOT NULL | FK → gatherings.id | |
+| `category_id` | BIGINT | NOT NULL | FK → categories.id | |
+| `created_at` | TIMESTAMP | NOT NULL | | 생성일시 |
+> **UNIQUE:** `(gathering_id, category_id) — 동일 모임에 동일 카테고리 중복 방지
 
 ---
 
@@ -265,10 +288,10 @@ gatherings ───────────────────────
 | `gatherings` | `(status, created_at)` | 목록 조회 / 최신순 정렬 |
 | `gatherings` | `recruit_deadline` | 마감임박 정렬 |
 | `gatherings` | `view_count` | 인기순 정렬 |
-| `gatherings` | `(type, category)` | 필터링 |
 | `applications` | `(gathering_id, applicant_id)` UNIQUE | 중복 신청 방지 |
 | `gathering_members` | `(gathering_id, user_id)` UNIQUE | 멤버 중복 방지 |
 | `gathering_members` | `(user_id, is_active)` | 내가 참여 중인 모임 조회 |
+| `gathering_categories` | `(category_id, gathering_id)` | 필터링 |
 | `gathering_images` | `(gathering_id, display_order)` | 모임별 이미지 조회 및 정렬 |
 | `gathering_likes` | `(user_id, created_at)` | 찜한 모임 목록 조회 |
 | `gathering_likes` | `(gathering_id, user_id)` UNIQUE | 중복 찜 방지/찜 여부 조회 |
