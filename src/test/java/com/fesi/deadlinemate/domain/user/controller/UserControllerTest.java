@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -41,6 +42,12 @@ class UserControllerTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private com.fesi.deadlinemate.domain.gathering.client.GatheringClient gatheringClient;
+
+    @Mock
+    private com.fesi.deadlinemate.global.common.ImageStorageService imageStorageService;
 
     @BeforeEach
     void setUp() {
@@ -73,10 +80,14 @@ class UserControllerTest {
 
         UpdateProfileRequest request = new UpdateProfileRequest("새닉네임", null);
 
-        mockMvc.perform(patch("/api/v1/users/me")
-                        .principal(new UsernamePasswordAuthenticationToken(1L, null, List.of()))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+        MockMultipartFile requestPart = new MockMultipartFile(
+                "request", "", MediaType.APPLICATION_JSON_VALUE,
+                objectMapper.writeValueAsBytes(request));
+
+        mockMvc.perform(multipart("/api/v1/users/me")
+                        .file(requestPart)
+                        .with(req -> { req.setMethod("PATCH"); return req; })
+                        .principal(new UsernamePasswordAuthenticationToken(1L, null, List.of())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
     }

@@ -13,6 +13,11 @@ spring:
   jackson:
     property-naming-strategy: LOWER_CAMEL_CASE
 
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 20MB
+
 server:
   port: 8080
 
@@ -35,6 +40,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+
+image:
+  upload-dir: ${IMAGE_UPLOAD_DIR:./data/images}
+  base-url: ${IMAGE_BASE_URL:http://localhost:8080/images}
 
 jwt:
   secret: local-dev-secret-key-that-is-at-least-256-bits-long-for-hs256
@@ -70,6 +79,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+
+image:
+  upload-dir: ${IMAGE_UPLOAD_DIR:/data/images}
+  base-url: ${IMAGE_BASE_URL}
 
 jwt:
   secret: ${JWT_SECRET}

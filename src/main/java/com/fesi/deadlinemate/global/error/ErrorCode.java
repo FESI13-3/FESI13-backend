@@ -95,6 +95,12 @@ public enum ErrorCode {
     REVIEW_TARGET_NOT_A_MEMBER(HttpStatus.BAD_REQUEST, "리뷰 대상이 해당 모임의 멤버가 아닙니다."),
     INVALID_REVIEW_TAG(HttpStatus.BAD_REQUEST, "유효하지 않은 리뷰 태그입니다."),
 
+    // Image
+    IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 업로드에 실패했습니다."),
+    IMAGE_EMPTY(HttpStatus.BAD_REQUEST, "이미지 파일이 비어있습니다."),
+    IMAGE_TOO_LARGE(HttpStatus.BAD_REQUEST, "이미지 크기는 5MB 이하여야 합니다."),
+    IMAGE_INVALID_TYPE(HttpStatus.BAD_REQUEST, "허용되지 않는 이미지 형식입니다. (JPEG, PNG, GIF, WebP만 가능)"),
+
     // Notification
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다.");
 
