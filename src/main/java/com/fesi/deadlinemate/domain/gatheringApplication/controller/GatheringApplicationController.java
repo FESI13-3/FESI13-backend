@@ -1,5 +1,6 @@
 package com.fesi.deadlinemate.domain.gatheringApplication.controller;
 
+import com.fesi.deadlinemate.domain.gathering.dto.response.MyApplicationStatusResponse;
 import com.fesi.deadlinemate.domain.gatheringApplication.command.CreateApplicationCommand;
 import com.fesi.deadlinemate.domain.gatheringApplication.dto.request.CreateApplicationRequest;
 import com.fesi.deadlinemate.domain.gatheringApplication.dto.request.UpdateApplicationRequest;
@@ -80,7 +81,18 @@ public class GatheringApplicationController {
         return ApiResponse.success();
     }
 
-    @GetMapping("users/me/applications")
+    @GetMapping("/gatherings/{gatheringId}/application-status")
+    public ApiResponse<MyApplicationStatusResponse> getMyApplicationStatus(
+            @PathVariable Long gatheringId,
+            Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ApiResponse.success(
+                gatheringApplicationService.getMyApplicationStatus(gatheringId, userId)
+        );
+    }
+
+    @GetMapping("/users/me/applications")
     public ApiResponse<MyApplicationListResponse> getMyApplications(Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
         return ApiResponse.success(gatheringApplicationService.getMyApplications(userId));

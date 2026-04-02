@@ -32,7 +32,24 @@ public record ApplicationListResponse(
             Long id,
             String nickname,
             String profileImage,
-            BigDecimal reputationScore
+            BigDecimal reputationScore,
+            ReviewSummaryResponse reviewSummary,
+            List<RecentReviewResponse> recentReviews
+    ) {
+    }
+
+    @Builder
+    public record ReviewSummaryResponse(
+            long reviewCount,
+            List<String> topTags
+    ) {
+    }
+
+    @Builder
+    public record RecentReviewResponse(
+            Long id,
+            String comment,
+            List<String> tags
     ) {
     }
 }

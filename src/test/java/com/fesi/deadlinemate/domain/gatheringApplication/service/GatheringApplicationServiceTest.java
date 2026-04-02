@@ -4,6 +4,7 @@ package com.fesi.deadlinemate.domain.gatheringApplication.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -28,6 +29,8 @@ import com.fesi.deadlinemate.domain.gatheringApplication.event.GatheringApplicat
 import com.fesi.deadlinemate.domain.gatheringApplication.event.GatheringApplicationCreatedEvent;
 import com.fesi.deadlinemate.domain.gatheringApplication.event.GatheringApplicationUpdatedEvent;
 import com.fesi.deadlinemate.domain.gatheringApplication.repository.GatheringApplicationRepository;
+import com.fesi.deadlinemate.domain.review.client.ReviewClient;
+import com.fesi.deadlinemate.domain.review.client.dto.ApplicantReviewInfo;
 import com.fesi.deadlinemate.domain.user.client.UserClient;
 import com.fesi.deadlinemate.domain.user.client.dto.UserInfo;
 import com.fesi.deadlinemate.global.error.BusinessException;
@@ -37,6 +40,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -63,6 +67,9 @@ class GatheringApplicationServiceTest {
 
     @Mock
     private UserClient userClient;
+
+    @Mock
+    private ReviewClient reviewClient;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -335,22 +342,58 @@ class GatheringApplicationServiceTest {
                     .reputationScore(BigDecimal.valueOf(40.0))
                     .build();
 
+            ApplicantReviewInfo reviewInfo1 = ApplicantReviewInfo.builder()
+                    .reviewCount(2)
+                    .topTags(List.of("성실해요", "소통이 좋아요"))
+                    .recentReviews(List.of(
+                            ApplicantReviewInfo.RecentReview.builder()
+                                    .id(11L)
+                                    .comment("좋은 팀원이었어요")
+                                    .tags(List.of("성실해요"))
+                                    .build()
+                    ))
+                    .build();
+
+            ApplicantReviewInfo reviewInfo2 = ApplicantReviewInfo.builder()
+                    .reviewCount(0)
+                    .topTags(List.of())
+                    .recentReviews(List.of())
+                    .build();
+
             when(gatheringRepository.findById(100L)).thenReturn(Optional.of(recruitingGathering));
             when(gatheringApplicationRepository.findByGatheringIdOrderByCreatedAtAsc(100L))
                     .thenReturn(List.of(application1, application2));
-            when(userClient.findById(200L)).thenReturn(userInfo1);
-            when(userClient.findById(201L)).thenReturn(userInfo2);
+            when(userClient.findByIds(List.of(200L, 201L))).thenReturn(Map.of(
+                    200L, userInfo1,
+                    201L, userInfo2
+            ));
+            when(reviewClient.getApplicantReviewInfos(List.of(200L, 201L))).thenReturn(Map.of(
+                    200L, reviewInfo1,
+                    201L, reviewInfo2
+            ));
 
             ApplicationListResponse response = gatheringApplicationService.getApplications(100L, 10L);
 
             assertThat(response.applications()).hasSize(2);
-            assertThat(response.applications().get(0).id()).isEqualTo(1L);
-            assertThat(response.applications().get(0).applicant().nickname()).isEqualTo("유저1");
-            assertThat(response.applications().get(1).id()).isEqualTo(2L);
-            assertThat(response.applications().get(1).applicant().nickname()).isEqualTo("유저2");
 
-            verify(userClient, times(1)).findById(200L);
-            verify(userClient, times(1)).findById(201L);
+            ApplicationListResponse.ApplicationItemResponse first = response.applications().get(0);
+            assertThat(first.id()).isEqualTo(1L);
+            assertThat(first.applicant().nickname()).isEqualTo("유저1");
+            assertThat(first.applicant().reviewSummary().reviewCount()).isEqualTo(2);
+            assertThat(first.applicant().reviewSummary().topTags())
+                    .containsExactly("성실해요", "소통이 좋아요");
+            assertThat(first.applicant().recentReviews()).hasSize(1);
+            assertThat(first.applicant().recentReviews().get(0).comment()).isEqualTo("좋은 팀원이었어요");
+
+            ApplicationListResponse.ApplicationItemResponse second = response.applications().get(1);
+            assertThat(second.id()).isEqualTo(2L);
+            assertThat(second.applicant().nickname()).isEqualTo("유저2");
+            assertThat(second.applicant().reviewSummary().reviewCount()).isEqualTo(0);
+            assertThat(second.applicant().recentReviews()).isEmpty();
+
+            verify(userClient, times(1)).findByIds(List.of(200L, 201L));
+            verify(reviewClient, times(1)).getApplicantReviewInfos(List.of(200L, 201L));
+            verify(userClient, never()).findById(anyLong());
         }
 
         @Test
