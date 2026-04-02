@@ -169,7 +169,6 @@ class GatheringMemberRepositoryTest {
         return Gathering.builder()
                 .leaderId(1L)
                 .type(GatheringType.STUDY)
-                .category("개발")
                 .title(title)
                 .shortDescription("설명")
                 .description("상세 설명")

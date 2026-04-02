@@ -76,7 +76,6 @@ class TodoServiceTest {
         gathering = Gathering.builder()
                 .leaderId(10L)
                 .type(GatheringType.STUDY)
-                .category("개발")
                 .title("Spring Study")
                 .shortDescription("스프링 스터디")
                 .description("설명")
@@ -167,7 +166,7 @@ class TodoServiceTest {
             assertThatThrownBy(() -> todoService.create(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting(e -> ((BusinessException) e).getErrorCode())
-                    .isEqualTo(ErrorCode.GATHERING_MEMBER_ONLY);
+                    .isEqualTo(ErrorCode.NOT_A_MEMBER);
 
             verify(todoRepository, never()).save(any());
             verify(eventPublisher, never()).publishEvent(any());

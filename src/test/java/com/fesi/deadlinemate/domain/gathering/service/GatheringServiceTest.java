@@ -11,6 +11,10 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 
+import com.fesi.deadlinemate.domain.category.entity.Category;
+import com.fesi.deadlinemate.domain.category.entity.GatheringCategory;
+import com.fesi.deadlinemate.domain.category.repository.CategoryRepository;
+import com.fesi.deadlinemate.domain.category.repository.GatheringCategoryRepository;
 import com.fesi.deadlinemate.domain.gathering.command.CreateGatheringCommand;
 import com.fesi.deadlinemate.domain.gathering.command.UpdateGatheringCommand;
 import com.fesi.deadlinemate.domain.gathering.dto.response.CreateGatheringResponse;
@@ -62,6 +66,12 @@ class GatheringServiceTest {
     private GatheringMemberRepository gatheringMemberRepository;
 
     @Mock
+    private CategoryRepository categoryRepository;
+
+    @Mock
+    private GatheringCategoryRepository gatheringCategoryRepository;
+
+    @Mock
     private UserClient userClient;
 
     @Mock
@@ -79,7 +89,7 @@ class GatheringServiceTest {
         createGatheringCommand = CreateGatheringCommand.builder()
                 .leaderId(1L)
                 .type(GatheringType.STUDY)
-                .category("개발")
+                .categoryIds(List.of(1L))
                 .title("React 완전 정복 스터디")
                 .shortDescription("리액트 공식문서를 같이 읽어요")
                 .description("매주 공식문서 1챕터씩 읽고 블로그를 작성합니다...")
@@ -90,12 +100,8 @@ class GatheringServiceTest {
                 .startDate(LocalDate.of(2025, 3, 22))
                 .endDate(LocalDate.of(2025, 4, 19))
                 .weeklyGuides(List.of(
-                        new CreateGatheringCommand.CreateWeeklyGuideCommand(
-                                1, "JSX, 컴포넌트, Props", "공식문서 1~3챕터 읽기"
-                        ),
-                        new CreateGatheringCommand.CreateWeeklyGuideCommand(
-                                2, "State, 이벤트 처리", "공식문서 4~6챕터 읽기"
-                        )
+                        new CreateGatheringCommand.CreateWeeklyGuideCommand(1, "JSX, 컴포넌트, Props", "공식문서 1~3챕터 읽기"),
+                        new CreateGatheringCommand.CreateWeeklyGuideCommand(2, "State, 이벤트 처리", "공식문서 4~6챕터 읽기")
                 ))
                 .imageUrls(List.of())
                 .build();
@@ -103,7 +109,7 @@ class GatheringServiceTest {
         recruitingUpdateCommand = UpdateGatheringCommand.builder()
                 .requesterId(1L)
                 .type(GatheringType.PROJECT)
-                .category("개발")
+                .categoryIds(List.of(1L))
                 .title("Spring Boot 실전 프로젝트")
                 .shortDescription("실전 백엔드 프로젝트 같이 해요")
                 .description("요구사항 분석부터 배포까지 같이 진행합니다.")
@@ -117,12 +123,13 @@ class GatheringServiceTest {
                         new UpdateGatheringCommand.UpdateWeeklyGuideCommand(1, "1주차", "기획 및 요구사항 정리"),
                         new UpdateGatheringCommand.UpdateWeeklyGuideCommand(2, "2주차", "도메인 설계")
                 ))
+                .imageUrls(List.of())
                 .build();
 
         inProgressAllowedUpdateCommand = UpdateGatheringCommand.builder()
                 .requesterId(1L)
                 .type(GatheringType.STUDY)
-                .category("개발")
+                .categoryIds(List.of(1L))
                 .title("React 완전 정복 스터디")
                 .shortDescription("리액트 공식문서를 같이 읽어요")
                 .description("진행 중 설명만 수정합니다.")
@@ -136,6 +143,7 @@ class GatheringServiceTest {
                         new UpdateGatheringCommand.UpdateWeeklyGuideCommand(1, "1주차 수정", "진행 중 계획 수정"),
                         new UpdateGatheringCommand.UpdateWeeklyGuideCommand(2, "2주차 수정", "State 심화")
                 ))
+                .imageUrls(List.of())
                 .build();
     }
     @Nested
@@ -146,6 +154,7 @@ class GatheringServiceTest {
         void createGathering() {
             // given
             given(userClient.existsById(1L)).willReturn(true);
+            mockValidCategories();
             given(gatheringRepository.save(any(Gathering.class)))
                     .willAnswer(invocation -> {
                         Gathering gathering = invocation.getArgument(0);
@@ -167,7 +176,6 @@ class GatheringServiceTest {
             Gathering savedGathering = gatheringCaptor.getValue();
             assertThat(savedGathering.getLeaderId()).isEqualTo(1L);
             assertThat(savedGathering.getType()).isEqualTo(GatheringType.STUDY);
-            assertThat(savedGathering.getCategory()).isEqualTo("개발");
             assertThat(savedGathering.getTitle()).isEqualTo("React 완전 정복 스터디");
             assertThat(savedGathering.getShortDescription()).isEqualTo("리액트 공식문서를 같이 읽어요");
             assertThat(savedGathering.getDescription()).isEqualTo("매주 공식문서 1챕터씩 읽고 블로그를 작성합니다...");
@@ -224,6 +232,13 @@ class GatheringServiceTest {
             ArgumentCaptor<GatheringMember> memberCaptor = ArgumentCaptor.forClass(GatheringMember.class);
             then(gatheringMemberRepository).should().save(memberCaptor.capture());
 
+            ArgumentCaptor<List<GatheringCategory>> categoryCaptor = ArgumentCaptor.forClass(List.class);
+            then(gatheringCategoryRepository).should().saveAll(categoryCaptor.capture());
+
+            assertThat(categoryCaptor.getValue())
+                    .extracting(GatheringCategory::getGatheringId, GatheringCategory::getCategoryId)
+                    .containsExactly(tuple(100L, 1L));
+
             GatheringMember leaderMember = memberCaptor.getValue();
             assertThat(leaderMember.getGatheringId()).isEqualTo(100L);
             assertThat(leaderMember.getUserId()).isEqualTo(1L);
@@ -250,6 +265,7 @@ class GatheringServiceTest {
                     .isEqualTo(ErrorCode.USER_NOT_FOUND);
 
             then(gatheringRepository).should(never()).save(any());
+            then(gatheringCategoryRepository).should(never()).saveAll(anyList());
             then(gatheringTagRepository).should(never()).saveAll(any());
             then(weeklyPlanRepository).should(never()).saveAll(any());
             then(gatheringMemberRepository).should(never()).save(any());
@@ -264,6 +280,7 @@ class GatheringServiceTest {
                     .build();
 
             given(userClient.existsById(1L)).willReturn(true);
+            mockValidCategories();
 
             assertThatThrownBy(() -> gatheringService.create(command))
                     .isInstanceOf(BusinessException.class)
@@ -271,6 +288,7 @@ class GatheringServiceTest {
                     .isEqualTo(ErrorCode.INVALID_MAX_MEMBERS);
 
             then(gatheringRepository).should(never()).save(any());
+            then(gatheringCategoryRepository).should(never()).saveAll(anyList());
             then(gatheringTagRepository).should(never()).saveAll(any());
             then(weeklyPlanRepository).should(never()).saveAll(any());
             then(gatheringMemberRepository).should(never()).save(any());
@@ -285,6 +303,7 @@ class GatheringServiceTest {
                     .build();
 
             given(userClient.existsById(1L)).willReturn(true);
+            mockValidCategories();
 
             assertThatThrownBy(() -> gatheringService.create(command))
                     .isInstanceOf(BusinessException.class)
@@ -292,6 +311,7 @@ class GatheringServiceTest {
                     .isEqualTo(ErrorCode.INVALID_RECRUIT_DEADLINE);
 
             then(gatheringRepository).should(never()).save(any());
+            then(gatheringCategoryRepository).should(never()).saveAll(anyList());
             then(gatheringTagRepository).should(never()).saveAll(any());
             then(weeklyPlanRepository).should(never()).saveAll(any());
             then(gatheringMemberRepository).should(never()).save(any());
@@ -306,6 +326,7 @@ class GatheringServiceTest {
                     .build();
 
             given(userClient.existsById(1L)).willReturn(true);
+            mockValidCategories();
 
             assertThatThrownBy(() -> gatheringService.create(command))
                     .isInstanceOf(BusinessException.class)
@@ -315,6 +336,7 @@ class GatheringServiceTest {
             then(gatheringRepository).should(never()).save(any());
             then(gatheringTagRepository).should(never()).saveAll(any());
             then(weeklyPlanRepository).should(never()).saveAll(any());
+            then(gatheringCategoryRepository).should(never()).saveAll(anyList());
             then(gatheringMemberRepository).should(never()).save(any());
             then(eventPublisher).should(never()).publishEvent(any());
         }
@@ -337,11 +359,11 @@ class GatheringServiceTest {
                     .isEqualTo(ErrorCode.INVALID_WEEKLY_GUIDE_SEQUENCE);
 
             then(gatheringRepository).should(never()).save(any());
-            then(gatheringTagRepository).should(never()).saveAll(any());
-            then(weeklyPlanRepository).should(never()).saveAll(any());
+            then(gatheringCategoryRepository).should(never()).saveAll(anyList());
+            then(gatheringTagRepository).should(never()).saveAll(anyList());
+            then(weeklyPlanRepository).should(never()).saveAll(anyList());
             then(gatheringMemberRepository).should(never()).save(any());
             then(eventPublisher).should(never()).publishEvent(any());
-
         }
     }
 
@@ -360,6 +382,8 @@ class GatheringServiceTest {
                             GatheringTag.builder().gatheringId(100L).tag("React").build(),
                             GatheringTag.builder().gatheringId(100L).tag("프론트엔드").build()
                     ));
+            mockCurrentGatheringCategory(100L, 1L);
+            mockValidCategories();
 
             // when
             UpdateGatheringResponse response = gatheringService.update(100L, inProgressAllowedUpdateCommand);
@@ -367,23 +391,19 @@ class GatheringServiceTest {
             // then
             assertThat(response.id()).isEqualTo(100L);
             assertThat(response.tags()).containsExactly("React", "프론트엔드");
-
             assertThat(gathering.getType()).isEqualTo(GatheringType.STUDY);
-            assertThat(gathering.getCategory()).isEqualTo("개발");
             assertThat(gathering.getTitle()).isEqualTo("React 완전 정복 스터디");
             assertThat(gathering.getShortDescription()).isEqualTo("리액트 공식문서를 같이 읽어요");
             assertThat(gathering.getGoal()).isEqualTo("React 공식문서 완독 + 블로그 5편 작성");
             assertThat(gathering.getMaxMembers()).isEqualTo(6);
             assertThat(gathering.getRecruitDeadline()).isEqualTo(LocalDate.of(2025, 3, 20));
             assertThat(gathering.getStartDate()).isEqualTo(LocalDate.of(2025, 3, 22));
-
             assertThat(gathering.getDescription()).isEqualTo("진행 중 설명만 수정합니다.");
             assertThat(gathering.getEndDate()).isEqualTo(LocalDate.of(2025, 4, 26));
             assertThat(gathering.getTotalWeeks()).isEqualTo(6);
 
             then(weeklyPlanRepository).should().deleteByGatheringId(100L);
             then(weeklyPlanRepository).should().saveAll(anyList());
-
             then(gatheringTagRepository).should(never()).deleteByGatheringId(anyLong());
             then(gatheringTagRepository).should(never()).saveAll(anyList());
             then(gatheringTagRepository).should().findByGatheringIdOrderByIdAsc(100L);
@@ -404,6 +424,12 @@ class GatheringServiceTest {
             // given
             Gathering gathering = inProgressGathering();
             given(gatheringRepository.findById(100L)).willReturn(Optional.of(gathering));
+            given(gatheringTagRepository.findByGatheringIdOrderByIdAsc(100L))
+                    .willReturn(List.of(
+                            GatheringTag.builder().gatheringId(100L).tag("React").build(),
+                            GatheringTag.builder().gatheringId(100L).tag("프론트엔드").build()
+                    ));
+            mockCurrentGatheringCategory(100L, 1L);
 
             UpdateGatheringCommand command = inProgressAllowedUpdateCommand.toBuilder()
                     .title("진행 중인데 제목 바꿈")
@@ -415,11 +441,15 @@ class GatheringServiceTest {
                     .extracting("errorCode")
                     .isEqualTo(ErrorCode.INVALID_IN_PROGRESS_UPDATE_ITEMS);
 
+            then(gatheringRepository).should().findById(100L);
+            then(gatheringTagRepository).should().findByGatheringIdOrderByIdAsc(100L);
             then(gatheringTagRepository).should(never()).deleteByGatheringId(anyLong());
             then(gatheringTagRepository).should(never()).saveAll(anyList());
-            then(gatheringTagRepository).should().findByGatheringIdOrderByIdAsc(anyLong());
             then(weeklyPlanRepository).should(never()).deleteByGatheringId(anyLong());
             then(weeklyPlanRepository).should(never()).saveAll(anyList());
+            then(gatheringCategoryRepository).should(never()).deleteByGatheringId(anyLong());
+            then(gatheringCategoryRepository).should(never()).saveAll(anyList());
+            then(gatheringMemberRepository).shouldHaveNoInteractions();
             then(eventPublisher).should(never()).publishEvent(any());
         }
 
@@ -442,6 +472,8 @@ class GatheringServiceTest {
 
             then(gatheringTagRepository).should(never()).deleteByGatheringId(anyLong());
             then(gatheringTagRepository).should(never()).saveAll(anyList());
+            then(gatheringCategoryRepository).should(never()).deleteByGatheringId(anyLong());
+            then(gatheringCategoryRepository).should(never()).saveAll(anyList());
             then(gatheringTagRepository).should(never()).findByGatheringIdOrderByIdAsc(anyLong());
             then(weeklyPlanRepository).should(never()).deleteByGatheringId(anyLong());
             then(weeklyPlanRepository).should(never()).saveAll(anyList());
@@ -453,7 +485,6 @@ class GatheringServiceTest {
         Gathering gathering = Gathering.builder()
                 .leaderId(1L)
                 .type(GatheringType.STUDY)
-                .category("개발")
                 .title("React 완전 정복 스터디")
                 .shortDescription("리액트 공식문서를 같이 읽어요")
                 .description("매주 공식문서 1챕터씩 읽고 블로그를 작성합니다...")
@@ -475,7 +506,6 @@ class GatheringServiceTest {
         Gathering gathering = Gathering.builder()
                 .leaderId(1L)
                 .type(GatheringType.STUDY)
-                .category("개발")
                 .title("React 완전 정복 스터디")
                 .shortDescription("리액트 공식문서를 같이 읽어요")
                 .description("기존 설명")
@@ -493,13 +523,43 @@ class GatheringServiceTest {
         return gathering;
     }
 
+    private void mockValidCategories() {
+        Category category = Category.builder().name("개발").build();
+        setField(category, "id", 1L);
+
+        given(categoryRepository.findByIdIn(anyList()))
+                .willReturn(List.of(category));
+    }
+
+    private void mockCurrentGatheringCategory(Long gatheringId, Long categoryId) {
+        given(gatheringCategoryRepository.findByGatheringId(gatheringId))
+                .willReturn(List.of(
+                        GatheringCategory.builder()
+                                .gatheringId(gatheringId)
+                                .categoryId(categoryId)
+                                .build()
+                ));
+    }
+
     private void setField(Object target, String fieldName, Object value) {
         try {
-            Field field = target.getClass().getDeclaredField(fieldName);
+            Field field = findField(target.getClass(), fieldName);
             field.setAccessible(true);
             field.set(target, value);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private Field findField(Class<?> clazz, String fieldName) throws NoSuchFieldException {
+        Class<?> current = clazz;
+        while (current != null) {
+            try {
+                return current.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException e) {
+                current = current.getSuperclass();
+            }
+        }
+        throw new NoSuchFieldException(fieldName);
     }
 }

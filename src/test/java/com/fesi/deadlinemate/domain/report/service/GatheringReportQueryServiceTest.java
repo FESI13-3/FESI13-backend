@@ -200,7 +200,7 @@ class GatheringReportQueryServiceTest {
         assertThatThrownBy(() -> gatheringReportQueryService.getReport(gatheringId, requesterId))
                 .isInstanceOf(BusinessException.class)
                 .extracting(ex -> ((BusinessException) ex).getErrorCode())
-                .isEqualTo(ErrorCode.GATHERING_MEMBER_ONLY);
+                .isEqualTo(ErrorCode.NOT_A_MEMBER);
     }
 
     @Test
@@ -213,7 +213,6 @@ class GatheringReportQueryServiceTest {
         Gathering gathering = Gathering.builder()
                 .leaderId(10L)
                 .type(GatheringType.STUDY)
-                .category("개발")
                 .title("진행중 모임")
                 .shortDescription("소개")
                 .description("설명")
@@ -283,7 +282,6 @@ class GatheringReportQueryServiceTest {
         Gathering gathering = Gathering.builder()
                 .leaderId(leaderId)
                 .type(GatheringType.STUDY)
-                .category("개발")
                 .title(title)
                 .shortDescription("한 줄 소개")
                 .description("상세 설명")
