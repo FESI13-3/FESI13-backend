@@ -29,6 +29,14 @@ public class MockLikeService {
         this.authContext = authContext;
     }
 
+    public List<Long> getLikedGatheringIds() {
+        Long userId = authContext.currentUserId();
+        return store.gatheringLikes.entrySet().stream()
+                .filter(entry -> entry.getValue().contains(userId))
+                .map(Map.Entry::getKey)
+                .toList();
+    }
+
     public Map<String, Object> getMyLikedGatherings(int page, int limit) {
         Long userId = authContext.currentUserId();
 

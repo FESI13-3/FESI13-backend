@@ -2,6 +2,7 @@ package com.fesi.deadlinemate.domain.like.controller;
 
 import com.fesi.deadlinemate.domain.like.service.MockLikeService;
 import com.fesi.deadlinemate.global.common.ApiResponse;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,6 +20,11 @@ public class MockLikeController {
 
     public MockLikeController(MockLikeService service) {
         this.service = service;
+    }
+
+    @GetMapping("/users/me/likes/ids")
+    public ResponseEntity<ApiResponse<List<Long>>> getLikedGatheringIds() {
+        return ResponseEntity.ok(ApiResponse.success(service.getLikedGatheringIds()));
     }
 
     @GetMapping("/users/me/likes")

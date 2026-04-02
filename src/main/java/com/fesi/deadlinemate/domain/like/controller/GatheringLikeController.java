@@ -4,6 +4,7 @@ import com.fesi.deadlinemate.domain.gathering.dto.response.GatheringListResponse
 import com.fesi.deadlinemate.domain.gathering.service.GatheringQueryService;
 import com.fesi.deadlinemate.domain.like.service.GatheringLikeService;
 import com.fesi.deadlinemate.global.common.ApiResponse;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -23,6 +24,12 @@ public class GatheringLikeController {
 
     private final GatheringLikeService gatheringLikeService;
     private final GatheringQueryService gatheringQueryService;
+
+    @GetMapping("/users/me/likes/ids")
+    public ApiResponse<List<Long>> getLikedGatheringIds(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ApiResponse.success(gatheringLikeService.getLikedGatheringIds(userId));
+    }
 
     @GetMapping("/users/me/likes")
     public ApiResponse<GatheringListResponse> getMyLikedGatherings(
