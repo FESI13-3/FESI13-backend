@@ -4,6 +4,7 @@ import com.fesi.deadlinemate.domain.gathering.client.GatheringClient;
 import com.fesi.deadlinemate.domain.gathering.dto.response.MyGatheringListResponse;
 import com.fesi.deadlinemate.domain.user.dto.request.ChangePasswordRequest;
 import com.fesi.deadlinemate.domain.user.dto.request.UpdateProfileRequest;
+import com.fesi.deadlinemate.global.common.ImageStorageService;
 import com.fesi.deadlinemate.domain.user.dto.response.PublicProfileResponse;
 import com.fesi.deadlinemate.domain.user.dto.response.UserProfileResponse;
 import com.fesi.deadlinemate.domain.user.entity.User;
@@ -11,9 +12,11 @@ import com.fesi.deadlinemate.domain.user.service.UserService;
 import com.fesi.deadlinemate.global.common.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -22,6 +25,7 @@ public class UserController {
 
     private final UserService userService;
     private final GatheringClient gatheringClient;
+    private final ImageStorageService imageStorageService;
 
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserProfileResponse>> getMyProfile(Authentication authentication) {
@@ -30,12 +34,22 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(UserProfileResponse.from(user)));
     }
 
-    @PatchMapping("/me")
+    @PatchMapping(value = "/me", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<UserProfileResponse>> updateMyProfile(
             Authentication authentication,
-            @Valid @RequestBody UpdateProfileRequest request) {
+            @RequestPart(value = "request", required = false) @Valid UpdateProfileRequest request,
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage) {
         Long userId = (Long) authentication.getPrincipal();
-        User user = userService.updateProfile(userId, request.getNickname(), request.getProfileImage());
+
+        String imageUrl = null;
+        if (profileImage != null && !profileImage.isEmpty()) {
+            imageUrl = imageStorageService.upload(profileImage, "profiles");
+        } else if (request != null) {
+            imageUrl = request.getProfileImage();
+        }
+
+        String nickname = (request != null) ? request.getNickname() : null;
+        User user = userService.updateProfile(userId, nickname, imageUrl);
         return ResponseEntity.ok(ApiResponse.success(UserProfileResponse.from(user)));
     }
 

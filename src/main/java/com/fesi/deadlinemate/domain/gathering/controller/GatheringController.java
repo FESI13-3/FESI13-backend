@@ -16,7 +16,9 @@ import com.fesi.deadlinemate.domain.gathering.service.GatheringService;
 import com.fesi.deadlinemate.domain.gathering.service.MembershipCommandService;
 import com.fesi.deadlinemate.domain.gathering.service.MembershipQueryService;
 import com.fesi.deadlinemate.global.common.ApiResponse;
+import com.fesi.deadlinemate.global.common.ImageStorageService;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/gatherings")
@@ -41,16 +44,22 @@ public class GatheringController {
     private final GatheringQueryService gatheringQueryService;
     private final MembershipCommandService membershipCommandService;
     private final MembershipQueryService membershipQueryService;
+    private final ImageStorageService imageStorageService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<CreateGatheringResponse> create(
             @RequestPart("request") @Valid CreateGatheringRequest request,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
             Authentication authentication
     ) {
         Long userId = (Long) authentication.getPrincipal();
 
-        CreateGatheringCommand command = request.toCommand(userId);
+        List<String> imageUrls = (images != null && !images.isEmpty())
+                ? imageStorageService.uploadAll(images, "gatherings")
+                : List.of();
+
+        CreateGatheringCommand command = request.toCommand(userId, imageUrls);
         CreateGatheringResponse response = gatheringService.create(command);
 
         return ApiResponse.success(response);
