@@ -25,9 +25,6 @@ public class ImageStorageService {
     @Value("${image.upload-dir}")
     private String uploadDir;
 
-    @Value("${image.base-url}")
-    private String baseUrl;
-
     @PostConstruct
     public void init() {
         try {
@@ -51,7 +48,7 @@ public class ImageStorageService {
             throw new BusinessException(ErrorCode.IMAGE_UPLOAD_FAILED);
         }
 
-        return baseUrl + "/" + directory + "/" + filename;
+        return "/images/" + directory + "/" + filename;
     }
 
     public List<String> uploadAll(List<MultipartFile> files, String directory) {
@@ -60,12 +57,12 @@ public class ImageStorageService {
                 .toList();
     }
 
-    public void delete(String imageUrl) {
-        if (imageUrl == null || !imageUrl.startsWith(baseUrl)) {
+    public void delete(String imagePath) {
+        if (imagePath == null || !imagePath.startsWith("/images/")) {
             return;
         }
 
-        String relativePath = imageUrl.substring(baseUrl.length() + 1);
+        String relativePath = imagePath.substring("/images/".length());
         Path filePath = Paths.get(uploadDir, relativePath);
 
         try {

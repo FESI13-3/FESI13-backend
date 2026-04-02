@@ -14,7 +14,6 @@ spring:
 
 image:
   upload-dir: ./build/test-images
-  base-url: http://localhost:8080/images
 
 jwt:
   secret: test-secret-key-that-is-at-least-256-bits-long-for-hs256-algorithm
