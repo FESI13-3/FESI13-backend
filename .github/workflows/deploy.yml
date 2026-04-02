@@ -54,7 +54,7 @@ jobs:
           script: |
             cd /home/ubuntu/app
 
-            BASE_URL="http://${{ secrets.EC2_HOST }}:8080"
+            BASE_URL="https://${{ secrets.EC2_DOMAIN }}"
 
             # 값이 있는 변수만 .env에 기록 (없으면 docker-compose 기본값 사용)
             > .env
