@@ -42,7 +42,6 @@ public class MockGatheringDtos {
             LocalDate startDate,
             LocalDate endDate,
             String status,
-            Boolean isLiked,
             LeaderDto leader
     ) {}
 
@@ -63,7 +62,6 @@ public class MockGatheringDtos {
             Integer totalWeeks,
             List<Map<String, Object>> images,
             String status,
-            Boolean isLiked,
             LeaderDto leader,
             List<WeeklyPlanDto> weeklyPlans,
             List<MemberDto> members,

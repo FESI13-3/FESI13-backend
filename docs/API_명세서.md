@@ -335,7 +335,6 @@
       "startDate": "2025-03-22",
       "endDate": "2025-04-19",
       "status": "RECRUITING",
-      "isLiked": true,
       "leader": { "id": 1, "nickname": "마감왕", "profileImage": "https://..." }
     }
   ],
@@ -452,7 +451,6 @@
     {"url": "https://example.com/meeting1.jpg", "displayOrder": 0}
   ],
   "status": "RECRUITING",
-  "isLiked": true,
   "leader": { "id": 1, "nickname": "마감왕", "profileImage": "https://..." },
   "weeklyPlans": [
     { "week": 1, "title": "JSX, 컴포넌트, Props", "startDate": "2025-03-22", "endDate": "2025-03-28" }
@@ -688,8 +686,7 @@
       "startDate": "2025-03-22",
       "endDate": "2025-04-19",
       "status": "IN_PROGRESS",
-      "myRole": "LEADER",
-      "isLiked": true
+      "myRole": "LEADER"
     },
     {
       "id": 2,
@@ -703,8 +700,7 @@
       "startDate": "2025-04-01",
       "endDate": "2025-05-30",
       "status": "RECRUITING",
-      "myRole": "MEMBER",
-      "isLiked": false
+      "myRole": "MEMBER"
     }
   ],
   "totalCount": 2,
@@ -1144,9 +1140,7 @@
 **Response `200`**
 ```json
 { "success": true,
-  "data": {
-    "gatheringIds": [1, 5, 12, 34]
-  }
+  "data": [1, 5, 12, 34]
 }
 ```
 

@@ -24,7 +24,6 @@ public record GatheringDetailResponse(
         int totalWeeks,
         List<ImageResponse> images,
         GatheringStatus status,
-        boolean isLiked,
         LeaderResponse leader,
         List<WeeklyPlanResponse> weeklyPlans,
         List<MemberResponse> members

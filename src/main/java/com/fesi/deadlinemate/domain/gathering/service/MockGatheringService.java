@@ -164,7 +164,6 @@ public class MockGatheringService {
                 g.startDate,
                 g.endDate,
                 g.status,
-                store.gatheringLikes.getOrDefault(g.id, Set.of()).contains(authContext.currentUserId()),
                 new LeaderDto(g.leaderId, "마감왕", "https://example.com/profile.png")
         );
     }
@@ -213,7 +212,6 @@ public class MockGatheringService {
                 (int) ChronoUnit.WEEKS.between(g.startDate, g.endDate) + 1,
                 g.images,
                 g.status,
-                store.gatheringLikes.getOrDefault(g.id, Set.of()).contains(userId),
                 new LeaderDto(g.leaderId, "마감왕", "https://example.com/profile.png"),
                 weeklyPlans,
                 members,
