@@ -11,7 +11,7 @@ import lombok.Getter;
 public record CreateGatheringResponse(
         Long id,
         String type,
-        String category,
+        List<String> categories,
         String title,
         String shortDescription,
         String description,
@@ -26,11 +26,11 @@ public record CreateGatheringResponse(
         GatheringStatus status,
         List<String> imageUrls
 ) {
-    public static CreateGatheringResponse from(Gathering gathering, List<String> tags) {
+    public static CreateGatheringResponse from(Gathering gathering, List<String> categories, List<String> tags) {
         return CreateGatheringResponse.builder()
                 .id(gathering.getId())
                 .type(gathering.getType().getDisplayName())
-                .category(gathering.getCategory())
+                .categories(categories == null ? List.of() : categories)
                 .title(gathering.getTitle())
                 .shortDescription(gathering.getShortDescription())
                 .description(gathering.getDescription())

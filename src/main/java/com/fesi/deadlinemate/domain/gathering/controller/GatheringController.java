@@ -17,6 +17,7 @@ import com.fesi.deadlinemate.domain.gathering.service.MembershipCommandService;
 import com.fesi.deadlinemate.domain.gathering.service.MembershipQueryService;
 import com.fesi.deadlinemate.global.common.ApiResponse;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -80,14 +81,14 @@ public class GatheringController {
     @GetMapping
     public ApiResponse<GatheringListResponse> getGatherings(
             @RequestParam(required = false) GatheringType type,
-            @RequestParam(required = false) String category,
+            @RequestParam(required = false) List<Long> categoryIds,
             @RequestParam(defaultValue = "latest") String sort,
             @RequestParam(defaultValue = "recruiting") String status,
             @RequestParam(required = false) String query,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "12") int limit
     ) {
-        GatheringSearchCondition condition = new GatheringSearchCondition(type, category, sort, status, query);
+        GatheringSearchCondition condition = new GatheringSearchCondition(type, categoryIds, sort, status, query);
 
         return ApiResponse.success(gatheringQueryService.getGatherings(condition, page, limit));
     }

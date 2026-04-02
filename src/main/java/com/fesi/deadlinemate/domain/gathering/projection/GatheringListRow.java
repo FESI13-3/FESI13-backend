@@ -10,7 +10,6 @@ public record GatheringListRow(
         Long id,
         Long leaderId,
         GatheringType type,
-        String category,
         String title,
         String shortDescription,
         int maxMembers,

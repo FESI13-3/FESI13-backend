@@ -11,7 +11,7 @@ import lombok.Builder;
 public record UpdateGatheringResponse(
         Long id,
         String type,
-        String category,
+        List<String> categories,
         String title,
         String shortDescription,
         String description,
@@ -23,13 +23,18 @@ public record UpdateGatheringResponse(
         LocalDate endDate,
         int totalWeeks,
         GatheringStatus status,
-        List<String> tags
+        List<String> tags,
+        List<String> imageUrls
 ) {
-    public static UpdateGatheringResponse from(Gathering gathering, List<String> tags) {
+    public static UpdateGatheringResponse from(
+            Gathering gathering,
+            List<String> categories,
+            List<String> tags
+    ) {
         return UpdateGatheringResponse.builder()
                 .id(gathering.getId())
                 .type(gathering.getType().getDisplayName())
-                .category(gathering.getCategory())
+                .categories(categories == null ? List.of() : categories)
                 .title(gathering.getTitle())
                 .shortDescription(gathering.getShortDescription())
                 .description(gathering.getDescription())
@@ -41,7 +46,7 @@ public record UpdateGatheringResponse(
                 .endDate(gathering.getEndDate())
                 .totalWeeks(gathering.getTotalWeeks())
                 .status(gathering.getStatus())
-                .tags(tags)
+                .tags(tags == null ? List.of() : tags)
                 .build();
     }
 }

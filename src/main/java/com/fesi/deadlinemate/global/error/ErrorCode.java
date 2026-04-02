@@ -42,6 +42,7 @@ public enum ErrorCode {
     GATHERING_DELETE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "진행 중인 모임은 삭제할 수 없습니다."),
     INVALID_MAX_MEMBERS(HttpStatus.BAD_REQUEST, "최대 인원은 2명 이상 10명 이하여야 합니다."),
     GATHERING_NOT_FOUND(HttpStatus.NOT_FOUND, "모임을 찾을 수 없습니다."),
+    GATHERING_CATEGORY_COUNT(HttpStatus.BAD_REQUEST, "카테고리는 최대 3개까지 선택할 수 있습니다."),
     GATHERING_COMPLETE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "진행 중인 모임만 종료할 수 있습니다."),
 
     // GatheringApplication
