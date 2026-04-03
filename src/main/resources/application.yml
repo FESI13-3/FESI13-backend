@@ -13,6 +13,14 @@ spring:
   jackson:
     property-naming-strategy: LOWER_CAMEL_CASE
 
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 20MB
+
+image:
+  upload-dir: ${IMAGE_UPLOAD_DIR:./data/images}
+
 server:
   port: 8080
 

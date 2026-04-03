@@ -7,6 +7,7 @@ import com.fesi.deadlinemate.domain.gathering.command.UpdateGatheringCommand;
 import com.fesi.deadlinemate.domain.gathering.dto.response.CreateGatheringResponse;
 import com.fesi.deadlinemate.domain.gathering.dto.response.UpdateGatheringResponse;
 import com.fesi.deadlinemate.domain.gathering.entity.Gathering;
+import com.fesi.deadlinemate.domain.gathering.entity.GatheringImage;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringMember;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringRole;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringStatus;
@@ -18,6 +19,7 @@ import com.fesi.deadlinemate.domain.gathering.event.GatheringDeletedEvent;
 import com.fesi.deadlinemate.domain.gathering.event.GatheringUpdatedEvent;
 import com.fesi.deadlinemate.domain.category.repository.CategoryRepository;
 import com.fesi.deadlinemate.domain.category.repository.GatheringCategoryRepository;
+import com.fesi.deadlinemate.domain.gathering.repository.GatheringImageRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringMemberRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringTagRepository;
@@ -49,6 +51,7 @@ public class GatheringService {
     private final CategoryRepository categoryRepository;
     private final WeeklyPlanRepository weeklyPlanRepository;
     private final GatheringMemberRepository gatheringMemberRepository;
+    private final GatheringImageRepository gatheringImageRepository;
     private final GatheringLikeRepository gatheringLikeRepository;
     private final UserClient userClient;
     private final ApplicationEventPublisher eventPublisher;
@@ -80,6 +83,7 @@ public class GatheringService {
 
         saveCategories(saved.getId(), categories);
         saveTags(saved.getId(), command.tags());
+        saveImages(saved.getId(), command.imageUrls());
         saveWeeklyPlansFromCreate(
                 saved.getId(),
                 command.weeklyGuides(),
@@ -341,6 +345,23 @@ public class GatheringService {
     private int calculateTotalWeeks(LocalDate startDate, LocalDate endDate) {
         long days = ChronoUnit.DAYS.between(startDate, endDate);
         return (int) (days / 7) + 1;
+    }
+
+    private void saveImages(Long gatheringId, List<String> imageUrls) {
+        if (imageUrls == null || imageUrls.isEmpty()) {
+            return;
+        }
+
+        List<GatheringImage> entities = new java.util.ArrayList<>();
+        for (int i = 0; i < imageUrls.size(); i++) {
+            entities.add(GatheringImage.builder()
+                    .gatheringId(gatheringId)
+                    .imageUrl(imageUrls.get(i))
+                    .displayOrder(i)
+                    .build());
+        }
+
+        gatheringImageRepository.saveAll(entities);
     }
 
     private void saveTags(Long gatheringId, List<String> tags) {

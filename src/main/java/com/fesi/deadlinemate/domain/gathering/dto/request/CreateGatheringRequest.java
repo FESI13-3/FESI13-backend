@@ -62,7 +62,7 @@ public record CreateGatheringRequest(
         @NotEmpty(message = "주차별 계획은 최소 1개 이상 필요합니다.")
         List<WeeklyGuideRequest> weeklyGuides
 ) {
-    public CreateGatheringCommand toCommand(Long leaderId) {
+    public CreateGatheringCommand toCommand(Long leaderId, List<String> imageUrls) {
         return CreateGatheringCommand.builder()
                 .leaderId(leaderId)
                 .type(type)
@@ -85,7 +85,7 @@ public record CreateGatheringRequest(
                                 ))
                                 .toList()
                 )
-                .imageUrls(List.of())
+                .imageUrls(imageUrls)
                 .build();
     }
 
