@@ -32,7 +32,7 @@ public class MockGatheringDtos {
     public record GatheringSummaryDto(
             Long id,
             String type,
-            String category,
+            List<String> categories,
             String title,
             String shortDescription,
             List<String> tags,
@@ -48,7 +48,7 @@ public class MockGatheringDtos {
     public record GatheringDetailDto(
             Long id,
             String type,
-            String category,
+            List<String> categories,
             String title,
             String shortDescription,
             String description,
@@ -64,8 +64,7 @@ public class MockGatheringDtos {
             String status,
             LeaderDto leader,
             List<WeeklyPlanDto> weeklyPlans,
-            List<MemberDto> members,
-            String myApplicationStatus
+            List<MemberDto> members
     ) {}
 
     public record WeeklyGuideRequest(
@@ -76,7 +75,7 @@ public class MockGatheringDtos {
 
     public record CreateGatheringRequest(
             String type,
-            String category,
+            List<String> categories,
             String title,
             String shortDescription,
             String description,
@@ -91,7 +90,7 @@ public class MockGatheringDtos {
 
     public record UpdateGatheringRequest(
             String type,
-            String category,
+            List<String> categories,
             String title,
             String shortDescription,
             String description,

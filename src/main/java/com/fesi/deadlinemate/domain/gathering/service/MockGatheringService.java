@@ -44,17 +44,21 @@ public class MockGatheringService {
         this.permissionService = permissionService;
     }
 
-    public GatheringListResponse getGatherings(String type, String category, String sort, String status,
+    public GatheringListResponse getGatherings(String type, List<String> categories, String sort, String status,
                                                String query, int page, int limit) {
 
         List<GatheringSummaryDto> filtered = store.gatherings.values().stream()
                 .filter(g -> type == null || g.type.equals(type))
-                .filter(g -> category == null || g.category.equals(category))
-                .filter(g -> status == null || "all".equalsIgnoreCase(status) || g.status.equalsIgnoreCase("RECRUITING"))
-                .filter(g -> query == null || g.title.contains(query)
+                .filter(g -> categories == null || categories.isEmpty()
+                        || g.categories.stream().anyMatch(categories::contains))
+                .filter(g -> status == null
+                        || "all".equalsIgnoreCase(status)
+                        || g.status.equalsIgnoreCase(status))
+                .filter(g -> query == null || query.isBlank()
+                        || g.title.contains(query)
                         || g.shortDescription.contains(query)
                         || g.tags.stream().anyMatch(tag -> tag.contains(query)))
-                .sorted(Comparator.comparing((MockGatheringEntity g) -> g.createdAt).reversed())
+                .sorted(resolveComparator(sort))
                 .map(this::toSummary)
                 .toList();
 
@@ -84,18 +88,18 @@ public class MockGatheringService {
 
     public GatheringDetailDto getGatheringDetail(Long gatheringId) {
         MockGatheringEntity gathering = finder.getGathering(gatheringId);
-        return toDetail(gathering, authContext.currentUserId());
+        return toDetail(gathering);
     }
 
     public GatheringDetailDto createGathering(CreateGatheringRequest req) {
         MockGatheringEntity gathering = new MockGatheringEntity();
         gathering.id = store.gatheringSeq.getAndIncrement();
         gathering.type = req.type();
-        gathering.category = req.category();
+        gathering.categories = req.categories() == null ? new ArrayList<>() : new ArrayList<>(req.categories());
         gathering.title = req.title();
         gathering.shortDescription = req.shortDescription();
         gathering.description = req.description();
-        gathering.tags = req.tags() == null ? new ArrayList<>() : req.tags();
+        gathering.tags = req.tags() == null ? new ArrayList<>() : new ArrayList<>(req.tags());
         gathering.goal = req.goal();
         gathering.maxMembers = req.maxMembers();
         gathering.currentMembers = 1;
@@ -104,7 +108,7 @@ public class MockGatheringService {
         gathering.endDate = req.endDate();
         gathering.status = "RECRUITING";
         gathering.leaderId = authContext.currentUserId();
-        gathering.weeklyGuides = req.weeklyGuides() == null ? new ArrayList<>() : req.weeklyGuides();
+        gathering.weeklyGuides = req.weeklyGuides() == null ? new ArrayList<>() : new ArrayList<>(req.weeklyGuides());
         gathering.images = List.of(Map.of("url", "https://example.com/default.jpg", "displayOrder", 0));
         gathering.createdAt = OffsetDateTime.now();
 
@@ -112,7 +116,7 @@ public class MockGatheringService {
         store.gatheringMembers.put(gathering.id, new LinkedHashSet<>(List.of(authContext.currentUserId())));
         store.gatheringLikes.put(gathering.id, new LinkedHashSet<>());
 
-        return toDetail(gathering, authContext.currentUserId());
+        return toDetail(gathering);
     }
 
     public GatheringDetailDto updateGathering(Long gatheringId, UpdateGatheringRequest req) {
@@ -120,7 +124,7 @@ public class MockGatheringService {
         permissionService.validateLeader(gathering);
 
         if (req.type() != null) gathering.type = req.type();
-        if (req.category() != null) gathering.category = req.category();
+        if (req.categories() != null) gathering.categories = new ArrayList<>(req.categories());
         if (req.title() != null) gathering.title = req.title();
         if (req.shortDescription() != null) gathering.shortDescription = req.shortDescription();
         if (req.description() != null) gathering.description = req.description();
@@ -132,7 +136,7 @@ public class MockGatheringService {
         if (req.endDate() != null) gathering.endDate = req.endDate();
         if (req.weeklyGuides() != null) gathering.weeklyGuides = req.weeklyGuides();
 
-        return toDetail(gathering, authContext.currentUserId());
+        return toDetail(gathering);
     }
 
     public void deleteGathering(Long gatheringId) {
@@ -154,7 +158,7 @@ public class MockGatheringService {
         return new GatheringSummaryDto(
                 g.id,
                 g.type,
-                g.category,
+                g.categories,
                 g.title,
                 g.shortDescription,
                 g.tags,
@@ -168,7 +172,7 @@ public class MockGatheringService {
         );
     }
 
-    private GatheringDetailDto toDetail(MockGatheringEntity g, Long userId) {
+    private GatheringDetailDto toDetail(MockGatheringEntity g) {
         List<MemberDto> members = store.gatheringMembers.getOrDefault(g.id, Set.of()).stream()
                 .map(id -> new MemberDto(
                         id,
@@ -189,16 +193,10 @@ public class MockGatheringService {
                 ))
                 .toList();
 
-        String myApplicationStatus = store.applications.values().stream()
-                .filter(a -> a.gatheringId.equals(g.id) && a.applicantId.equals(userId))
-                .map(a -> a.status)
-                .findFirst()
-                .orElse(null);
-
         return new GatheringDetailDto(
                 g.id,
                 g.type,
-                g.category,
+                g.categories,
                 g.title,
                 g.shortDescription,
                 g.description,
@@ -214,8 +212,23 @@ public class MockGatheringService {
                 g.status,
                 new LeaderDto(g.leaderId, "마감왕", "https://example.com/profile.png"),
                 weeklyPlans,
-                members,
-                myApplicationStatus
+                members
         );
+    }
+
+    private Comparator<MockGatheringEntity> resolveComparator(String sort) {
+        if (sort == null) {
+            return Comparator.comparing(g -> g.createdAt, Comparator.reverseOrder());
+        }
+
+        return switch (sort.toLowerCase()) {
+            case "latest" -> Comparator.comparing(g -> g.createdAt, Comparator.reverseOrder());
+            case "deadline" -> Comparator.comparing(g -> g.recruitDeadline);
+            case "members" -> Comparator.comparing(g ->
+                            store.gatheringMembers.getOrDefault(g.id, Set.of()).size(),
+                    Comparator.reverseOrder()
+            );
+            default -> Comparator.comparing(g -> g.createdAt, Comparator.reverseOrder());
+        };
     }
 }
