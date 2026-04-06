@@ -73,12 +73,13 @@ public class UserController {
     public ResponseEntity<ApiResponse<MyGatheringListResponse>> getMyGatherings(
             Authentication authentication,
             @RequestParam(defaultValue = "all") String status,
+            @RequestParam(defaultValue = "latest") String sort,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "12") int limit
     ) {
         Long userId = (Long) authentication.getPrincipal();
         return ResponseEntity.ok(ApiResponse.success(
-                gatheringClient.getMyGatherings(userId, status, page, limit)
+                gatheringClient.getMyGatherings(userId, status, sort, page, limit)
         ));
     }
 

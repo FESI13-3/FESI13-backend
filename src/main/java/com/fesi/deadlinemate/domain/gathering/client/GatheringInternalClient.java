@@ -28,8 +28,8 @@ public class GatheringInternalClient implements GatheringClient {
     }
 
     @Override
-    public MyGatheringListResponse getMyGatherings(Long userId, String status, int page, int limit) {
-        return membershipQueryService.getMyGatherings(userId, status, page, limit);
+    public MyGatheringListResponse getMyGatherings(Long userId, String status, String sort, int page, int limit) {
+        return membershipQueryService.getMyGatherings(userId, status, sort, page, limit);
     }
 
     @Override

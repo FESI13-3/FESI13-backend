@@ -36,7 +36,7 @@ public class MembershipQueryService {
     private final ReviewRepository reviewRepository;
     private final UserClient userClient;
 
-    public MyGatheringListResponse getMyGatherings(Long userId, String status, int page, int limit) {
+    public MyGatheringListResponse getMyGatherings(Long userId, String status, String sort, int page, int limit) {
         int validatedPage = Math.max(page, 1);
         int validatedLimit = Math.max(limit, 1);
 
@@ -51,8 +51,9 @@ public class MembershipQueryService {
                     .build();
         }
 
+        boolean isOldest = "oldest".equalsIgnoreCase(sort);
         PageRequest pageable = PageRequest.of(validatedPage - 1, validatedLimit);
-        Page<Gathering> result = resolveGatheringPage(gatheringIds, status, pageable);
+        Page<Gathering> result = resolveGatheringPage(gatheringIds, status, isOldest, pageable);
 
         List<Long> resultGatheringIds = result.getContent().stream()
                 .map(Gathering::getId).toList();
@@ -106,12 +107,16 @@ public class MembershipQueryService {
         return MemberListResponse.of(members, userMap);
     }
 
-    private Page<Gathering> resolveGatheringPage(List<Long> ids, String status, PageRequest pageable) {
+    private Page<Gathering> resolveGatheringPage(List<Long> ids, String status, boolean isOldest, PageRequest pageable) {
         GatheringStatus gatheringStatus = GatheringStatus.fromString(status);
         if (gatheringStatus != null) {
-            return gatheringRepository.findByIdInAndStatusOrderByCreatedAtDesc(ids, gatheringStatus, pageable);
+            return isOldest
+                    ? gatheringRepository.findByIdInAndStatusOrderByCreatedAtAsc(ids, gatheringStatus, pageable)
+                    : gatheringRepository.findByIdInAndStatusOrderByCreatedAtDesc(ids, gatheringStatus, pageable);
         }
-        return gatheringRepository.findByIdInOrderByCreatedAtDesc(ids, pageable);
+        return isOldest
+                ? gatheringRepository.findByIdInOrderByCreatedAtAsc(ids, pageable)
+                : gatheringRepository.findByIdInOrderByCreatedAtDesc(ids, pageable);
     }
 
     private void validateMembership(Long gatheringId, Long userId) {

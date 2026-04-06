@@ -20,7 +20,11 @@ public interface GatheringRepository extends JpaRepository<Gathering, Long>, Gat
 
     Page<Gathering> findByIdInOrderByCreatedAtDesc(List<Long> ids, Pageable pageable);
 
+    Page<Gathering> findByIdInOrderByCreatedAtAsc(List<Long> ids, Pageable pageable);
+
     Page<Gathering> findByIdInAndStatusOrderByCreatedAtDesc(List<Long> ids, GatheringStatus status, Pageable pageable);
+
+    Page<Gathering> findByIdInAndStatusOrderByCreatedAtAsc(List<Long> ids, GatheringStatus status, Pageable pageable);
 
     @Modifying(clearAutomatically = true)
     @Query("UPDATE Gathering g SET g.currentMembers = g.currentMembers - 1 WHERE g.id = :id AND g.currentMembers > 0")
