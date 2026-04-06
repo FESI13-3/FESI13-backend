@@ -94,6 +94,7 @@ public enum ErrorCode {
     REVIEWER_NOT_A_MEMBER(HttpStatus.FORBIDDEN, "해당 모임의 멤버만 리뷰를 작성할 수 있습니다."),
     REVIEW_TARGET_NOT_A_MEMBER(HttpStatus.BAD_REQUEST, "리뷰 대상이 해당 모임의 멤버가 아닙니다."),
     INVALID_REVIEW_TAG(HttpStatus.BAD_REQUEST, "유효하지 않은 리뷰 태그입니다."),
+    INVALID_MATES_TAG(HttpStatus.BAD_REQUEST, "유효하지 않은 메이츠 태그입니다."),
 
     // Image
     IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 업로드에 실패했습니다."),

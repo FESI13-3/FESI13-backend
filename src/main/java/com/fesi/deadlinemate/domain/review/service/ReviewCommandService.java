@@ -37,7 +37,7 @@ public class ReviewCommandService {
 
             Review review = Review.create(
                     command.gatheringId(), command.reviewerId(),
-                    item.targetUserId(), item.tags(), item.comment()
+                    item.targetUserId(), item.tags(), item.matesTag(), item.comment()
             );
 
             reviewRepository.save(review);
