@@ -28,9 +28,10 @@ public record MyGatheringListResponse(
             LocalDate endDate,
             GatheringStatus status,
             GatheringRole myRole,
-            boolean isLiked
+            boolean isLiked,
+            boolean hasReviewed
     ) {
-        public static MyGatheringItem of(Gathering gathering, GatheringRole myRole, List<String> tags) {
+        public static MyGatheringItem of(Gathering gathering, GatheringRole myRole, List<String> tags, boolean hasReviewed) {
             return MyGatheringItem.builder()
                     .id(gathering.getId())
                     .type(gathering.getType().getDisplayName())
@@ -45,6 +46,7 @@ public record MyGatheringListResponse(
                     .status(gathering.getStatus())
                     .myRole(myRole)
                     .isLiked(false)
+                    .hasReviewed(hasReviewed)
                     .build();
         }
     }

@@ -19,4 +19,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     @Query("SELECT r.matesTag, COUNT(r) FROM Review r WHERE r.targetUserId = :targetUserId AND r.matesTag IS NOT NULL GROUP BY r.matesTag")
     List<Object[]> countMatesTagsByTargetUserId(@Param("targetUserId") Long targetUserId);
+
+    @Query("SELECT r.gatheringId FROM Review r WHERE r.reviewerId = :reviewerId AND r.gatheringId IN :gatheringIds")
+    List<Long> findReviewedGatheringIds(@Param("reviewerId") Long reviewerId, @Param("gatheringIds") List<Long> gatheringIds);
 }

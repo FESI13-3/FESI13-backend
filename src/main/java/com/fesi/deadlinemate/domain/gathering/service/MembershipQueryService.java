@@ -9,6 +9,7 @@ import com.fesi.deadlinemate.domain.gathering.entity.GatheringTag;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringMemberRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringTagRepository;
+import com.fesi.deadlinemate.domain.review.repository.ReviewRepository;
 import com.fesi.deadlinemate.domain.user.client.UserClient;
 import com.fesi.deadlinemate.domain.user.client.dto.UserInfo;
 import com.fesi.deadlinemate.global.error.BusinessException;
@@ -16,6 +17,7 @@ import com.fesi.deadlinemate.global.error.ErrorCode;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,6 +33,7 @@ public class MembershipQueryService {
     private final GatheringMemberRepository gatheringMemberRepository;
     private final GatheringRepository gatheringRepository;
     private final GatheringTagRepository gatheringTagRepository;
+    private final ReviewRepository reviewRepository;
     private final UserClient userClient;
 
     public MyGatheringListResponse getMyGatherings(Long userId, String status, int page, int limit) {
@@ -66,6 +69,10 @@ public class MembershipQueryService {
                         Collectors.mapping(GatheringTag::getTag, Collectors.toList())
                 ));
 
+        Set<Long> reviewedGatheringIds = Set.copyOf(
+                reviewRepository.findReviewedGatheringIds(userId, resultGatheringIds)
+        );
+
         List<MyGatheringListResponse.MyGatheringItem> items = result.getContent().stream()
                 .map(gathering -> {
                     GatheringMember member = memberMap.get(gathering.getId());
@@ -73,7 +80,8 @@ public class MembershipQueryService {
                     return MyGatheringListResponse.MyGatheringItem.of(
                             gathering,
                             member != null ? member.getRole() : null,
-                            tags
+                            tags,
+                            reviewedGatheringIds.contains(gathering.getId())
                     );
                 })
                 .toList();
