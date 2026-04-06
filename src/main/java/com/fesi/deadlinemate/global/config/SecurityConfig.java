@@ -33,6 +33,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/users/{userId}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/users/{userId}/reviews").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/gatherings").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/gatherings/main").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/gatherings/*").permitAll()
