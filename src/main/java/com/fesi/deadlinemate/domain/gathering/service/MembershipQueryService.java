@@ -6,9 +6,12 @@ import com.fesi.deadlinemate.domain.gathering.entity.Gathering;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringMember;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringStatus;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringTag;
+import com.fesi.deadlinemate.domain.gathering.entity.GatheringRole;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringMemberRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringTagRepository;
+import com.fesi.deadlinemate.domain.gatheringApplication.entity.ApplicationStatus;
+import com.fesi.deadlinemate.domain.gatheringApplication.repository.GatheringApplicationRepository;
 import com.fesi.deadlinemate.domain.review.repository.ReviewRepository;
 import com.fesi.deadlinemate.domain.user.client.UserClient;
 import com.fesi.deadlinemate.domain.user.client.dto.UserInfo;
@@ -33,6 +36,7 @@ public class MembershipQueryService {
     private final GatheringMemberRepository gatheringMemberRepository;
     private final GatheringRepository gatheringRepository;
     private final GatheringTagRepository gatheringTagRepository;
+    private final GatheringApplicationRepository gatheringApplicationRepository;
     private final ReviewRepository reviewRepository;
     private final UserClient userClient;
 
@@ -74,15 +78,32 @@ public class MembershipQueryService {
                 reviewRepository.findReviewedGatheringIds(userId, resultGatheringIds)
         );
 
+        List<Long> leaderGatheringIds = memberMap.values().stream()
+                .filter(m -> GatheringRole.LEADER == m.getRole())
+                .map(GatheringMember::getGatheringId)
+                .toList();
+
+        Map<Long, Integer> pendingCountMap = gatheringApplicationRepository
+                .countByGatheringIdInAndStatus(leaderGatheringIds, ApplicationStatus.PENDING)
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> ((Long) row[1]).intValue()
+                ));
+
         List<MyGatheringListResponse.MyGatheringItem> items = result.getContent().stream()
                 .map(gathering -> {
                     GatheringMember member = memberMap.get(gathering.getId());
                     List<String> tags = tagsMap.getOrDefault(gathering.getId(), List.of());
+                    Integer pendingCount = GatheringRole.LEADER == (member != null ? member.getRole() : null)
+                            ? pendingCountMap.getOrDefault(gathering.getId(), 0)
+                            : null;
                     return MyGatheringListResponse.MyGatheringItem.of(
                             gathering,
                             member != null ? member.getRole() : null,
                             tags,
-                            reviewedGatheringIds.contains(gathering.getId())
+                            reviewedGatheringIds.contains(gathering.getId()),
+                            pendingCount
                     );
                 })
                 .toList();

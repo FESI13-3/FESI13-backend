@@ -6,6 +6,7 @@ import com.fesi.deadlinemate.domain.gathering.entity.GatheringStatus;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.Builder;
+import org.springframework.lang.Nullable;
 
 @Builder
 public record MyGatheringListResponse(
@@ -29,9 +30,11 @@ public record MyGatheringListResponse(
             GatheringStatus status,
             GatheringRole myRole,
             boolean isLiked,
-            boolean hasReviewed
+            boolean hasReviewed,
+            @Nullable Integer pendingApplicationCount
     ) {
-        public static MyGatheringItem of(Gathering gathering, GatheringRole myRole, List<String> tags, boolean hasReviewed) {
+        public static MyGatheringItem of(Gathering gathering, GatheringRole myRole, List<String> tags,
+                                         boolean hasReviewed, Integer pendingApplicationCount) {
             return MyGatheringItem.builder()
                     .id(gathering.getId())
                     .type(gathering.getType().getDisplayName())
@@ -47,6 +50,7 @@ public record MyGatheringListResponse(
                     .myRole(myRole)
                     .isLiked(false)
                     .hasReviewed(hasReviewed)
+                    .pendingApplicationCount(pendingApplicationCount)
                     .build();
         }
     }
