@@ -86,7 +86,7 @@ public class MockLikeService {
         return new GatheringSummaryDto(
                 g.id,
                 g.type,
-                g.category,
+                g.categories,
                 g.title,
                 g.shortDescription,
                 g.tags,

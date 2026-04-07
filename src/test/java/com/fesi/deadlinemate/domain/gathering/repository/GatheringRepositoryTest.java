@@ -30,7 +30,6 @@ class GatheringRepositoryTest {
         Gathering gathering = Gathering.builder()
                 .leaderId(1L)
                 .type(GatheringType.STUDY)
-                .category("개발")
                 .title("React 완전 정복 스터디")
                 .shortDescription("리액트 공식문서를 같이 읽어요")
                 .description("매주 공식문서 1챕터씩 읽고 블로그를 작성합니다...")
@@ -54,7 +53,6 @@ class GatheringRepositoryTest {
         Gathering found = gatheringRepository.findById(saved.getId()).orElseThrow();
         assertThat(found.getLeaderId()).isEqualTo(1L);
         assertThat(found.getType()).isEqualTo(GatheringType.STUDY);
-        assertThat(found.getCategory()).isEqualTo("개발");
         assertThat(found.getTitle()).isEqualTo("React 완전 정복 스터디");
         assertThat(found.getStatus()).isEqualTo(GatheringStatus.RECRUITING);
     }

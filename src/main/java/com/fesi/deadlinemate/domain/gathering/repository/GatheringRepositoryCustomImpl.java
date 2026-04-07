@@ -1,5 +1,6 @@
 package com.fesi.deadlinemate.domain.gathering.repository;
 
+import com.fesi.deadlinemate.domain.category.entity.QGatheringCategory;
 import com.fesi.deadlinemate.domain.gathering.dto.request.GatheringSearchCondition;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringStatus;
 import com.fesi.deadlinemate.domain.gathering.entity.QGathering;
@@ -29,6 +30,7 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
     public Page<GatheringListRow> search(GatheringSearchCondition condition, Pageable pageable) {
         QGathering gathering = QGathering.gathering;
         QGatheringTag gatheringTag = QGatheringTag.gatheringTag;
+        QGatheringCategory gatheringCategory = QGatheringCategory.gatheringCategory;
 
         BooleanBuilder builder = new BooleanBuilder();
 
@@ -36,8 +38,17 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
             builder.and(gathering.type.eq(condition.type()));
         }
 
-        if (condition.normalizedCategory() != null) {
-            builder.and(gathering.category.eq(condition.normalizedCategory()));
+        if (!condition.normalizedCategoryIds().isEmpty()) {
+            builder.and(
+                    JPAExpressions
+                            .selectOne()
+                            .from(gatheringCategory)
+                            .where(
+                                    gatheringCategory.gatheringId.eq(gathering.id),
+                                    gatheringCategory.categoryId.in(condition.normalizedCategoryIds())
+                            )
+                            .exists()
+            );
         }
 
         if ("recruiting".equals(condition.normalizedStatus())) {
@@ -69,7 +80,6 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
                         gathering.id,
                         gathering.leaderId,
                         gathering.type,
-                        gathering.category,
                         gathering.title,
                         gathering.shortDescription,
                         gathering.maxMembers,
@@ -87,7 +97,7 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
                 .fetch();
 
         Long total = queryFactory
-                .select(gathering.count())
+                .select(gathering.countDistinct())
                 .from(gathering)
                 .where(builder)
                 .fetchOne();
@@ -105,7 +115,6 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
                         gathering.id,
                         gathering.leaderId,
                         gathering.type,
-                        gathering.category,
                         gathering.title,
                         gathering.shortDescription,
                         gathering.maxMembers,
@@ -132,7 +141,6 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
                         gathering.id,
                         gathering.leaderId,
                         gathering.type,
-                        gathering.category,
                         gathering.title,
                         gathering.shortDescription,
                         gathering.maxMembers,
@@ -159,7 +167,6 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
                         gathering.id,
                         gathering.leaderId,
                         gathering.type,
-                        gathering.category,
                         gathering.title,
                         gathering.shortDescription,
                         gathering.maxMembers,
@@ -186,7 +193,6 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
                         gathering.id,
                         gathering.leaderId,
                         gathering.type,
-                        gathering.category,
                         gathering.title,
                         gathering.shortDescription,
                         gathering.description,
@@ -220,7 +226,6 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
                         gathering.id,
                         gathering.leaderId,
                         gathering.type,
-                        gathering.category,
                         gathering.title,
                         gathering.shortDescription,
                         gathering.maxMembers,

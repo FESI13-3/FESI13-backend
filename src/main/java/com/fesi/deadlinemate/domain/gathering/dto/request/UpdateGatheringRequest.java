@@ -19,9 +19,9 @@ public record UpdateGatheringRequest(
         @NotNull(message = "모임 유형은 필수입니다.")
         GatheringType type,
 
-        @NotBlank(message = "카테고리는 필수입니다.")
-        @Size(max = 50, message = "카테고리는 50자 이하여야 합니다.")
-        String category,
+        @NotEmpty(message = "카테고리는 최소 1개 이상 선택해야 합니다.")
+        @Size(max = 3, message = "카테고리는 최대 3개까지 선택할 수 있습니다.")
+        List<@NotNull(message = "카테고리 ID는 비어 있을 수 없습니다.") Long> categoryIds,
 
         @NotBlank(message = "제목은 필수입니다.")
         @Size(min = 2, max = 30, message = "제목은 2자 이상 30자 이하여야 합니다.")
@@ -67,7 +67,7 @@ public record UpdateGatheringRequest(
         return UpdateGatheringCommand.builder()
                 .requesterId(requesterId)
                 .type(type)
-                .category(category)
+                .categoryIds(categoryIds == null ? List.of() : categoryIds)
                 .title(title)
                 .shortDescription(shortDescription)
                 .description(description)
@@ -86,6 +86,7 @@ public record UpdateGatheringRequest(
                                 ))
                                 .toList()
                 )
+                .imageUrls(List.of())
                 .build();
     }
 

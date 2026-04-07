@@ -34,7 +34,7 @@ public class MockStore {
         MockGatheringEntity g = new MockGatheringEntity();
         g.id = gatheringSeq.getAndIncrement();
         g.type = "스터디";
-        g.category = "개발";
+        g.categories = List.of("개발");
         g.title = "React 완전 정복 스터디";
         g.shortDescription = "리액트 공식문서를 같이 읽어요";
         g.description = "매주 공식문서 1챕터씩 읽고 블로그를 작성합니다.";

@@ -1,11 +1,15 @@
 package com.fesi.deadlinemate.domain.gathering.service;
 
+import com.fesi.deadlinemate.domain.category.entity.Category;
+import com.fesi.deadlinemate.domain.category.entity.GatheringCategory;
 import com.fesi.deadlinemate.domain.gathering.dto.response.MemberListResponse;
 import com.fesi.deadlinemate.domain.gathering.dto.response.MyGatheringListResponse;
 import com.fesi.deadlinemate.domain.gathering.entity.Gathering;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringMember;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringStatus;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringTag;
+import com.fesi.deadlinemate.domain.category.repository.CategoryRepository;
+import com.fesi.deadlinemate.domain.category.repository.GatheringCategoryRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringMemberRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringTagRepository;
@@ -16,6 +20,7 @@ import com.fesi.deadlinemate.global.error.ErrorCode;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,6 +36,8 @@ public class MembershipQueryService {
     private final GatheringMemberRepository gatheringMemberRepository;
     private final GatheringRepository gatheringRepository;
     private final GatheringTagRepository gatheringTagRepository;
+    private final GatheringCategoryRepository gatheringCategoryRepository;
+    private final CategoryRepository categoryRepository;
     private final UserClient userClient;
 
     public MyGatheringListResponse getMyGatherings(Long userId, String status, int page, int limit) {
@@ -66,13 +73,17 @@ public class MembershipQueryService {
                         Collectors.mapping(GatheringTag::getTag, Collectors.toList())
                 ));
 
+        Map<Long, List<String>> categoriesMap = buildCategoriesMap(resultGatheringIds);
+
         List<MyGatheringListResponse.MyGatheringItem> items = result.getContent().stream()
                 .map(gathering -> {
                     GatheringMember member = memberMap.get(gathering.getId());
+                    List<String> categories = categoriesMap.getOrDefault(gathering.getId(), List.of());
                     List<String> tags = tagsMap.getOrDefault(gathering.getId(), List.of());
                     return MyGatheringListResponse.MyGatheringItem.of(
                             gathering,
                             member != null ? member.getRole() : null,
+                            categories,
                             tags
                     );
                 })
@@ -110,5 +121,31 @@ public class MembershipQueryService {
         if (!gatheringMemberRepository.existsByGatheringIdAndUserIdAndIsActiveTrue(gatheringId, userId)) {
             throw new BusinessException(ErrorCode.NOT_A_MEMBER);
         }
+    }
+
+    private Map<Long, List<String>> buildCategoriesMap(List<Long> gatheringIds) {
+        List<GatheringCategory> mappings = gatheringCategoryRepository.findByGatheringIdIn(gatheringIds);
+
+        if (mappings.isEmpty()) {
+            return Map.of();
+        }
+
+        List<Long> categoryIds = mappings.stream()
+                .map(GatheringCategory::getCategoryId)
+                .distinct()
+                .toList();
+
+        Map<Long, String> categoryNameMap = categoryRepository.findByIdIn(categoryIds).stream()
+                .collect(Collectors.toMap(Category::getId, Category::getName));
+
+        return mappings.stream()
+                .collect(Collectors.groupingBy(
+                        GatheringCategory::getGatheringId,
+                        LinkedHashMap::new,
+                        Collectors.mapping(
+                                mapping -> categoryNameMap.get(mapping.getCategoryId()),
+                                Collectors.filtering(Objects::nonNull, Collectors.toList())
+                        )
+                ));
     }
 }

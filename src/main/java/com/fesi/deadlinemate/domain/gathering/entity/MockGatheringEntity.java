@@ -10,7 +10,7 @@ import java.util.Map;
 public class MockGatheringEntity {
     public Long id;
     public String type;
-    public String category;
+    public List<String> categories = new ArrayList<>();
     public String title;
     public String shortDescription;
     public String description;
