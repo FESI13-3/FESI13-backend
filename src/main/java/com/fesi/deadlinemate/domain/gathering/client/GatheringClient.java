@@ -10,7 +10,7 @@ public interface GatheringClient {
 
     Optional<GatheringInfo> findById(Long gatheringId);
 
-    MyGatheringListResponse getMyGatherings(Long userId, String status, int page, int limit);
+    MyGatheringListResponse getMyGatherings(Long userId, String status, String sort, int page, int limit);
     Map<Long, String> findTitlesByIds(List<Long> gatheringIds);
     boolean isMember(Long gatheringId, Long userId);
 }

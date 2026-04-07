@@ -6,6 +6,7 @@ import com.fesi.deadlinemate.domain.review.entity.Review;
 import com.fesi.deadlinemate.domain.review.entity.ReviewTag;
 import com.fesi.deadlinemate.global.config.JpaConfig;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -130,8 +131,88 @@ class ReviewRepositoryTest {
         }
     }
 
+    @Nested
+    @DisplayName("리뷰 작성 여부 배치 조회")
+    class FindReviewedGatheringIds {
+
+        @Test
+        @DisplayName("리뷰를 작성한 모임 ID만 반환한다")
+        void findReviewedGatheringIds() {
+            // given
+            reviewRepository.saveAll(List.of(
+                    review(1L, 1L, 2L, List.of(ReviewTag.DILIGENT)),
+                    review(2L, 1L, 2L, List.of(ReviewTag.PUNCTUAL))
+            ));
+
+            // when
+            List<Long> result = reviewRepository.findReviewedGatheringIds(1L, List.of(1L, 2L, 3L));
+
+            // then
+            assertThat(result).containsExactlyInAnyOrder(1L, 2L);
+        }
+
+        @Test
+        @DisplayName("조회 대상 목록에 없는 모임은 반환하지 않는다")
+        void excludesGatheringsNotInList() {
+            // given
+            reviewRepository.save(review(1L, 1L, 2L, List.of(ReviewTag.DILIGENT)));
+
+            // when
+            List<Long> result = reviewRepository.findReviewedGatheringIds(1L, List.of(2L, 3L));
+
+            // then
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("matesTag 집계")
+    class CountMatesTagsByTargetUserId {
+
+        @Test
+        @DisplayName("matesTag별 수신 횟수를 집계한다")
+        void countMatesTagsByTargetUserId() {
+            // given
+            reviewRepository.saveAll(List.of(
+                    reviewWithMatesTag(1L, 1L, 2L, "불꽃"),
+                    reviewWithMatesTag(2L, 3L, 2L, "불꽃"),
+                    reviewWithMatesTag(3L, 4L, 2L, "연기")
+            ));
+
+            // when
+            List<Object[]> result = reviewRepository.countMatesTagsByTargetUserId(2L);
+
+            // then
+            Map<String, Long> countMap = result.stream()
+                    .collect(java.util.stream.Collectors.toMap(
+                            row -> (String) row[0],
+                            row -> (Long) row[1]
+                    ));
+            assertThat(countMap).containsEntry("불꽃", 2L);
+            assertThat(countMap).containsEntry("연기", 1L);
+        }
+
+        @Test
+        @DisplayName("matesTag가 null인 리뷰는 집계에서 제외된다")
+        void excludesNullMatesTag() {
+            // given
+            reviewRepository.save(review(1L, 1L, 2L, List.of(ReviewTag.DILIGENT)));
+
+            // when
+            List<Object[]> result = reviewRepository.countMatesTagsByTargetUserId(2L);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+    }
+
     private Review review(Long gatheringId, Long reviewerId, Long targetUserId, List<ReviewTag> tags) {
         List<String> tagDisplayNames = tags.stream().map(ReviewTag::getDisplayName).toList();
-        return Review.create(gatheringId, reviewerId, targetUserId, tagDisplayNames, "테스트 리뷰");
+        return Review.create(gatheringId, reviewerId, targetUserId, tagDisplayNames, null, "테스트 리뷰");
+    }
+
+    private Review reviewWithMatesTag(Long gatheringId, Long reviewerId, Long targetUserId, String matesTag) {
+        return Review.create(gatheringId, reviewerId, targetUserId,
+                List.of(ReviewTag.DILIGENT.getDisplayName()), matesTag, "테스트 리뷰");
     }
 }

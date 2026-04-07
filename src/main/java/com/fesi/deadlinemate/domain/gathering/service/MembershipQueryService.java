@@ -2,17 +2,21 @@ package com.fesi.deadlinemate.domain.gathering.service;
 
 import com.fesi.deadlinemate.domain.category.entity.Category;
 import com.fesi.deadlinemate.domain.category.entity.GatheringCategory;
+import com.fesi.deadlinemate.domain.category.repository.CategoryRepository;
+import com.fesi.deadlinemate.domain.category.repository.GatheringCategoryRepository;
 import com.fesi.deadlinemate.domain.gathering.dto.response.MemberListResponse;
 import com.fesi.deadlinemate.domain.gathering.dto.response.MyGatheringListResponse;
 import com.fesi.deadlinemate.domain.gathering.entity.Gathering;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringMember;
+import com.fesi.deadlinemate.domain.gathering.entity.GatheringRole;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringStatus;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringTag;
-import com.fesi.deadlinemate.domain.category.repository.CategoryRepository;
-import com.fesi.deadlinemate.domain.category.repository.GatheringCategoryRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringMemberRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringTagRepository;
+import com.fesi.deadlinemate.domain.gatheringApplication.entity.ApplicationStatus;
+import com.fesi.deadlinemate.domain.gatheringApplication.repository.GatheringApplicationRepository;
+import com.fesi.deadlinemate.domain.review.repository.ReviewRepository;
 import com.fesi.deadlinemate.domain.user.client.UserClient;
 import com.fesi.deadlinemate.domain.user.client.dto.UserInfo;
 import com.fesi.deadlinemate.global.error.BusinessException;
@@ -21,6 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -36,11 +41,13 @@ public class MembershipQueryService {
     private final GatheringMemberRepository gatheringMemberRepository;
     private final GatheringRepository gatheringRepository;
     private final GatheringTagRepository gatheringTagRepository;
+    private final GatheringApplicationRepository gatheringApplicationRepository;
+    private final ReviewRepository reviewRepository;
     private final GatheringCategoryRepository gatheringCategoryRepository;
     private final CategoryRepository categoryRepository;
     private final UserClient userClient;
 
-    public MyGatheringListResponse getMyGatherings(Long userId, String status, int page, int limit) {
+    public MyGatheringListResponse getMyGatherings(Long userId, String status, String sort, int page, int limit) {
         int validatedPage = Math.max(page, 1);
         int validatedLimit = Math.max(limit, 1);
 
@@ -55,8 +62,9 @@ public class MembershipQueryService {
                     .build();
         }
 
+        boolean isOldest = "oldest".equalsIgnoreCase(sort);
         PageRequest pageable = PageRequest.of(validatedPage - 1, validatedLimit);
-        Page<Gathering> result = resolveGatheringPage(gatheringIds, status, pageable);
+        Page<Gathering> result = resolveGatheringPage(gatheringIds, status, isOldest, pageable);
 
         List<Long> resultGatheringIds = result.getContent().stream()
                 .map(Gathering::getId).toList();
@@ -75,16 +83,38 @@ public class MembershipQueryService {
 
         Map<Long, List<String>> categoriesMap = buildCategoriesMap(resultGatheringIds);
 
+        Set<Long> reviewedGatheringIds = Set.copyOf(
+                reviewRepository.findReviewedGatheringIds(userId, resultGatheringIds)
+        );
+
+        List<Long> leaderGatheringIds = memberMap.values().stream()
+                .filter(m -> GatheringRole.LEADER == m.getRole())
+                .map(GatheringMember::getGatheringId)
+                .toList();
+
+        Map<Long, Integer> pendingCountMap = gatheringApplicationRepository
+                .countByGatheringIdInAndStatus(leaderGatheringIds, ApplicationStatus.PENDING)
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> ((Long) row[1]).intValue()
+                ));
+
         List<MyGatheringListResponse.MyGatheringItem> items = result.getContent().stream()
                 .map(gathering -> {
                     GatheringMember member = memberMap.get(gathering.getId());
                     List<String> categories = categoriesMap.getOrDefault(gathering.getId(), List.of());
                     List<String> tags = tagsMap.getOrDefault(gathering.getId(), List.of());
+                    Integer pendingCount = GatheringRole.LEADER == (member != null ? member.getRole() : null)
+                            ? pendingCountMap.getOrDefault(gathering.getId(), 0)
+                            : null;
                     return MyGatheringListResponse.MyGatheringItem.of(
                             gathering,
                             member != null ? member.getRole() : null,
                             categories,
-                            tags
+                            tags,
+                            reviewedGatheringIds.contains(gathering.getId()),
+                            pendingCount
                     );
                 })
                 .toList();
@@ -109,12 +139,16 @@ public class MembershipQueryService {
         return MemberListResponse.of(members, userMap);
     }
 
-    private Page<Gathering> resolveGatheringPage(List<Long> ids, String status, PageRequest pageable) {
+    private Page<Gathering> resolveGatheringPage(List<Long> ids, String status, boolean isOldest, PageRequest pageable) {
         GatheringStatus gatheringStatus = GatheringStatus.fromString(status);
         if (gatheringStatus != null) {
-            return gatheringRepository.findByIdInAndStatusOrderByCreatedAtDesc(ids, gatheringStatus, pageable);
+            return isOldest
+                    ? gatheringRepository.findByIdInAndStatusOrderByCreatedAtAsc(ids, gatheringStatus, pageable)
+                    : gatheringRepository.findByIdInAndStatusOrderByCreatedAtDesc(ids, gatheringStatus, pageable);
         }
-        return gatheringRepository.findByIdInOrderByCreatedAtDesc(ids, pageable);
+        return isOldest
+                ? gatheringRepository.findByIdInOrderByCreatedAtAsc(ids, pageable)
+                : gatheringRepository.findByIdInOrderByCreatedAtDesc(ids, pageable);
     }
 
     private void validateMembership(Long gatheringId, Long userId) {

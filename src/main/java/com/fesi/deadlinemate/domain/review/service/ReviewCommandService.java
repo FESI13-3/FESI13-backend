@@ -8,6 +8,7 @@ import com.fesi.deadlinemate.domain.user.client.UserClient;
 import com.fesi.deadlinemate.global.error.BusinessException;
 import com.fesi.deadlinemate.global.error.ErrorCode;
 import java.math.BigDecimal;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReviewCommandService {
 
     private static final BigDecimal REPUTATION_DELTA_PER_TAG = BigDecimal.valueOf(0.1);
+    private static final Set<String> VALID_MATES_TAGS = Set.of("연기", "불씨", "불꽃", "태양");
 
     private final ReviewRepository reviewRepository;
     private final GatheringClient gatheringClient;
@@ -34,10 +36,11 @@ public class ReviewCommandService {
         command.reviews().forEach(item -> {
             validateNotSelfReview(command.reviewerId(), item.targetUserId());
             validateTargetIsMember(command.gatheringId(), item.targetUserId());
+            validateMatesTag(item.matesTag());
 
             Review review = Review.create(
                     command.gatheringId(), command.reviewerId(),
-                    item.targetUserId(), item.tags(), item.comment()
+                    item.targetUserId(), item.tags(), item.matesTag(), item.comment()
             );
 
             reviewRepository.save(review);
@@ -62,6 +65,12 @@ public class ReviewCommandService {
     private void validateTargetIsMember(Long gatheringId, Long targetUserId) {
         if (!gatheringClient.isMember(gatheringId, targetUserId)) {
             throw new BusinessException(ErrorCode.REVIEW_TARGET_NOT_A_MEMBER);
+        }
+    }
+
+    private void validateMatesTag(String matesTag) {
+        if (matesTag != null && !VALID_MATES_TAGS.contains(matesTag)) {
+            throw new BusinessException(ErrorCode.INVALID_MATES_TAG);
         }
     }
 
