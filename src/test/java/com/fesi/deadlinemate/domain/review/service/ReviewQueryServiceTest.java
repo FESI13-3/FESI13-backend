@@ -56,20 +56,20 @@ class ReviewQueryServiceTest {
     @Test
     @DisplayName("matesTag가 있는 리뷰는 matesTag와 집계 결과를 반환한다")
     void getReviewsWithMatesTag() {
-        Review review = createReview(1L, 1L, 10L, 20L, "최고의 메이트에요");
+        Review review = createReview(1L, 1L, 10L, 20L, "불꽃");
         given(reviewRepository.findByTargetUserIdOrderByCreatedAtDesc(any(), any(Pageable.class)))
                 .willReturn(new PageImpl<>(List.of(review)));
         given(userClient.findByIds(any())).willReturn(Map.of());
         given(gatheringClient.findTitlesByIds(any())).willReturn(Map.of());
         List<Object[]> mateCounts = new java.util.ArrayList<>();
-        mateCounts.add(new Object[]{"최고의 메이트에요", 1L});
+        mateCounts.add(new Object[]{"불꽃", 1L});
         given(reviewRepository.countMatesTagsByTargetUserId(20L)).willReturn(mateCounts);
 
         ReviewListResponse response = reviewQueryService.getReviews(20L, 1);
 
-        assertThat(response.reviews().get(0).matesTag()).isEqualTo("최고의 메이트에요");
+        assertThat(response.reviews().get(0).matesTag()).isEqualTo("불꽃");
         assertThat(response.matesTagCounts()).hasSize(1);
-        assertThat(response.matesTagCounts().get(0).tag()).isEqualTo("최고의 메이트에요");
+        assertThat(response.matesTagCounts().get(0).tag()).isEqualTo("불꽃");
         assertThat(response.matesTagCounts().get(0).count()).isEqualTo(1L);
     }
 

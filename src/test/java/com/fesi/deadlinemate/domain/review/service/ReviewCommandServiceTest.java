@@ -149,14 +149,31 @@ class ReviewCommandServiceTest {
             given(reviewRepository.save(any(Review.class))).willAnswer(inv -> inv.getArgument(0));
 
             CreateReviewCommand command = new CreateReviewCommand(1L, 10L, List.of(
-                    new CreateReviewCommand.ReviewItem(20L, List.of("성실해요"), "최고의 메이트에요", null)
+                    new CreateReviewCommand.ReviewItem(20L, List.of("성실해요"), "불꽃", null)
             ));
 
             reviewCommandService.createReviews(command);
 
             ArgumentCaptor<Review> captor = ArgumentCaptor.forClass(Review.class);
             then(reviewRepository).should().save(captor.capture());
-            assertThat(captor.getValue().getMatesTag()).isEqualTo("최고의 메이트에요");
+            assertThat(captor.getValue().getMatesTag()).isEqualTo("불꽃");
+        }
+
+        @Test
+        @DisplayName("유효하지 않은 matesTag는 예외를 발생시킨다")
+        void invalidMatesTagThrowsException() {
+            given(gatheringClient.findById(1L)).willReturn(Optional.of(completedGatheringInfo()));
+            given(gatheringClient.isMember(1L, 10L)).willReturn(true);
+            given(gatheringClient.isMember(1L, 20L)).willReturn(true);
+            given(reviewRepository.existsByGatheringIdAndReviewerId(1L, 10L)).willReturn(false);
+
+            CreateReviewCommand command = new CreateReviewCommand(1L, 10L, List.of(
+                    new CreateReviewCommand.ReviewItem(20L, List.of("성실해요"), "잘못된태그", null)
+            ));
+
+            assertThatThrownBy(() -> reviewCommandService.createReviews(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode").isEqualTo(ErrorCode.INVALID_MATES_TAG);
         }
 
         @Test

@@ -174,9 +174,9 @@ class ReviewRepositoryTest {
         void countMatesTagsByTargetUserId() {
             // given
             reviewRepository.saveAll(List.of(
-                    reviewWithMatesTag(1L, 1L, 2L, "최고의 메이트에요"),
-                    reviewWithMatesTag(2L, 3L, 2L, "최고의 메이트에요"),
-                    reviewWithMatesTag(3L, 4L, 2L, "에너지가 넘쳐요")
+                    reviewWithMatesTag(1L, 1L, 2L, "불꽃"),
+                    reviewWithMatesTag(2L, 3L, 2L, "불꽃"),
+                    reviewWithMatesTag(3L, 4L, 2L, "연기")
             ));
 
             // when
@@ -188,8 +188,8 @@ class ReviewRepositoryTest {
                             row -> (String) row[0],
                             row -> (Long) row[1]
                     ));
-            assertThat(countMap).containsEntry("최고의 메이트에요", 2L);
-            assertThat(countMap).containsEntry("에너지가 넘쳐요", 1L);
+            assertThat(countMap).containsEntry("불꽃", 2L);
+            assertThat(countMap).containsEntry("연기", 1L);
         }
 
         @Test

@@ -93,18 +93,18 @@ class ReviewControllerE2ETest {
         void getReviewsWithMatesTagCounts() throws Exception {
             reviewRepository.save(Review.create(
                     gathering.getId(), reviewer.getId(), target.getId(),
-                    List.of(ReviewTag.DILIGENT.getDisplayName()), "최고의 메이트에요", "좋았어요"
+                    List.of(ReviewTag.DILIGENT.getDisplayName()), "불꽃", "좋았어요"
             ));
             reviewRepository.save(Review.create(
                     gathering.getId() + 1, reviewer.getId() + 1, target.getId(),
-                    List.of(ReviewTag.PUNCTUAL.getDisplayName()), "최고의 메이트에요", null
+                    List.of(ReviewTag.PUNCTUAL.getDisplayName()), "불꽃", null
             ));
 
             mockMvc.perform(get("/api/v1/users/{userId}/reviews", target.getId()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.totalCount").value(2))
-                    .andExpect(jsonPath("$.data.reviews[0].matesTag").value("최고의 메이트에요"))
-                    .andExpect(jsonPath("$.data.matesTagCounts[0].tag").value("최고의 메이트에요"))
+                    .andExpect(jsonPath("$.data.reviews[0].matesTag").value("불꽃"))
+                    .andExpect(jsonPath("$.data.matesTagCounts[0].tag").value("불꽃"))
                     .andExpect(jsonPath("$.data.matesTagCounts[0].count").value(2));
         }
 
@@ -135,7 +135,7 @@ class ReviewControllerE2ETest {
             Map<String, Object> body = Map.of("reviews", List.of(
                     Map.of("targetUserId", target.getId(),
                             "tags", List.of("성실해요"),
-                            "matesTag", "최고의 메이트에요")
+                            "matesTag", "불꽃")
             ));
 
             mockMvc.perform(post("/api/v1/gatherings/{gatheringId}/reviews", gathering.getId())
@@ -148,7 +148,7 @@ class ReviewControllerE2ETest {
                     .findByTargetUserIdOrderByCreatedAtDesc(target.getId(),
                             org.springframework.data.domain.PageRequest.of(0, 1))
                     .getContent().get(0);
-            org.assertj.core.api.Assertions.assertThat(saved.getMatesTag()).isEqualTo("최고의 메이트에요");
+            org.assertj.core.api.Assertions.assertThat(saved.getMatesTag()).isEqualTo("불꽃");
         }
 
         @Test
