@@ -5,6 +5,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
+import com.fesi.deadlinemate.domain.category.entity.Category;
+import com.fesi.deadlinemate.domain.category.entity.GatheringCategory;
+import com.fesi.deadlinemate.domain.category.repository.CategoryRepository;
+import com.fesi.deadlinemate.domain.category.repository.GatheringCategoryRepository;
 import com.fesi.deadlinemate.domain.gathering.dto.response.MemberListResponse;
 import com.fesi.deadlinemate.domain.gathering.dto.response.MyGatheringListResponse;
 import com.fesi.deadlinemate.domain.gathering.entity.Gathering;
@@ -25,6 +29,7 @@ import com.fesi.deadlinemate.global.error.ErrorCode;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +51,8 @@ class MembershipQueryServiceTest {
     @Mock private GatheringTagRepository gatheringTagRepository;
     @Mock private GatheringApplicationRepository gatheringApplicationRepository;
     @Mock private ReviewRepository reviewRepository;
+    @Mock private GatheringCategoryRepository gatheringCategoryRepository;
+    @Mock private CategoryRepository categoryRepository;
     @Mock private UserClient userClient;
 
     @InjectMocks
@@ -72,6 +79,14 @@ class MembershipQueryServiceTest {
             Gathering gathering = gathering(1L, 3);
             GatheringMember member = member(1L, 1L, 10L, GatheringRole.MEMBER);
 
+            Category category = Category.builder().name("개발").build();
+            setField(category, "id", 100L);
+
+            GatheringCategory mapping = GatheringCategory.builder()
+                    .gatheringId(1L)
+                    .categoryId(100L)
+                    .build();
+
             given(gatheringMemberRepository.findActiveGatheringIdsByUserId(10L)).willReturn(List.of(1L));
             given(gatheringRepository.findByIdInOrderByCreatedAtDesc(any(), any(Pageable.class)))
                     .willReturn(new PageImpl<>(List.of(gathering)));
@@ -79,6 +94,10 @@ class MembershipQueryServiceTest {
                     .willReturn(List.of(member));
             given(gatheringTagRepository.findByGatheringIdInOrderByGatheringIdAscIdAsc(any(Collection.class)))
                     .willReturn(List.of());
+            given(gatheringCategoryRepository.findByGatheringIdIn(List.of(1L)))
+                    .willReturn(List.of(mapping));
+            given(categoryRepository.findByIdIn(List.of(100L)))
+                    .willReturn(List.of(category));
             given(reviewRepository.findReviewedGatheringIds(any(), any())).willReturn(List.of());
             given(gatheringApplicationRepository.countByGatheringIdInAndStatus(any(), any())).willReturn(List.of());
 
@@ -86,6 +105,7 @@ class MembershipQueryServiceTest {
 
             assertThat(response.gatherings()).hasSize(1);
             assertThat(response.gatherings().get(0).myRole()).isEqualTo(GatheringRole.MEMBER);
+            assertThat(response.gatherings().get(0).categories()).containsExactly("개발");
             assertThat(response.gatherings().get(0).hasReviewed()).isFalse();
             assertThat(response.gatherings().get(0).pendingApplicationCount()).isNull();
         }
@@ -103,6 +123,7 @@ class MembershipQueryServiceTest {
                     .willReturn(List.of(member));
             given(gatheringTagRepository.findByGatheringIdInOrderByGatheringIdAscIdAsc(any(Collection.class)))
                     .willReturn(List.of());
+            given(gatheringCategoryRepository.findByGatheringIdIn(any())).willReturn(List.of());
             given(reviewRepository.findReviewedGatheringIds(any(), any())).willReturn(List.of());
             given(gatheringApplicationRepository.countByGatheringIdInAndStatus(any(), any())).willReturn(List.of());
 
@@ -124,8 +145,9 @@ class MembershipQueryServiceTest {
                     .willReturn(List.of(member));
             given(gatheringTagRepository.findByGatheringIdInOrderByGatheringIdAscIdAsc(any(Collection.class)))
                     .willReturn(List.of());
+            given(gatheringCategoryRepository.findByGatheringIdIn(any())).willReturn(List.of());
             given(reviewRepository.findReviewedGatheringIds(any(), any())).willReturn(List.of());
-            List<Object[]> pendingCounts = new java.util.ArrayList<>();
+            List<Object[]> pendingCounts = new ArrayList<>();
             pendingCounts.add(new Object[]{1L, 3L});
             given(gatheringApplicationRepository.countByGatheringIdInAndStatus(List.of(1L), ApplicationStatus.PENDING))
                     .willReturn(pendingCounts);
@@ -148,6 +170,7 @@ class MembershipQueryServiceTest {
                     .willReturn(List.of(member));
             given(gatheringTagRepository.findByGatheringIdInOrderByGatheringIdAscIdAsc(any(Collection.class)))
                     .willReturn(List.of());
+            given(gatheringCategoryRepository.findByGatheringIdIn(any())).willReturn(List.of());
             given(reviewRepository.findReviewedGatheringIds(10L, List.of(1L))).willReturn(List.of(1L));
             given(gatheringApplicationRepository.countByGatheringIdInAndStatus(any(), any())).willReturn(List.of());
 
@@ -199,7 +222,7 @@ class MembershipQueryServiceTest {
     private Gathering gathering(Long id, int currentMembers) {
         Gathering g = Gathering.builder()
                 .leaderId(10L).type(GatheringType.STUDY)
-                .category("test").title("test").shortDescription("s").description("d").goal("g")
+                .title("test").shortDescription("s").description("d").goal("g")
                 .maxMembers(5).currentMembers(currentMembers)
                 .recruitDeadline(LocalDate.now()).startDate(LocalDate.now()).endDate(LocalDate.now().plusWeeks(4))
                 .totalWeeks(4).status(GatheringStatus.IN_PROGRESS).viewCount(0).build();

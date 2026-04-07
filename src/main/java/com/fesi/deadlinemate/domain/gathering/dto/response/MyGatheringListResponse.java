@@ -19,7 +19,7 @@ public record MyGatheringListResponse(
     public record MyGatheringItem(
             Long id,
             String type,
-            String category,
+            List<String> categories,
             String title,
             String shortDescription,
             List<String> tags,
@@ -33,12 +33,13 @@ public record MyGatheringListResponse(
             boolean hasReviewed,
             @Nullable Integer pendingApplicationCount
     ) {
-        public static MyGatheringItem of(Gathering gathering, GatheringRole myRole, List<String> tags,
+        public static MyGatheringItem of(Gathering gathering, GatheringRole myRole,
+                                         List<String> categories, List<String> tags,
                                          boolean hasReviewed, Integer pendingApplicationCount) {
             return MyGatheringItem.builder()
                     .id(gathering.getId())
                     .type(gathering.getType().getDisplayName())
-                    .category(gathering.getCategory())
+                    .categories(categories)
                     .title(gathering.getTitle())
                     .shortDescription(gathering.getShortDescription())
                     .tags(tags)

@@ -1,12 +1,16 @@
 package com.fesi.deadlinemate.domain.gathering.service;
 
+import com.fesi.deadlinemate.domain.category.entity.Category;
+import com.fesi.deadlinemate.domain.category.entity.GatheringCategory;
+import com.fesi.deadlinemate.domain.category.repository.CategoryRepository;
+import com.fesi.deadlinemate.domain.category.repository.GatheringCategoryRepository;
 import com.fesi.deadlinemate.domain.gathering.dto.response.MemberListResponse;
 import com.fesi.deadlinemate.domain.gathering.dto.response.MyGatheringListResponse;
 import com.fesi.deadlinemate.domain.gathering.entity.Gathering;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringMember;
+import com.fesi.deadlinemate.domain.gathering.entity.GatheringRole;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringStatus;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringTag;
-import com.fesi.deadlinemate.domain.gathering.entity.GatheringRole;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringMemberRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringTagRepository;
@@ -20,6 +24,7 @@ import com.fesi.deadlinemate.global.error.ErrorCode;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +43,8 @@ public class MembershipQueryService {
     private final GatheringTagRepository gatheringTagRepository;
     private final GatheringApplicationRepository gatheringApplicationRepository;
     private final ReviewRepository reviewRepository;
+    private final GatheringCategoryRepository gatheringCategoryRepository;
+    private final CategoryRepository categoryRepository;
     private final UserClient userClient;
 
     public MyGatheringListResponse getMyGatherings(Long userId, String status, String sort, int page, int limit) {
@@ -74,6 +81,8 @@ public class MembershipQueryService {
                         Collectors.mapping(GatheringTag::getTag, Collectors.toList())
                 ));
 
+        Map<Long, List<String>> categoriesMap = buildCategoriesMap(resultGatheringIds);
+
         Set<Long> reviewedGatheringIds = Set.copyOf(
                 reviewRepository.findReviewedGatheringIds(userId, resultGatheringIds)
         );
@@ -94,6 +103,7 @@ public class MembershipQueryService {
         List<MyGatheringListResponse.MyGatheringItem> items = result.getContent().stream()
                 .map(gathering -> {
                     GatheringMember member = memberMap.get(gathering.getId());
+                    List<String> categories = categoriesMap.getOrDefault(gathering.getId(), List.of());
                     List<String> tags = tagsMap.getOrDefault(gathering.getId(), List.of());
                     Integer pendingCount = GatheringRole.LEADER == (member != null ? member.getRole() : null)
                             ? pendingCountMap.getOrDefault(gathering.getId(), 0)
@@ -101,6 +111,7 @@ public class MembershipQueryService {
                     return MyGatheringListResponse.MyGatheringItem.of(
                             gathering,
                             member != null ? member.getRole() : null,
+                            categories,
                             tags,
                             reviewedGatheringIds.contains(gathering.getId()),
                             pendingCount
@@ -144,5 +155,31 @@ public class MembershipQueryService {
         if (!gatheringMemberRepository.existsByGatheringIdAndUserIdAndIsActiveTrue(gatheringId, userId)) {
             throw new BusinessException(ErrorCode.NOT_A_MEMBER);
         }
+    }
+
+    private Map<Long, List<String>> buildCategoriesMap(List<Long> gatheringIds) {
+        List<GatheringCategory> mappings = gatheringCategoryRepository.findByGatheringIdIn(gatheringIds);
+
+        if (mappings.isEmpty()) {
+            return Map.of();
+        }
+
+        List<Long> categoryIds = mappings.stream()
+                .map(GatheringCategory::getCategoryId)
+                .distinct()
+                .toList();
+
+        Map<Long, String> categoryNameMap = categoryRepository.findByIdIn(categoryIds).stream()
+                .collect(Collectors.toMap(Category::getId, Category::getName));
+
+        return mappings.stream()
+                .collect(Collectors.groupingBy(
+                        GatheringCategory::getGatheringId,
+                        LinkedHashMap::new,
+                        Collectors.mapping(
+                                mapping -> categoryNameMap.get(mapping.getCategoryId()),
+                                Collectors.filtering(Objects::nonNull, Collectors.toList())
+                        )
+                ));
     }
 }

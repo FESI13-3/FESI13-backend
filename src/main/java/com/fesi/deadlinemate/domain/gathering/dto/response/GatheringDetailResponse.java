@@ -10,7 +10,7 @@ import lombok.Builder;
 public record GatheringDetailResponse(
         Long id,
         String type,
-        String category,
+        List<String> categories,
         String title,
         String shortDescription,
         String description,
