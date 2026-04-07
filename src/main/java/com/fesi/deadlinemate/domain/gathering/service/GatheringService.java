@@ -243,12 +243,12 @@ public class GatheringService {
     private List<Category> validateAndLoadCategories(List<Long> categoryIds) {
         List<Long> normalizedIds = normalizeCategoryIds(categoryIds);
         if (normalizedIds.isEmpty()) {
-            throw new BusinessException(ErrorCode.BAD_REQUEST, "카테고리는 최소 1개 이상 필요합니다.");
+            throw new BusinessException(ErrorCode.GATHERING_CATEGORY_REQUIRED);
         }
 
         List<Category> categories = categoryRepository.findByIdIn(normalizedIds);
         if (categories.size() != normalizedIds.size()) {
-            throw new BusinessException(ErrorCode.NOT_FOUND, "존재하지 않는 카테고리가 포함되어 있습니다.");
+            throw new BusinessException(ErrorCode.GATHERING_CATEGORY_NOT_FOUND);
         }
         return categories;
     }

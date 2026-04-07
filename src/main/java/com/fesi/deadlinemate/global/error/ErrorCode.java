@@ -42,7 +42,6 @@ public enum ErrorCode {
     GATHERING_DELETE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "진행 중인 모임은 삭제할 수 없습니다."),
     INVALID_MAX_MEMBERS(HttpStatus.BAD_REQUEST, "최대 인원은 2명 이상 10명 이하여야 합니다."),
     GATHERING_NOT_FOUND(HttpStatus.NOT_FOUND, "모임을 찾을 수 없습니다."),
-    GATHERING_CATEGORY_COUNT(HttpStatus.BAD_REQUEST, "카테고리는 최대 3개까지 선택할 수 있습니다."),
     GATHERING_COMPLETE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "진행 중인 모임만 종료할 수 있습니다."),
 
     // GatheringApplication
@@ -76,6 +75,11 @@ public enum ErrorCode {
     GATHERING_REPORT_NOT_AVAILABLE(HttpStatus.BAD_REQUEST, "모임이 완료 상태가 아니므로 결과 리포트를 조회할 수 없습니다."),
     GATHERING_REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "모임 결과 리포트를 찾을 수 없습니다."),
     INVALID_GATHERING_REPORT_DATA(HttpStatus.INTERNAL_SERVER_ERROR, "모임 결과 리포트 데이터가 올바르지 않습니다."),
+
+    //CATEGORY
+    GATHERING_CATEGORY_REQUIRED(HttpStatus.BAD_REQUEST, "카테고리는 최소 1개 이상 필요합니다."),
+    GATHERING_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 카테고리가 포함되어 있습니다."),
+    GATHERING_CATEGORY_COUNT(HttpStatus.BAD_REQUEST, "카테고리는 최대 3개까지 선택할 수 있습니다."),
 
     //WeeklyPlan
     INVALID_WEEKLY_GUIDE_SEQUENCE(HttpStatus.BAD_REQUEST,"주차 가이드는 1주차부터 순차적으로 입력되어야 합니다."),
