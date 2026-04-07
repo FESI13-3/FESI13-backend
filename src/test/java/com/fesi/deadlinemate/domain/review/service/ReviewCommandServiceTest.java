@@ -50,7 +50,7 @@ class ReviewCommandServiceTest {
             given(reviewRepository.save(any(Review.class))).willAnswer(inv -> inv.getArgument(0));
 
             CreateReviewCommand command = new CreateReviewCommand(1L, 10L, List.of(
-                    new CreateReviewCommand.ReviewItem(20L, List.of("성실해요", "소통이 좋아요"), "좋았습니다")
+                    new CreateReviewCommand.ReviewItem(20L, List.of("성실해요", "소통이 좋아요"), null, "좋았습니다")
             ));
 
             reviewCommandService.createReviews(command);
@@ -67,7 +67,7 @@ class ReviewCommandServiceTest {
             given(gatheringClient.findById(1L)).willReturn(Optional.empty());
 
             CreateReviewCommand command = new CreateReviewCommand(1L, 10L, List.of(
-                    new CreateReviewCommand.ReviewItem(20L, List.of("성실해요"), null)
+                    new CreateReviewCommand.ReviewItem(20L, List.of("성실해요"), null, null)
             ));
 
             assertThatThrownBy(() -> reviewCommandService.createReviews(command))
@@ -83,7 +83,7 @@ class ReviewCommandServiceTest {
             given(reviewRepository.existsByGatheringIdAndReviewerId(1L, 10L)).willReturn(true);
 
             CreateReviewCommand command = new CreateReviewCommand(1L, 10L, List.of(
-                    new CreateReviewCommand.ReviewItem(20L, List.of("성실해요"), null)
+                    new CreateReviewCommand.ReviewItem(20L, List.of("성실해요"), null, null)
             ));
 
             assertThatThrownBy(() -> reviewCommandService.createReviews(command))
@@ -99,7 +99,7 @@ class ReviewCommandServiceTest {
             given(reviewRepository.existsByGatheringIdAndReviewerId(1L, 10L)).willReturn(false);
 
             CreateReviewCommand command = new CreateReviewCommand(1L, 10L, List.of(
-                    new CreateReviewCommand.ReviewItem(10L, List.of("성실해요"), null)
+                    new CreateReviewCommand.ReviewItem(10L, List.of("성실해요"), null, null)
             ));
 
             assertThatThrownBy(() -> reviewCommandService.createReviews(command))
@@ -114,7 +114,7 @@ class ReviewCommandServiceTest {
             given(gatheringClient.isMember(1L, 10L)).willReturn(false);
 
             CreateReviewCommand command = new CreateReviewCommand(1L, 10L, List.of(
-                    new CreateReviewCommand.ReviewItem(20L, List.of("성실해요"), null)
+                    new CreateReviewCommand.ReviewItem(20L, List.of("성실해요"), null, null)
             ));
 
             assertThatThrownBy(() -> reviewCommandService.createReviews(command))
@@ -131,12 +131,32 @@ class ReviewCommandServiceTest {
             given(gatheringClient.isMember(1L, 20L)).willReturn(false);
 
             CreateReviewCommand command = new CreateReviewCommand(1L, 10L, List.of(
-                    new CreateReviewCommand.ReviewItem(20L, List.of("성실해요"), null)
+                    new CreateReviewCommand.ReviewItem(20L, List.of("성실해요"), null, null)
             ));
 
             assertThatThrownBy(() -> reviewCommandService.createReviews(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode").isEqualTo(ErrorCode.REVIEW_TARGET_NOT_A_MEMBER);
+        }
+
+        @Test
+        @DisplayName("matesTag를 포함하여 리뷰를 작성한다")
+        void createReviewWithMatesTag() {
+            given(gatheringClient.findById(1L)).willReturn(Optional.of(completedGatheringInfo()));
+            given(gatheringClient.isMember(1L, 10L)).willReturn(true);
+            given(gatheringClient.isMember(1L, 20L)).willReturn(true);
+            given(reviewRepository.existsByGatheringIdAndReviewerId(1L, 10L)).willReturn(false);
+            given(reviewRepository.save(any(Review.class))).willAnswer(inv -> inv.getArgument(0));
+
+            CreateReviewCommand command = new CreateReviewCommand(1L, 10L, List.of(
+                    new CreateReviewCommand.ReviewItem(20L, List.of("성실해요"), "최고의 메이트에요", null)
+            ));
+
+            reviewCommandService.createReviews(command);
+
+            ArgumentCaptor<Review> captor = ArgumentCaptor.forClass(Review.class);
+            then(reviewRepository).should().save(captor.capture());
+            assertThat(captor.getValue().getMatesTag()).isEqualTo("최고의 메이트에요");
         }
 
         @Test
@@ -149,7 +169,7 @@ class ReviewCommandServiceTest {
             given(reviewRepository.save(any(Review.class))).willAnswer(inv -> inv.getArgument(0));
 
             CreateReviewCommand command = new CreateReviewCommand(1L, 10L, List.of(
-                    new CreateReviewCommand.ReviewItem(20L, List.of("성실해요", "소통이 좋아요", "도움이 돼요"), null)
+                    new CreateReviewCommand.ReviewItem(20L, List.of("성실해요", "소통이 좋아요", "도움이 돼요"), null, null)
             ));
 
             reviewCommandService.createReviews(command);

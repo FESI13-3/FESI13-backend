@@ -34,13 +34,14 @@ class ReviewQueryServiceTest {
     @Test
     @DisplayName("배치 메서드로 리뷰어/모임 정보를 한 번에 조회한다")
     void getReviews() {
-        Review review = createReview(1L, 1L, 10L, 20L);
+        Review review = createReview(1L, 1L, 10L, 20L, null);
         given(reviewRepository.findByTargetUserIdOrderByCreatedAtDesc(any(), any(Pageable.class)))
                 .willReturn(new PageImpl<>(List.of(review)));
         given(userClient.findByIds(List.of(10L))).willReturn(
                 Map.of(10L, UserInfo.builder().id(10L).nickname("reviewer").build()));
         given(gatheringClient.findTitlesByIds(List.of(1L))).willReturn(
                 Map.of(1L, "Test Gathering"));
+        given(reviewRepository.countMatesTagsByTargetUserId(20L)).willReturn(List.of());
 
         ReviewListResponse response = reviewQueryService.getReviews(20L, 1);
 
@@ -49,11 +50,32 @@ class ReviewQueryServiceTest {
         assertThat(response.reviews().get(0).reviewerNickname()).isEqualTo("reviewer");
         assertThat(response.reviews().get(0).gatheringTitle()).isEqualTo("Test Gathering");
         assertThat(response.reviews().get(0).tags()).containsExactly("성실해요");
+        assertThat(response.matesTagCounts()).isEmpty();
     }
 
-    private Review createReview(Long id, Long gatheringId, Long reviewerId, Long targetUserId) {
+    @Test
+    @DisplayName("matesTag가 있는 리뷰는 matesTag와 집계 결과를 반환한다")
+    void getReviewsWithMatesTag() {
+        Review review = createReview(1L, 1L, 10L, 20L, "최고의 메이트에요");
+        given(reviewRepository.findByTargetUserIdOrderByCreatedAtDesc(any(), any(Pageable.class)))
+                .willReturn(new PageImpl<>(List.of(review)));
+        given(userClient.findByIds(any())).willReturn(Map.of());
+        given(gatheringClient.findTitlesByIds(any())).willReturn(Map.of());
+        List<Object[]> mateCounts = new java.util.ArrayList<>();
+        mateCounts.add(new Object[]{"최고의 메이트에요", 1L});
+        given(reviewRepository.countMatesTagsByTargetUserId(20L)).willReturn(mateCounts);
+
+        ReviewListResponse response = reviewQueryService.getReviews(20L, 1);
+
+        assertThat(response.reviews().get(0).matesTag()).isEqualTo("최고의 메이트에요");
+        assertThat(response.matesTagCounts()).hasSize(1);
+        assertThat(response.matesTagCounts().get(0).tag()).isEqualTo("최고의 메이트에요");
+        assertThat(response.matesTagCounts().get(0).count()).isEqualTo(1L);
+    }
+
+    private Review createReview(Long id, Long gatheringId, Long reviewerId, Long targetUserId, String matesTag) {
         Review review = Review.create(gatheringId, reviewerId, targetUserId,
-                List.of(ReviewTag.DILIGENT.getDisplayName()), "좋았습니다");
+                List.of(ReviewTag.DILIGENT.getDisplayName()), matesTag, "좋았습니다");
         try {
             Field f = Review.class.getDeclaredField("id");
             f.setAccessible(true);
