@@ -29,6 +29,10 @@ gatherings ───────────────────────
   │  1:N  reviews (gathering_id)                                            │
   │  1:1  gathering_reports (gathering_id)                                  │
   └───────────────────────────────────────────────────────────────────────┘
+  
+  weekly_plans ─────────────────────────────────────────────────────────────┐
+  │  1:N  weekly_plan_details (weekly_plan_id)
+  └───────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -132,10 +136,23 @@ gatherings ───────────────────────
 | `gathering_id` | BIGINT | NOT NULL | FK → gatherings.id | |
 | `week_number` | TINYINT | NOT NULL | | 주차 번호 (1~N) |
 | `title` | VARCHAR(100) | NULL | | 주차 제목 (선택) |
-| `content` | TEXT | NULL | | 주차 가이드 내용 (선택) |
 | `start_date` | DATE | NOT NULL | | 해당 주차 시작일 |
 | `end_date` | DATE | NOT NULL | | 해당 주차 종료일 |
 
+---
+
+### `weekly_plan_details` — 주차별 세부 계획
+
+| 컬럼명 | 타입 | NULL | KEY | 설명 |
+|---|---|---|---|---|
+| `id` | BIGINT | NOT NULL | PK | Auto Increment |
+| `weekly_plan_id` | BIGINT | NOT NULL | FK → weekly_plans.id | 소속 주차 계획 ID |
+| `display_order` | TINYINT | NOT NULL | | 세부 계획 순서 |
+| `content` | VARCHAR(200) | NOT NULL | | 세부 계획 내용 |
+| `created_at` | TIMESTAMP | NOT NULL | | 생성일시 |
+| `updated_at` | TIMESTAMP | NOT NULL | | 수정일시 |
+
+> **UNIQUE:** `(weekly_plan_id, display_order)` — 같은 주차 내 순서 중복 방지
 ---
 
 ### `applications` — 모임 신청
@@ -295,6 +312,7 @@ gatherings ───────────────────────
 | `gathering_images` | `(gathering_id, display_order)` | 모임별 이미지 조회 및 정렬 |
 | `gathering_likes` | `(user_id, created_at)` | 찜한 모임 목록 조회 |
 | `gathering_likes` | `(gathering_id, user_id)` UNIQUE | 중복 찜 방지/찜 여부 조회 |
+| `weekly_plan_details` | `(weekly_plan_id, display_order)` UNIQUE | 세부 계획 순서 보장 / 정렬 조회 |
 | `todos` | `(gathering_id, user_id, week_number)` | Todo 조회 |
 | `notifications` | `(user_id, is_read)` | 읽지 않은 알림 조회 |
 | `reviews` | `(gathering_id, reviewer_id, target_user_id)` UNIQUE | 중복 리뷰 방지 |
