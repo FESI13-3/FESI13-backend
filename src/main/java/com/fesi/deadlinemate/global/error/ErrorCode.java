@@ -79,6 +79,7 @@ public enum ErrorCode {
 
     //WeeklyPlan
     INVALID_WEEKLY_GUIDE_SEQUENCE(HttpStatus.BAD_REQUEST,"주차 가이드는 1주차부터 순차적으로 입력되어야 합니다."),
+    INVALID_WEEKLY_PLAN_DETAILS_COUNT(HttpStatus.BAD_REQUEST, "세부 계획은 최대 2개까지 입력할 수 있습니다."),
 
     // Membership
     NOT_A_MEMBER(HttpStatus.FORBIDDEN, "모임 멤버만 접근할 수 있습니다."),

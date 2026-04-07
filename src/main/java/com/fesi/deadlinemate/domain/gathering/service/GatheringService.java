@@ -13,6 +13,7 @@ import com.fesi.deadlinemate.domain.gathering.entity.GatheringRole;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringStatus;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringTag;
 import com.fesi.deadlinemate.domain.gathering.entity.WeeklyPlan;
+import com.fesi.deadlinemate.domain.gathering.entity.WeeklyPlanDetail;
 import com.fesi.deadlinemate.domain.gathering.event.GatheringCompletedEvent;
 import com.fesi.deadlinemate.domain.gathering.event.GatheringCreatedEvent;
 import com.fesi.deadlinemate.domain.gathering.event.GatheringDeletedEvent;
@@ -23,6 +24,7 @@ import com.fesi.deadlinemate.domain.gathering.repository.GatheringImageRepositor
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringMemberRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringTagRepository;
+import com.fesi.deadlinemate.domain.gathering.repository.WeeklyPlanDetailRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.WeeklyPlanRepository;
 import com.fesi.deadlinemate.domain.like.repository.GatheringLikeRepository;
 import com.fesi.deadlinemate.domain.user.client.UserClient;
@@ -34,7 +36,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -50,6 +54,7 @@ public class GatheringService {
     private final GatheringCategoryRepository gatheringCategoryRepository;
     private final CategoryRepository categoryRepository;
     private final WeeklyPlanRepository weeklyPlanRepository;
+    private final WeeklyPlanDetailRepository weeklyPlanDetailRepository;
     private final GatheringMemberRepository gatheringMemberRepository;
     private final GatheringImageRepository gatheringImageRepository;
     private final GatheringLikeRepository gatheringLikeRepository;
@@ -119,6 +124,7 @@ public class GatheringService {
         gathering.validateLeader(requesterId);
         gathering.validateDeletable();
 
+        deleteWeeklyPlanDetailsByGatheringId(gatheringId);
         weeklyPlanRepository.deleteByGatheringId(gatheringId);
         gatheringCategoryRepository.deleteByGatheringId(gatheringId);
         gatheringTagRepository.deleteByGatheringId(gatheringId);
@@ -148,6 +154,18 @@ public class GatheringService {
                     gathering.getTitle()
             ));
         }
+    }
+
+    private void deleteWeeklyPlanDetailsByGatheringId(Long gatheringId) {
+        List<Long> weeklyPlanIds = weeklyPlanRepository.findByGatheringIdOrderByWeekNumberAsc(gatheringId).stream()
+                .map(WeeklyPlan::getId)
+                .toList();
+
+        if (weeklyPlanIds.isEmpty()) {
+            return;
+        }
+
+        weeklyPlanDetailRepository.deleteByWeeklyPlanIdIn(weeklyPlanIds);
     }
 
     private UpdateGatheringResponse updateRecruitingGathering(Gathering gathering, UpdateGatheringCommand command) {
@@ -414,18 +432,45 @@ public class GatheringService {
             return;
         }
 
-        weeklyPlanRepository.saveAll(
-                weeklyGuides.stream()
-                        .map(guide -> buildWeeklyPlan(
-                                gatheringId,
-                                guide.week(),
-                                guide.title(),
-                                guide.content(),
-                                startDate,
-                                endDate
-                        ))
-                        .toList()
-        );
+        List<WeeklyPlan> weeklyPlans = weeklyGuides.stream()
+                .map(guide -> buildWeeklyPlan(
+                        gatheringId,
+                        guide.week(),
+                        guide.title(),
+                        startDate,
+                        endDate
+                ))
+                .toList();
+
+        List<WeeklyPlan> savedPlans = weeklyPlanRepository.saveAll(weeklyPlans);
+
+        saveWeeklyPlanDetailsFromCreate(savedPlans, weeklyGuides);
+    }
+
+    private void saveWeeklyPlanDetailsFromCreate(
+            List<WeeklyPlan> savedPlans,
+            List<CreateGatheringCommand.CreateWeeklyGuideCommand> weeklyGuides
+    ) {
+        Map<Integer, WeeklyPlan> weeklyPlanMap = savedPlans.stream()
+                .collect(Collectors.toMap(WeeklyPlan::getWeekNumber, Function.identity()));
+
+        List<WeeklyPlanDetail> details = weeklyGuides.stream()
+                .flatMap(guide -> {
+                    WeeklyPlan weeklyPlan = weeklyPlanMap.get(guide.week());
+                    List<String> items = normalizeDetails(guide.details());
+
+                    return IntStream.range(0, items.size())
+                            .mapToObj(i -> WeeklyPlanDetail.builder()
+                                    .weeklyPlanId(weeklyPlan.getId())
+                                    .displayOrder(i)
+                                    .content(items.get(i))
+                                    .build());
+                })
+                .toList();
+
+        if (!details.isEmpty()) {
+            weeklyPlanDetailRepository.saveAll(details);
+        }
     }
 
     private void replaceWeeklyPlansFromUpdate(
@@ -434,31 +479,82 @@ public class GatheringService {
             LocalDate startDate,
             LocalDate endDate
     ) {
+        List<WeeklyPlan> existingPlans = weeklyPlanRepository.findByGatheringIdOrderByWeekNumberAsc(gatheringId);
+        List<Long> existingPlanIds = existingPlans.stream()
+                .map(WeeklyPlan::getId)
+                .toList();
+
+        if (!existingPlanIds.isEmpty()) {
+            weeklyPlanDetailRepository.deleteByWeeklyPlanIdIn(existingPlanIds);
+        }
         weeklyPlanRepository.deleteByGatheringId(gatheringId);
 
         if (weeklyGuides == null || weeklyGuides.isEmpty()) {
             return;
         }
 
-        weeklyPlanRepository.saveAll(
-                weeklyGuides.stream()
-                        .map(guide -> buildWeeklyPlan(
-                                gatheringId,
-                                guide.week(),
-                                guide.title(),
-                                guide.content(),
-                                startDate,
-                                endDate
-                        ))
-                        .toList()
-        );
+        List<WeeklyPlan> weeklyPlans = weeklyGuides.stream()
+                .map(guide -> buildWeeklyPlan(
+                        gatheringId,
+                        guide.week(),
+                        guide.title(),
+                        startDate,
+                        endDate
+                ))
+                .toList();
+
+        List<WeeklyPlan> savedPlans = weeklyPlanRepository.saveAll(weeklyPlans);
+        saveWeeklyPlanDetailsFromUpdate(savedPlans, weeklyGuides);
+    }
+
+    private void saveWeeklyPlanDetailsFromUpdate(
+            List<WeeklyPlan> savedPlans,
+            List<UpdateGatheringCommand.UpdateWeeklyGuideCommand> weeklyGuides
+    ) {
+        Map<Integer, WeeklyPlan> weeklyPlanMap = savedPlans.stream()
+                .collect(Collectors.toMap(WeeklyPlan::getWeekNumber, Function.identity()));
+
+        List<WeeklyPlanDetail> details = weeklyGuides.stream()
+                .flatMap(guide -> {
+                    WeeklyPlan weeklyPlan = weeklyPlanMap.get(guide.week());
+                    List<String> items = normalizeDetails(guide.details());
+
+                    return IntStream.range(0, items.size())
+                            .mapToObj(i -> WeeklyPlanDetail.builder()
+                                    .weeklyPlanId(weeklyPlan.getId())
+                                    .displayOrder(i)
+                                    .content(items.get(i))
+                                    .build());
+                })
+                .toList();
+
+        if (!details.isEmpty()) {
+            weeklyPlanDetailRepository.saveAll(details);
+        }
+    }
+
+    private List<String> normalizeDetails(List<String> details) {
+        if (details == null || details.isEmpty()) {
+            return List.of();
+        }
+
+        List<String> normalized = details.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .toList();
+
+        if (normalized.size() > 2) {
+            throw new BusinessException(ErrorCode.INVALID_WEEKLY_PLAN_DETAILS_COUNT);
+        }
+
+        return normalized;
     }
 
     private WeeklyPlan buildWeeklyPlan(
             Long gatheringId,
             int weekNumber,
             String title,
-            String content,
             LocalDate startDate,
             LocalDate endDate
     ) {
@@ -466,7 +562,6 @@ public class GatheringService {
                 .gatheringId(gatheringId)
                 .weekNumber(weekNumber)
                 .title(title)
-                .content(content)
                 .startDate(calculateWeekStartDate(startDate, weekNumber))
                 .endDate(calculateWeekEndDate(startDate, endDate, weekNumber))
                 .build();

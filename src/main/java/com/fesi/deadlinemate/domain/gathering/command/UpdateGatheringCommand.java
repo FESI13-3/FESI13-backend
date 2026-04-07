@@ -25,7 +25,7 @@ public record UpdateGatheringCommand(
     public record UpdateWeeklyGuideCommand(
             int week,
             String title,
-            String content
+            List<String> details
     ) {
     }
 }

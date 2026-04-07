@@ -81,7 +81,7 @@ public record CreateGatheringRequest(
                                 .map(w -> new CreateGatheringCommand.CreateWeeklyGuideCommand(
                                         w.week(),
                                         w.title(),
-                                        w.content()
+                                        w.details() == null ? List.of() : w.details()
                                 ))
                                 .toList()
                 )
@@ -96,7 +96,9 @@ public record CreateGatheringRequest(
             @Size(max = 100, message = "주차 제목은 100자 이하여야 합니다.")
             String title,
 
-            String content
+            @Size(max = 2, message = "세부 계획은 최대 2개까지 입력할 수 있습니다.")
+            List<@NotBlank(message = "세부 계획은 비어 있을 수 없습니다.")
+            @Size(max = 200, message = "세부 계획은 200자 이하여야 합니다.") String> details
     ) {
     }
 }

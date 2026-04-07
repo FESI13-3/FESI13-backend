@@ -25,7 +25,7 @@ public record CreateGatheringCommand(
     public record CreateWeeklyGuideCommand(
             int week,
             String title,
-            String content
+            List<String> details
     ) {
     }
 }

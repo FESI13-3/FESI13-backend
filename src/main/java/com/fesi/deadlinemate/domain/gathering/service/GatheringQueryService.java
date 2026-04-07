@@ -9,6 +9,8 @@ import com.fesi.deadlinemate.domain.gathering.dto.response.GatheringListResponse
 import com.fesi.deadlinemate.domain.gathering.dto.response.GatheringMainResponse;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringMember;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringTag;
+import com.fesi.deadlinemate.domain.gathering.entity.WeeklyPlan;
+import com.fesi.deadlinemate.domain.gathering.entity.WeeklyPlanDetail;
 import com.fesi.deadlinemate.domain.gathering.projection.GatheringDetailRow;
 import com.fesi.deadlinemate.domain.gathering.projection.GatheringListRow;
 import com.fesi.deadlinemate.domain.category.repository.CategoryRepository;
@@ -17,6 +19,7 @@ import com.fesi.deadlinemate.domain.gathering.repository.GatheringImageRepositor
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringMemberRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringTagRepository;
+import com.fesi.deadlinemate.domain.gathering.repository.WeeklyPlanDetailRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.WeeklyPlanRepository;
 import com.fesi.deadlinemate.domain.like.repository.GatheringLikeRepository;
 import com.fesi.deadlinemate.domain.user.client.UserClient;
@@ -46,6 +49,7 @@ public class GatheringQueryService {
     private final GatheringCategoryRepository gatheringCategoryRepository;
     private final CategoryRepository categoryRepository;
     private final WeeklyPlanRepository weeklyPlanRepository;
+    private final WeeklyPlanDetailRepository weeklyPlanDetailRepository;
     private final GatheringMemberRepository gatheringMemberRepository;
     private final GatheringLikeRepository gatheringLikeRepository;
     private final UserClient userClient;
@@ -119,13 +123,28 @@ public class GatheringQueryService {
                         .build())
                 .toList();
 
-        List<GatheringDetailResponse.WeeklyPlanResponse> weeklyPlans = weeklyPlanRepository
-                .findByGatheringIdOrderByWeekNumberAsc(gatheringId).stream()
+        List<WeeklyPlan> weeklyPlans = weeklyPlanRepository.findByGatheringIdOrderByWeekNumberAsc(gatheringId);
+
+        List<Long> weeklyPlanIds = weeklyPlans.stream()
+                .map(WeeklyPlan::getId)
+                .toList();
+
+        Map<Long, List<String>> detailMap = weeklyPlanDetailRepository
+                .findByWeeklyPlanIdInOrderByWeeklyPlanIdAscDisplayOrderAsc(weeklyPlanIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        WeeklyPlanDetail::getWeeklyPlanId,
+                        LinkedHashMap::new,
+                        Collectors.mapping(WeeklyPlanDetail::getContent, Collectors.toList())
+                ));
+
+        List<GatheringDetailResponse.WeeklyPlanResponse> weeklyPlanResponses = weeklyPlans.stream()
                 .map(plan -> GatheringDetailResponse.WeeklyPlanResponse.builder()
                         .week(plan.getWeekNumber())
                         .title(plan.getTitle())
                         .startDate(plan.getStartDate())
                         .endDate(plan.getEndDate())
+                        .details(detailMap.getOrDefault(plan.getId(), List.of()))
                         .build())
                 .toList();
 
@@ -172,7 +191,7 @@ public class GatheringQueryService {
                         .nickname(leader.getNickname())
                         .profileImage(leader.getProfileImage())
                         .build())
-                .weeklyPlans(weeklyPlans)
+                .weeklyPlans(weeklyPlanResponses)
                 .members(memberResponses)
                 .build();
     }
