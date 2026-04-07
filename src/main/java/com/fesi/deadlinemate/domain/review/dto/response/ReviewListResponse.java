@@ -1,6 +1,5 @@
 package com.fesi.deadlinemate.domain.review.dto.response;
 
-import com.fesi.deadlinemate.domain.review.entity.MatesTag;
 import com.fesi.deadlinemate.domain.review.entity.Review;
 import com.fesi.deadlinemate.domain.review.entity.ReviewTag;
 import com.fesi.deadlinemate.domain.user.client.dto.UserInfo;
@@ -49,7 +48,7 @@ public record ReviewListResponse(
                             .reviewerNickname(reviewer != null ? reviewer.getNickname() : null)
                             .reviewerProfileImage(reviewer != null ? reviewer.getProfileImage() : null)
                             .tags(review.getTags().stream().map(ReviewTag::getDisplayName).toList())
-                            .matesTag(review.getMatesTag() != null ? review.getMatesTag().getDisplayName() : null)
+                            .matesTag(review.getMatesTag())
                             .comment(review.getComment())
                             .createdAt(review.getCreatedAt())
                             .build();

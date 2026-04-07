@@ -3,7 +3,6 @@ package com.fesi.deadlinemate.domain.review.service;
 import com.fesi.deadlinemate.domain.gathering.client.GatheringClient;
 import com.fesi.deadlinemate.domain.review.dto.response.ReviewListResponse;
 import com.fesi.deadlinemate.domain.review.dto.response.ReviewListResponse.MatesTagCount;
-import com.fesi.deadlinemate.domain.review.entity.MatesTag;
 import com.fesi.deadlinemate.domain.review.entity.Review;
 import com.fesi.deadlinemate.domain.review.repository.ReviewRepository;
 import com.fesi.deadlinemate.domain.user.client.UserClient;
@@ -41,7 +40,7 @@ public class ReviewQueryService {
 
         List<MatesTagCount> matesTagCounts = reviewRepository.countMatesTagsByTargetUserId(targetUserId)
                 .stream()
-                .map(row -> new MatesTagCount(((MatesTag) row[0]).getDisplayName(), (long) row[1]))
+                .map(row -> new MatesTagCount((String) row[0], (long) row[1]))
                 .toList();
 
         return ReviewListResponse.of(result.getContent(), result.getTotalElements(),

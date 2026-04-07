@@ -1,6 +1,5 @@
 package com.fesi.deadlinemate.domain.review.repository;
 
-import com.fesi.deadlinemate.domain.review.entity.MatesTag;
 import com.fesi.deadlinemate.domain.review.entity.Review;
 import java.util.List;
 import org.springframework.data.domain.Page;
