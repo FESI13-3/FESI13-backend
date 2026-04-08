@@ -48,7 +48,8 @@ public record GatheringDetailResponse(
             int week,
             String title,
             LocalDate startDate,
-            LocalDate endDate
+            LocalDate endDate,
+            List<String> details
     ) {
     }
 

@@ -382,8 +382,14 @@
   "startDate": "2025-03-22",
   "endDate": "2025-04-19",
   "weeklyGuides": [
-    { "week": 1, "title": "JSX, 컴포넌트, Props", "content": "공식문서 1~3챕터 읽기" },
-    { "week": 2, "title": "State, 이벤트 처리", "content": "공식문서 4~6챕터 읽기" }
+    {
+      "week": 1,
+      "title": "피그마 이론",
+      "details": [
+        "01. 피그마 프레임 이론",
+        "02. 피그마 컴포넌트 마스터"
+      ]
+    }
   ]
 }
 ```
@@ -453,7 +459,16 @@
   "status": "RECRUITING",
   "leader": { "id": 1, "nickname": "마감왕", "profileImage": "https://..." },
   "weeklyPlans": [
-    { "week": 1, "title": "JSX, 컴포넌트, Props", "startDate": "2025-03-22", "endDate": "2025-03-28" }
+    {
+      "week": 1,
+      "title": "피그마 이론",
+      "startDate": "2025-03-15",
+      "endDate": "2025-03-21",
+      "details": [
+        "01. 피그마 프레임 이론",
+        "02. 피그마 컴포넌트 마스터"
+      ]
+    }
   ],
   "members": [
     { "userId": 1, "nickname": "마감왕", "profileImage": "https://...", "role": "LEADER" }

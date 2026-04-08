@@ -66,7 +66,7 @@ class ReviewControllerE2ETest {
 
         gathering = gatheringRepository.save(Gathering.builder()
                 .leaderId(reviewer.getId()).type(GatheringType.STUDY)
-                .category("개발").title("테스트 모임").shortDescription("설명")
+                .title("테스트 모임").shortDescription("설명")
                 .description("상세설명").goal("목표").maxMembers(10).currentMembers(2)
                 .recruitDeadline(LocalDate.now().minusDays(14))
                 .startDate(LocalDate.now().minusDays(7))
