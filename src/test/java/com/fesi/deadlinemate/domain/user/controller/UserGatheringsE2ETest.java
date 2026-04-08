@@ -67,7 +67,7 @@ class UserGatheringsE2ETest {
 
         gathering = gatheringRepository.save(Gathering.builder()
                 .leaderId(user.getId()).type(GatheringType.STUDY)
-                .category("개발").title("테스트 모임").shortDescription("설명")
+                .title("테스트 모임").shortDescription("설명")
                 .description("상세설명").goal("목표").maxMembers(10).currentMembers(2)
                 .recruitDeadline(LocalDate.now().minusDays(14))
                 .startDate(LocalDate.now().minusDays(7))
@@ -101,7 +101,7 @@ class UserGatheringsE2ETest {
     void sortOldest() throws Exception {
         Gathering gathering2 = gatheringRepository.save(Gathering.builder()
                 .leaderId(user.getId()).type(GatheringType.STUDY)
-                .category("개발").title("두번째 모임").shortDescription("설명")
+                .title("두번째 모임").shortDescription("설명")
                 .description("상세설명").goal("목표").maxMembers(10).currentMembers(1)
                 .recruitDeadline(LocalDate.now().minusDays(14))
                 .startDate(LocalDate.now().minusDays(7))
@@ -138,7 +138,7 @@ class UserGatheringsE2ETest {
     void pendingApplicationCountNullForMember() throws Exception {
         Gathering otherGathering = gatheringRepository.save(Gathering.builder()
                 .leaderId(applicant.getId()).type(GatheringType.STUDY)
-                .category("개발").title("남의 모임").shortDescription("설명")
+                .title("남의 모임").shortDescription("설명")
                 .description("상세설명").goal("목표").maxMembers(10).currentMembers(2)
                 .recruitDeadline(LocalDate.now().minusDays(14))
                 .startDate(LocalDate.now().minusDays(7))
