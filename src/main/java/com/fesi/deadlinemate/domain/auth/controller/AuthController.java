@@ -1,6 +1,7 @@
 package com.fesi.deadlinemate.domain.auth.controller;
 
 import com.fesi.deadlinemate.domain.auth.dto.request.LoginRequest;
+import com.fesi.deadlinemate.domain.auth.dto.request.OAuthCallbackRequest;
 import com.fesi.deadlinemate.domain.auth.dto.request.RefreshRequest;
 import com.fesi.deadlinemate.domain.auth.dto.request.SignupRequest;
 import com.fesi.deadlinemate.domain.auth.dto.response.*;
