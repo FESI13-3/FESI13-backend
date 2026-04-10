@@ -1,8 +1,10 @@
 package com.fesi.deadlinemate.domain.gatheringApplication.repository;
 
+import com.fesi.deadlinemate.domain.gatheringApplication.entity.ApplicationStatus;
 import com.fesi.deadlinemate.domain.gatheringApplication.entity.GatheringApplication;
 import jakarta.persistence.LockModeType;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -28,4 +30,7 @@ public interface GatheringApplicationRepository extends JpaRepository<GatheringA
     );
     List<GatheringApplication> findByGatheringIdOrderByCreatedAtAsc(Long gatheringId);
     List<GatheringApplication> findByApplicantIdOrderByCreatedAtDesc(Long applicantId);
+
+    @Query("SELECT ga.gatheringId, COUNT(ga) FROM GatheringApplication ga WHERE ga.gatheringId IN :gatheringIds AND ga.status = :status GROUP BY ga.gatheringId")
+    List<Object[]> countByGatheringIdInAndStatus(@Param("gatheringIds") List<Long> gatheringIds, @Param("status") ApplicationStatus status);
 }

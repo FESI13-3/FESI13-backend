@@ -9,7 +9,7 @@ import lombok.Builder;
 public record CreateGatheringCommand(
         Long leaderId,
         GatheringType type,
-        String category,
+        List<Long> categoryIds,
         String title,
         String shortDescription,
         String description,
@@ -25,7 +25,7 @@ public record CreateGatheringCommand(
     public record CreateWeeklyGuideCommand(
             int week,
             String title,
-            String content
+            List<String> details
     ) {
     }
 }

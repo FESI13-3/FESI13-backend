@@ -68,10 +68,8 @@ jobs:
             [ -n "$JWT_REFRESH_EXPIRATION" ] && echo "JWT_REFRESH_EXPIRATION=$JWT_REFRESH_EXPIRATION" >> .env
             [ -n "$KAKAO_CLIENT_ID" ]        && echo "KAKAO_CLIENT_ID=$KAKAO_CLIENT_ID" >> .env
             [ -n "$KAKAO_CLIENT_SECRET" ]    && echo "KAKAO_CLIENT_SECRET=$KAKAO_CLIENT_SECRET" >> .env
-            echo "KAKAO_REDIRECT_URI=$BASE_URL/api/v1/auth/kakao/callback" >> .env
             [ -n "$GOOGLE_CLIENT_ID" ]       && echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" >> .env
             [ -n "$GOOGLE_CLIENT_SECRET" ]   && echo "GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET" >> .env
-            echo "GOOGLE_REDIRECT_URI=$BASE_URL/api/v1/auth/google/callback" >> .env
 
             docker compose up -d mysql
             docker compose pull app

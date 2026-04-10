@@ -10,7 +10,6 @@ public record GatheringDetailRow(
         Long id,
         Long leaderId,
         GatheringType type,
-        String category,
         String title,
         String shortDescription,
         String description,

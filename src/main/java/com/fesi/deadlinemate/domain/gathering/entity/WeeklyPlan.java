@@ -33,9 +33,6 @@ public class WeeklyPlan extends BaseTimeEntity {
     @Column(length = 100)
     private String title;
 
-    @Lob
-    private String content;
-
     @Column(nullable = false)
     private LocalDate startDate;
 
@@ -43,12 +40,11 @@ public class WeeklyPlan extends BaseTimeEntity {
     private LocalDate endDate;
 
     @Builder
-    public WeeklyPlan(Long gatheringId, int weekNumber, String title, String content,
+    public WeeklyPlan(Long gatheringId, int weekNumber, String title,
                       LocalDate startDate, LocalDate endDate) {
         this.gatheringId = gatheringId;
         this.weekNumber = weekNumber;
         this.title = title;
-        this.content = content;
         this.startDate = startDate;
         this.endDate = endDate;
     }

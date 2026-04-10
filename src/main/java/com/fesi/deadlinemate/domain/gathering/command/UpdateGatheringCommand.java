@@ -9,7 +9,7 @@ import lombok.Builder;
 public record UpdateGatheringCommand(
         Long requesterId,
         GatheringType type,
-        String category,
+        List<Long> categoryIds,
         String title,
         String shortDescription,
         String description,
@@ -25,7 +25,7 @@ public record UpdateGatheringCommand(
     public record UpdateWeeklyGuideCommand(
             int week,
             String title,
-            String content
+            List<String> details
     ) {
     }
 }

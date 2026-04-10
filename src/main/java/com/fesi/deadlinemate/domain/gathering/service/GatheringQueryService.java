@@ -1,5 +1,7 @@
 package com.fesi.deadlinemate.domain.gathering.service;
 
+import com.fesi.deadlinemate.domain.category.entity.Category;
+import com.fesi.deadlinemate.domain.category.entity.GatheringCategory;
 import com.fesi.deadlinemate.domain.gathering.dto.request.GatheringSearchCondition;
 import com.fesi.deadlinemate.domain.gathering.dto.response.GatheringDetailResponse;
 import com.fesi.deadlinemate.domain.gathering.dto.response.GatheringListItemResponse;
@@ -7,12 +9,17 @@ import com.fesi.deadlinemate.domain.gathering.dto.response.GatheringListResponse
 import com.fesi.deadlinemate.domain.gathering.dto.response.GatheringMainResponse;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringMember;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringTag;
+import com.fesi.deadlinemate.domain.gathering.entity.WeeklyPlan;
+import com.fesi.deadlinemate.domain.gathering.entity.WeeklyPlanDetail;
 import com.fesi.deadlinemate.domain.gathering.projection.GatheringDetailRow;
 import com.fesi.deadlinemate.domain.gathering.projection.GatheringListRow;
+import com.fesi.deadlinemate.domain.category.repository.CategoryRepository;
+import com.fesi.deadlinemate.domain.category.repository.GatheringCategoryRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringImageRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringMemberRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringTagRepository;
+import com.fesi.deadlinemate.domain.gathering.repository.WeeklyPlanDetailRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.WeeklyPlanRepository;
 import com.fesi.deadlinemate.domain.like.repository.GatheringLikeRepository;
 import com.fesi.deadlinemate.domain.user.client.UserClient;
@@ -22,6 +29,7 @@ import com.fesi.deadlinemate.global.error.ErrorCode;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -38,7 +46,10 @@ public class GatheringQueryService {
     private final GatheringRepository gatheringRepository;
     private final GatheringTagRepository gatheringTagRepository;
     private final GatheringImageRepository gatheringImageRepository;
+    private final GatheringCategoryRepository gatheringCategoryRepository;
+    private final CategoryRepository categoryRepository;
     private final WeeklyPlanRepository weeklyPlanRepository;
+    private final WeeklyPlanDetailRepository weeklyPlanDetailRepository;
     private final GatheringMemberRepository gatheringMemberRepository;
     private final GatheringLikeRepository gatheringLikeRepository;
     private final UserClient userClient;
@@ -98,6 +109,8 @@ public class GatheringQueryService {
         GatheringDetailRow row = gatheringRepository.findDetailRowById(gatheringId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.GATHERING_NOT_FOUND));
 
+        List<String> categories = findCategoryNamesByGatheringId(gatheringId);
+
         List<String> tags = gatheringTagRepository.findByGatheringIdOrderByIdAsc(gatheringId).stream()
                 .map(GatheringTag::getTag)
                 .toList();
@@ -110,13 +123,28 @@ public class GatheringQueryService {
                         .build())
                 .toList();
 
-        List<GatheringDetailResponse.WeeklyPlanResponse> weeklyPlans = weeklyPlanRepository
-                .findByGatheringIdOrderByWeekNumberAsc(gatheringId).stream()
+        List<WeeklyPlan> weeklyPlans = weeklyPlanRepository.findByGatheringIdOrderByWeekNumberAsc(gatheringId);
+
+        List<Long> weeklyPlanIds = weeklyPlans.stream()
+                .map(WeeklyPlan::getId)
+                .toList();
+
+        Map<Long, List<String>> detailMap = weeklyPlanDetailRepository
+                .findByWeeklyPlanIdInOrderByWeeklyPlanIdAscDisplayOrderAsc(weeklyPlanIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        WeeklyPlanDetail::getWeeklyPlanId,
+                        LinkedHashMap::new,
+                        Collectors.mapping(WeeklyPlanDetail::getContent, Collectors.toList())
+                ));
+
+        List<GatheringDetailResponse.WeeklyPlanResponse> weeklyPlanResponses = weeklyPlans.stream()
                 .map(plan -> GatheringDetailResponse.WeeklyPlanResponse.builder()
                         .week(plan.getWeekNumber())
                         .title(plan.getTitle())
                         .startDate(plan.getStartDate())
                         .endDate(plan.getEndDate())
+                        .details(detailMap.getOrDefault(plan.getId(), List.of()))
                         .build())
                 .toList();
 
@@ -144,7 +172,7 @@ public class GatheringQueryService {
         return GatheringDetailResponse.builder()
                 .id(row.id())
                 .type(row.type().getDisplayName())
-                .category(row.category())
+                .categories(categories)
                 .title(row.title())
                 .shortDescription(row.shortDescription())
                 .description(row.description())
@@ -163,7 +191,7 @@ public class GatheringQueryService {
                         .nickname(leader.getNickname())
                         .profileImage(leader.getProfileImage())
                         .build())
-                .weeklyPlans(weeklyPlans)
+                .weeklyPlans(weeklyPlanResponses)
                 .members(memberResponses)
                 .build();
     }
@@ -186,6 +214,8 @@ public class GatheringQueryService {
                         Collectors.mapping(GatheringTag::getTag, Collectors.toList())
                 ));
 
+        Map<Long, List<String>> categoryMap = buildCategoryMap(gatheringIds);
+
         Map<Long, UserInfo> leaderMap = loadUsers(
                 rows.stream().map(GatheringListRow::leaderId).distinct().toList()
         );
@@ -197,7 +227,7 @@ public class GatheringQueryService {
                     return GatheringListItemResponse.builder()
                             .id(row.id())
                             .type(row.type().getDisplayName())
-                            .category(row.category())
+                            .categories(categoryMap.getOrDefault(row.id(), List.of()))
                             .title(row.title())
                             .shortDescription(row.shortDescription())
                             .tags(tagsMap.getOrDefault(row.id(), List.of()))
@@ -214,6 +244,46 @@ public class GatheringQueryService {
                                     .build())
                             .build();
                 })
+                .toList();
+    }
+
+    private Map<Long, List<String>> buildCategoryMap(List<Long> gatheringIds) {
+        List<GatheringCategory> mappings = gatheringCategoryRepository.findByGatheringIdIn(gatheringIds);
+
+        List<Long> categoryIds = mappings.stream()
+                .map(GatheringCategory::getCategoryId)
+                .distinct()
+                .toList();
+
+        Map<Long, String> categoryNameMap = categoryRepository.findByIdIn(categoryIds).stream()
+                .collect(Collectors.toMap(Category::getId, Category::getName));
+
+        return mappings.stream()
+                .collect(Collectors.groupingBy(
+                        GatheringCategory::getGatheringId,
+                        LinkedHashMap::new,
+                        Collectors.mapping(
+                                mapping -> categoryNameMap.get(mapping.getCategoryId()),
+                                Collectors.filtering(Objects::nonNull, Collectors.toList())
+                        )
+                ));
+    }
+
+    private List<String> findCategoryNamesByGatheringId(Long gatheringId) {
+        List<Long> categoryIds = gatheringCategoryRepository.findByGatheringId(gatheringId).stream()
+                .map(GatheringCategory::getCategoryId)
+                .toList();
+
+        if (categoryIds.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Long, String> categoryNameMap = categoryRepository.findByIdIn(categoryIds).stream()
+                .collect(Collectors.toMap(Category::getId, Category::getName));
+
+        return categoryIds.stream()
+                .map(categoryNameMap::get)
+                .filter(Objects::nonNull)
                 .toList();
     }
 

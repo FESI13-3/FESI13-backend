@@ -10,7 +10,7 @@ import lombok.Builder;
 public record GatheringDetailResponse(
         Long id,
         String type,
-        String category,
+        List<String> categories,
         String title,
         String shortDescription,
         String description,
@@ -48,7 +48,8 @@ public record GatheringDetailResponse(
             int week,
             String title,
             LocalDate startDate,
-            LocalDate endDate
+            LocalDate endDate,
+            List<String> details
     ) {
     }
 

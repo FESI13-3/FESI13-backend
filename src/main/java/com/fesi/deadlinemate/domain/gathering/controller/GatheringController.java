@@ -89,14 +89,14 @@ public class GatheringController {
     @GetMapping
     public ApiResponse<GatheringListResponse> getGatherings(
             @RequestParam(required = false) GatheringType type,
-            @RequestParam(required = false) String category,
+            @RequestParam(required = false) List<Long> categoryIds,
             @RequestParam(defaultValue = "latest") String sort,
             @RequestParam(defaultValue = "recruiting") String status,
             @RequestParam(required = false) String query,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "12") int limit
     ) {
-        GatheringSearchCondition condition = new GatheringSearchCondition(type, category, sort, status, query);
+        GatheringSearchCondition condition = new GatheringSearchCondition(type, categoryIds, sort, status, query);
 
         return ApiResponse.success(gatheringQueryService.getGatherings(condition, page, limit));
     }

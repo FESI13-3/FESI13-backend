@@ -53,21 +53,25 @@ public class Review extends BaseTimeEntity {
     @Column(name = "tag", nullable = false, length = 30)
     private List<ReviewTag> tags;
 
+    @Column(length = 50)
+    private String matesTag;
+
     @Column(length = 300)
     private String comment;
 
     @Builder(access = AccessLevel.PRIVATE)
     private Review(Long gatheringId, Long reviewerId, Long targetUserId,
-                   List<ReviewTag> tags, String comment) {
+                   List<ReviewTag> tags, String matesTag, String comment) {
         this.gatheringId = gatheringId;
         this.reviewerId = reviewerId;
         this.targetUserId = targetUserId;
         this.tags = tags;
+        this.matesTag = matesTag;
         this.comment = comment;
     }
 
     public static Review create(Long gatheringId, Long reviewerId, Long targetUserId,
-                                List<String> tagDisplayNames, String comment) {
+                                List<String> tagDisplayNames, String matesTag, String comment) {
         List<ReviewTag> tags = tagDisplayNames.stream()
                 .map(ReviewTag::fromDisplayName)
                 .toList();
@@ -77,6 +81,7 @@ public class Review extends BaseTimeEntity {
                 .reviewerId(reviewerId)
                 .targetUserId(targetUserId)
                 .tags(tags)
+                .matesTag(matesTag)
                 .comment(comment)
                 .build();
     }

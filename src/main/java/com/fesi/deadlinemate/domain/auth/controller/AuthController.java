@@ -7,6 +7,7 @@ import com.fesi.deadlinemate.domain.auth.dto.response.*;
 import com.fesi.deadlinemate.domain.auth.service.AuthService;
 import com.fesi.deadlinemate.domain.user.entity.Provider;
 import com.fesi.deadlinemate.global.common.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -35,9 +36,11 @@ public class AuthController {
     @GetMapping("/{provider}/callback")
     public ResponseEntity<ApiResponse<OAuthCallbackResponse>> oauthCallback(
             @PathVariable String provider,
-            @RequestParam String code) {
+            @RequestParam String code,
+            HttpServletRequest request) {
         Provider oauthProvider = Provider.fromString(provider);
-        OAuthCallbackResponse response = authService.oauthCallback(oauthProvider, code);
+        String redirectUri = request.getRequestURL().toString();
+        OAuthCallbackResponse response = authService.oauthCallback(oauthProvider, code, redirectUri);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

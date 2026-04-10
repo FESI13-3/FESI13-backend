@@ -196,7 +196,7 @@ public class TodoService {
                 .existsByGatheringIdAndUserIdAndIsActiveTrue(gatheringId, userId);
 
         if (!isActiveMember) {
-            throw new BusinessException(ErrorCode.GATHERING_MEMBER_ONLY);
+            throw new BusinessException(ErrorCode.NOT_A_MEMBER);
         }
     }
 

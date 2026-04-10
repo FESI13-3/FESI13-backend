@@ -55,13 +55,11 @@ public enum ErrorCode {
     APPLICATION_CANCEL_FORBIDDEN(HttpStatus.FORBIDDEN, "본인의 신청만 취소할 수 있습니다."),
     APPLICATION_CANCEL_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "대기 중인 신청만 취소할 수 있습니다."),
 
-
     // Todo
     TODO_NOT_FOUND(HttpStatus.NOT_FOUND, "할 일을 찾을 수 없습니다."),
     TODO_UPDATE_FORBIDDEN(HttpStatus.FORBIDDEN, "본인의 할 일만 수정할 수 있습니다."),
     TODO_NOT_CHANGED(HttpStatus.BAD_REQUEST, "변경된 내용이 없습니다."),
     TODO_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "본인의 할 일만 삭제할 수 있습니다."),
-    GATHERING_MEMBER_ONLY(HttpStatus.FORBIDDEN, "참여 중인 멤버만 접근할 수 있습니다."),
     INVALID_TODO_WEEK(HttpStatus.BAD_REQUEST, "유효하지 않은 주차입니다."),
     INVALID_TODO_CONTENT(HttpStatus.BAD_REQUEST, "할 일 내용이 올바르지 않습니다."),
     INVALID_TODO_WEEK_ACCESS(HttpStatus.BAD_REQUEST, "현재 진행 중인 주차의 할 일만 작성하거나 수정할 수 있습니다."),
@@ -78,8 +76,14 @@ public enum ErrorCode {
     GATHERING_REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "모임 결과 리포트를 찾을 수 없습니다."),
     INVALID_GATHERING_REPORT_DATA(HttpStatus.INTERNAL_SERVER_ERROR, "모임 결과 리포트 데이터가 올바르지 않습니다."),
 
+    //CATEGORY
+    GATHERING_CATEGORY_REQUIRED(HttpStatus.BAD_REQUEST, "카테고리는 최소 1개 이상 필요합니다."),
+    GATHERING_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 카테고리가 포함되어 있습니다."),
+    GATHERING_CATEGORY_COUNT(HttpStatus.BAD_REQUEST, "카테고리는 최대 3개까지 선택할 수 있습니다."),
+
     //WeeklyPlan
     INVALID_WEEKLY_GUIDE_SEQUENCE(HttpStatus.BAD_REQUEST,"주차 가이드는 1주차부터 순차적으로 입력되어야 합니다."),
+    INVALID_WEEKLY_PLAN_DETAILS_COUNT(HttpStatus.BAD_REQUEST, "세부 계획은 최대 2개까지 입력할 수 있습니다."),
 
     // Membership
     NOT_A_MEMBER(HttpStatus.FORBIDDEN, "모임 멤버만 접근할 수 있습니다."),
@@ -94,6 +98,7 @@ public enum ErrorCode {
     REVIEWER_NOT_A_MEMBER(HttpStatus.FORBIDDEN, "해당 모임의 멤버만 리뷰를 작성할 수 있습니다."),
     REVIEW_TARGET_NOT_A_MEMBER(HttpStatus.BAD_REQUEST, "리뷰 대상이 해당 모임의 멤버가 아닙니다."),
     INVALID_REVIEW_TAG(HttpStatus.BAD_REQUEST, "유효하지 않은 리뷰 태그입니다."),
+    INVALID_MATES_TAG(HttpStatus.BAD_REQUEST, "유효하지 않은 MATES 태그입니다."),
 
     // Image
     IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 업로드에 실패했습니다."),

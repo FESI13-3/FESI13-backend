@@ -12,6 +12,7 @@ public record CreateReviewRequest(
     public record ReviewItem(
             @NotNull Long targetUserId,
             @NotEmpty List<String> tags,
+            String matesTag,
             String comment
     ) {}
 
@@ -21,7 +22,7 @@ public record CreateReviewRequest(
                 reviewerId,
                 reviews.stream()
                         .map(item -> new CreateReviewCommand.ReviewItem(
-                                item.targetUserId(), item.tags(), item.comment()))
+                                item.targetUserId(), item.tags(), item.matesTag(), item.comment()))
                         .toList()
         );
     }

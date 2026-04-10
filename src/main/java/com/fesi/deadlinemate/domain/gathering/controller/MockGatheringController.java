@@ -4,6 +4,7 @@ import com.fesi.deadlinemate.domain.gathering.dto.MockGatheringDtos.CreateGather
 import com.fesi.deadlinemate.domain.gathering.dto.MockGatheringDtos.UpdateGatheringRequest;
 import com.fesi.deadlinemate.domain.gathering.service.MockGatheringService;
 import com.fesi.deadlinemate.global.common.ApiResponse;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,7 +30,7 @@ public class MockGatheringController {
     @GetMapping("/gatherings")
     public ResponseEntity<ApiResponse<?>> getGatherings(
             @RequestParam(required = false) String type,
-            @RequestParam(required = false) String category,
+            @RequestParam(required = false) List<String> categories,
             @RequestParam(defaultValue = "latest") String sort,
             @RequestParam(defaultValue = "recruiting") String status,
             @RequestParam(required = false) String query,
@@ -37,7 +38,7 @@ public class MockGatheringController {
             @RequestParam(defaultValue = "12") int limit
     ) {
         return ResponseEntity.ok(ApiResponse.success(
-                service.getGatherings(type, category, sort, status, query, page, limit)
+                service.getGatherings(type, categories, sort, status, query, page, limit)
         ));
     }
 

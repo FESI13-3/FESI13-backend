@@ -15,6 +15,7 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import lombok.AccessLevel;
@@ -26,8 +27,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "gatherings", indexes = {
         @Index(name = "idx_gatherings_status_created_at", columnList = "status, createdAt"),
         @Index(name = "idx_gatherings_recruit_deadline", columnList = "recruitDeadline"),
-        @Index(name = "idx_gatherings_view_count", columnList = "viewCount"),
-        @Index(name = "idx_gatherings_type_category", columnList = "type, category")
+        @Index(name = "idx_gatherings_view_count", columnList = "viewCount")
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -46,9 +46,6 @@ public class Gathering extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private GatheringType type;
-
-    @Column(nullable = false, length = 50)
-    private String category;
 
     @Column(nullable = false, length = 60)
     private String title;
@@ -93,7 +90,6 @@ public class Gathering extends BaseTimeEntity {
     public Gathering(
             Long leaderId,
             GatheringType type,
-            String category,
             String title,
             String shortDescription,
             String description,
@@ -113,7 +109,6 @@ public class Gathering extends BaseTimeEntity {
 
         this.leaderId = leaderId;
         this.type = type;
-        this.category = category;
         this.title = title;
         this.shortDescription = shortDescription;
         this.description = description;
@@ -142,7 +137,6 @@ public class Gathering extends BaseTimeEntity {
 
     public void updateRecruiting(
             GatheringType type,
-            String category,
             String title,
             String shortDescription,
             String description,
@@ -158,7 +152,6 @@ public class Gathering extends BaseTimeEntity {
         validateDateRange(startDate, endDate);
 
         this.type = type;
-        this.category = category;
         this.title = title;
         this.shortDescription = shortDescription;
         this.description = description;
@@ -172,7 +165,6 @@ public class Gathering extends BaseTimeEntity {
 
     public void updateInProgress(
             GatheringType type,
-            String category,
             String title,
             String shortDescription,
             String description,
@@ -181,6 +173,8 @@ public class Gathering extends BaseTimeEntity {
             LocalDate recruitDeadline,
             LocalDate startDate,
             LocalDate endDate,
+            List<Long> requestedCategoryIds,
+            List<Long> currentCategoryIds,
             List<String> requestedTags,
             List<String> currentTags
     ) {
@@ -188,13 +182,14 @@ public class Gathering extends BaseTimeEntity {
         validateDateRange(this.startDate, endDate);
         validateInProgressImmutableFields(
                 type,
-                category,
                 title,
                 shortDescription,
                 goal,
                 maxMembers,
                 recruitDeadline,
                 startDate,
+                requestedCategoryIds,
+                currentCategoryIds,
                 requestedTags,
                 currentTags
         );
@@ -241,27 +236,30 @@ public class Gathering extends BaseTimeEntity {
 
     private void validateInProgressImmutableFields(
             GatheringType type,
-            String category,
             String title,
             String shortDescription,
             String goal,
             int maxMembers,
             LocalDate recruitDeadline,
             LocalDate startDate,
+            List<Long> requestedCategoryIds,
+            List<Long> currentCategoryIds,
             List<String> requestedTags,
             List<String> currentTags
     ) {
         boolean typeChanged = type != this.type;
-        boolean categoryChanged = !Objects.equals(category, this.category);
         boolean titleChanged = !Objects.equals(title, this.title);
         boolean shortDescriptionChanged = !Objects.equals(shortDescription, this.shortDescription);
         boolean goalChanged = !Objects.equals(goal, this.goal);
         boolean maxMembersChanged = maxMembers != this.maxMembers;
         boolean recruitDeadlineChanged = !Objects.equals(recruitDeadline, this.recruitDeadline);
         boolean startDateChanged = !Objects.equals(startDate, this.startDate);
-        boolean tagsChanged = !Objects.equals(requestedTags, currentTags);
+        boolean categoriesChanged = !new LinkedHashSet<>(requestedCategoryIds)
+                .equals(new LinkedHashSet<>(currentCategoryIds));
+        boolean tagsChanged = !new LinkedHashSet<>(requestedTags)
+                .equals(new LinkedHashSet<>(currentTags));
 
-        if (typeChanged || categoryChanged || titleChanged || shortDescriptionChanged
+        if (typeChanged || categoriesChanged || titleChanged || shortDescriptionChanged
                 || goalChanged || maxMembersChanged || recruitDeadlineChanged
                 || startDateChanged || tagsChanged) {
             throw new BusinessException(ErrorCode.INVALID_IN_PROGRESS_UPDATE_ITEMS);

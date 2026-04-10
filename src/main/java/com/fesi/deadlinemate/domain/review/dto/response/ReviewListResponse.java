@@ -11,7 +11,8 @@ import lombok.Builder;
 @Builder
 public record ReviewListResponse(
         List<ReviewItem> reviews,
-        long totalCount
+        long totalCount,
+        List<MatesTagCount> matesTagCounts
 ) {
     @Builder
     public record ReviewItem(
@@ -22,13 +23,20 @@ public record ReviewListResponse(
             String reviewerNickname,
             String reviewerProfileImage,
             List<String> tags,
+            String matesTag,
             String comment,
             LocalDateTime createdAt
     ) {}
 
+    public record MatesTagCount(
+            String tag,
+            long count
+    ) {}
+
     public static ReviewListResponse of(List<Review> reviews, long totalCount,
                                          Map<Long, UserInfo> reviewerMap,
-                                         Map<Long, String> gatheringTitleMap) {
+                                         Map<Long, String> gatheringTitleMap,
+                                         List<MatesTagCount> matesTagCounts) {
         List<ReviewItem> items = reviews.stream()
                 .map(review -> {
                     UserInfo reviewer = reviewerMap.get(review.getReviewerId());
@@ -40,12 +48,17 @@ public record ReviewListResponse(
                             .reviewerNickname(reviewer != null ? reviewer.getNickname() : null)
                             .reviewerProfileImage(reviewer != null ? reviewer.getProfileImage() : null)
                             .tags(review.getTags().stream().map(ReviewTag::getDisplayName).toList())
+                            .matesTag(review.getMatesTag())
                             .comment(review.getComment())
                             .createdAt(review.getCreatedAt())
                             .build();
                 })
                 .toList();
 
-        return ReviewListResponse.builder().reviews(items).totalCount(totalCount).build();
+        return ReviewListResponse.builder()
+                .reviews(items)
+                .totalCount(totalCount)
+                .matesTagCounts(matesTagCounts)
+                .build();
     }
 }

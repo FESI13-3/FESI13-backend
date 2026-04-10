@@ -50,13 +50,13 @@ class OAuthAuthProviderTest {
                 .build();
 
         given(oAuthClientFactory.getClient(Provider.KAKAO)).willReturn(oAuthClient);
-        given(oAuthClient.getAccessToken("auth-code")).willReturn("access-token");
+        given(oAuthClient.getAccessToken(eq("auth-code"), anyString())).willReturn("access-token");
         given(oAuthClient.getUserInfo("access-token")).willReturn(userInfo);
         given(userService.existsByProviderAndProviderId(Provider.KAKAO, "12345")).willReturn(false);
         given(userService.findOrCreateOAuthUser(anyString(), anyString(), any(), eq(Provider.KAKAO), eq("12345")))
                 .willReturn(user);
 
-        OAuthAuthProvider.OAuthResult result = oAuthAuthProvider.authenticate(Provider.KAKAO, "auth-code");
+        OAuthAuthProvider.OAuthResult result = oAuthAuthProvider.authenticate(Provider.KAKAO, "auth-code", "http://localhost/callback");
 
         assertTrue(result.isNewUser());
         assertEquals("kakao@kakao.com", result.user().getEmail());
@@ -80,13 +80,13 @@ class OAuthAuthProviderTest {
                 .build();
 
         given(oAuthClientFactory.getClient(Provider.KAKAO)).willReturn(oAuthClient);
-        given(oAuthClient.getAccessToken("auth-code")).willReturn("access-token");
+        given(oAuthClient.getAccessToken(eq("auth-code"), anyString())).willReturn("access-token");
         given(oAuthClient.getUserInfo("access-token")).willReturn(userInfo);
         given(userService.existsByProviderAndProviderId(Provider.KAKAO, "12345")).willReturn(true);
         given(userService.findOrCreateOAuthUser(anyString(), anyString(), any(), eq(Provider.KAKAO), eq("12345")))
                 .willReturn(user);
 
-        OAuthAuthProvider.OAuthResult result = oAuthAuthProvider.authenticate(Provider.KAKAO, "auth-code");
+        OAuthAuthProvider.OAuthResult result = oAuthAuthProvider.authenticate(Provider.KAKAO, "auth-code", "http://localhost/callback");
 
         assertFalse(result.isNewUser());
     }

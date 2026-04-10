@@ -10,6 +10,7 @@ public record CreateReviewCommand(
     public record ReviewItem(
             Long targetUserId,
             List<String> tags,
+            String matesTag,
             String comment
     ) {}
 }
