@@ -7,7 +7,7 @@ public interface OAuthClient {
 
     Provider getProvider();
 
-    String getAccessToken(String code);
+    String getAccessToken(String code, String redirectUri);
 
     OAuthUserInfo getUserInfo(String accessToken);
 }

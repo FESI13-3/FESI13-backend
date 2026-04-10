@@ -21,7 +21,7 @@ class OAuthClientFactoryTest {
             @Override
             public Provider getProvider() { return Provider.KAKAO; }
             @Override
-            public String getAccessToken(String code) { return "token"; }
+            public String getAccessToken(String code, String redirectUri) { return "token"; }
             @Override
             public OAuthUserInfo getUserInfo(String accessToken) { return null; }
         };
@@ -30,7 +30,7 @@ class OAuthClientFactoryTest {
             @Override
             public Provider getProvider() { return Provider.GOOGLE; }
             @Override
-            public String getAccessToken(String code) { return "token"; }
+            public String getAccessToken(String code, String redirectUri) { return "token"; }
             @Override
             public OAuthUserInfo getUserInfo(String accessToken) { return null; }
         };

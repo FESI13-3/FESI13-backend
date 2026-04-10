@@ -30,9 +30,6 @@ public class GoogleOAuthClient implements OAuthClient {
     @Value("${oauth.google.client-secret}")
     private String clientSecret;
 
-    @Value("${oauth.google.redirect-uri}")
-    private String redirectUri;
-
     @Value("${oauth.google.token-url}")
     private String tokenUrl;
 
@@ -45,7 +42,7 @@ public class GoogleOAuthClient implements OAuthClient {
     }
 
     @Override
-    public String getAccessToken(String code) {
+    public String getAccessToken(String code, String redirectUri) {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);

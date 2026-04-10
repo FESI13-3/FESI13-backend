@@ -30,9 +30,6 @@ public class KakaoOAuthClient implements OAuthClient {
     @Value("${oauth.kakao.client-secret}")
     private String clientSecret;
 
-    @Value("${oauth.kakao.redirect-uri}")
-    private String redirectUri;
-
     @Value("${oauth.kakao.token-url}")
     private String tokenUrl;
 
@@ -45,7 +42,7 @@ public class KakaoOAuthClient implements OAuthClient {
     }
 
     @Override
-    public String getAccessToken(String code) {
+    public String getAccessToken(String code, String redirectUri) {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);

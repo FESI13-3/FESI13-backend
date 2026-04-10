@@ -164,7 +164,7 @@ class AuthControllerE2ETest {
         void kakaoNewUser() throws Exception {
             OAuthClient mockKakaoClient = Mockito.mock(OAuthClient.class);
             given(oAuthClientFactory.getClient(Provider.KAKAO)).willReturn(mockKakaoClient);
-            given(mockKakaoClient.getAccessToken(anyString())).willReturn("kakao-access-token");
+            given(mockKakaoClient.getAccessToken(anyString(), anyString())).willReturn("kakao-access-token");
             given(mockKakaoClient.getUserInfo("kakao-access-token")).willReturn(
                     OAuthUserInfo.builder()
                             .providerId("12345")
@@ -200,7 +200,7 @@ class AuthControllerE2ETest {
 
             OAuthClient mockKakaoClient = Mockito.mock(OAuthClient.class);
             given(oAuthClientFactory.getClient(Provider.KAKAO)).willReturn(mockKakaoClient);
-            given(mockKakaoClient.getAccessToken(anyString())).willReturn("kakao-access-token");
+            given(mockKakaoClient.getAccessToken(anyString(), anyString())).willReturn("kakao-access-token");
             given(mockKakaoClient.getUserInfo("kakao-access-token")).willReturn(
                     OAuthUserInfo.builder()
                             .providerId("exist-99999")
@@ -227,7 +227,7 @@ class AuthControllerE2ETest {
         void googleNewUser() throws Exception {
             OAuthClient mockGoogleClient = Mockito.mock(OAuthClient.class);
             given(oAuthClientFactory.getClient(Provider.GOOGLE)).willReturn(mockGoogleClient);
-            given(mockGoogleClient.getAccessToken(anyString())).willReturn("google-access-token");
+            given(mockGoogleClient.getAccessToken(anyString(), anyString())).willReturn("google-access-token");
             given(mockGoogleClient.getUserInfo("google-access-token")).willReturn(
                     OAuthUserInfo.builder()
                             .providerId("google-sub-99999")
@@ -263,7 +263,7 @@ class AuthControllerE2ETest {
 
             OAuthClient mockGoogleClient = Mockito.mock(OAuthClient.class);
             given(oAuthClientFactory.getClient(Provider.GOOGLE)).willReturn(mockGoogleClient);
-            given(mockGoogleClient.getAccessToken(anyString())).willReturn("google-access-token");
+            given(mockGoogleClient.getAccessToken(anyString(), anyString())).willReturn("google-access-token");
             given(mockGoogleClient.getUserInfo("google-access-token")).willReturn(
                     OAuthUserInfo.builder()
                             .providerId("google-exist-sub")

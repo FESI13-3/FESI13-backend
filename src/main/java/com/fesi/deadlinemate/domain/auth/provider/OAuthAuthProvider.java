@@ -16,9 +16,9 @@ public class OAuthAuthProvider {
     private final OAuthClientFactory oAuthClientFactory;
     private final UserService userService;
 
-    public OAuthResult authenticate(Provider provider, String code) {
+    public OAuthResult authenticate(Provider provider, String code, String redirectUri) {
         OAuthClient client = oAuthClientFactory.getClient(provider);
-        String accessToken = client.getAccessToken(code);
+        String accessToken = client.getAccessToken(code, redirectUri);
         OAuthUserInfo userInfo = client.getUserInfo(accessToken);
 
         boolean isNewUser = !userService.existsByProviderAndProviderId(provider, userInfo.getProviderId());

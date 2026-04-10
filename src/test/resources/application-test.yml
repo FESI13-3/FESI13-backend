@@ -24,12 +24,10 @@ oauth:
   kakao:
     client-id: test-kakao-client-id
     client-secret: test-kakao-client-secret
-    redirect-uri: http://localhost:8080/api/v1/auth/kakao/callback
     token-url: https://kauth.kakao.com/oauth/token
     user-info-url: https://kapi.kakao.com/v2/user/me
   google:
     client-id: test-google-client-id
     client-secret: test-google-client-secret
-    redirect-uri: http://localhost:8080/api/v1/auth/google/callback
     token-url: https://oauth2.googleapis.com/token
     user-info-url: https://www.googleapis.com/oauth2/v2/userinfo

@@ -79,8 +79,8 @@ public class AuthService {
     }
 
     @Transactional
-    public OAuthCallbackResponse oauthCallback(Provider provider, String code) {
-        OAuthAuthProvider.OAuthResult result = oAuthAuthProvider.authenticate(provider, code);
+    public OAuthCallbackResponse oauthCallback(Provider provider, String code, String redirectUri) {
+        OAuthAuthProvider.OAuthResult result = oAuthAuthProvider.authenticate(provider, code, redirectUri);
         User user = result.user();
         boolean isNewUser = result.isNewUser();
 
