@@ -43,7 +43,7 @@ public class ImageStorageService {
 
         try {
             Files.createDirectories(dirPath);
-            file.transferTo(filePath.toFile());
+            file.transferTo(filePath.toAbsolutePath());
         } catch (IOException e) {
             throw new BusinessException(ErrorCode.IMAGE_UPLOAD_FAILED);
         }

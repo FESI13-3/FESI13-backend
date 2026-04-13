@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -156,7 +155,7 @@ class AuthControllerE2ETest {
     }
 
     @Nested
-    @DisplayName("GET /api/v1/auth/kakao/callback")
+    @DisplayName("POST /api/v1/auth/kakao/callback")
     class KakaoCallback {
 
         @Test
@@ -175,8 +174,11 @@ class AuthControllerE2ETest {
                             .build()
             );
 
-            mockMvc.perform(get("/api/v1/auth/kakao/callback")
-                            .param("code", "auth-code-from-kakao"))
+            Map<String, String> body = Map.of("code", "auth-code-from-kakao", "redirectUri", "http://localhost:3000/callback");
+
+            mockMvc.perform(post("/api/v1/auth/kakao/callback")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.accessToken").isNotEmpty())
                     .andExpect(jsonPath("$.data.refreshToken").isNotEmpty())
@@ -190,7 +192,6 @@ class AuthControllerE2ETest {
         @Test
         @DisplayName("기존 카카오 유저 — isNewUser=false를 반환한다")
         void kakaoExistingUser() throws Exception {
-            // 미리 카카오 유저를 저장해두면 콜백 시 isNewUser=false 반환
             userRepository.save(User.builder()
                     .email("kakaoexist@kakao.com")
                     .nickname("기존카카오유저")
@@ -211,15 +212,18 @@ class AuthControllerE2ETest {
                             .build()
             );
 
-            mockMvc.perform(get("/api/v1/auth/kakao/callback")
-                            .param("code", "some-code"))
+            Map<String, String> body = Map.of("code", "some-code", "redirectUri", "http://localhost:3000/callback");
+
+            mockMvc.perform(post("/api/v1/auth/kakao/callback")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.newUser").value(false));
         }
     }
 
     @Nested
-    @DisplayName("GET /api/v1/auth/google/callback")
+    @DisplayName("POST /api/v1/auth/google/callback")
     class GoogleCallback {
 
         @Test
@@ -238,8 +242,11 @@ class AuthControllerE2ETest {
                             .build()
             );
 
-            mockMvc.perform(get("/api/v1/auth/google/callback")
-                            .param("code", "auth-code-from-google"))
+            Map<String, String> body = Map.of("code", "auth-code-from-google", "redirectUri", "http://localhost:3000/callback");
+
+            mockMvc.perform(post("/api/v1/auth/google/callback")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.accessToken").isNotEmpty())
                     .andExpect(jsonPath("$.data.refreshToken").isNotEmpty())
@@ -253,7 +260,6 @@ class AuthControllerE2ETest {
         @Test
         @DisplayName("기존 구글 유저 — isNewUser=false를 반환한다")
         void googleExistingUser() throws Exception {
-            // 미리 구글 유저를 저장해두면 콜백 시 isNewUser=false 반환
             userRepository.save(User.builder()
                     .email("googleexist@gmail.com")
                     .nickname("기존구글유저")
@@ -274,8 +280,11 @@ class AuthControllerE2ETest {
                             .build()
             );
 
-            mockMvc.perform(get("/api/v1/auth/google/callback")
-                            .param("code", "some-code"))
+            Map<String, String> body = Map.of("code", "some-code", "redirectUri", "http://localhost:3000/callback");
+
+            mockMvc.perform(post("/api/v1/auth/google/callback")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.newUser").value(false));
         }
