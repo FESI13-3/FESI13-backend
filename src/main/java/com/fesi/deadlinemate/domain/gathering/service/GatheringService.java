@@ -28,6 +28,7 @@ import com.fesi.deadlinemate.domain.gathering.repository.WeeklyPlanDetailReposit
 import com.fesi.deadlinemate.domain.gathering.repository.WeeklyPlanRepository;
 import com.fesi.deadlinemate.domain.like.repository.GatheringLikeRepository;
 import com.fesi.deadlinemate.domain.user.client.UserClient;
+import com.fesi.deadlinemate.global.common.ImageStorageService;
 import com.fesi.deadlinemate.global.error.BusinessException;
 import com.fesi.deadlinemate.global.error.ErrorCode;
 import java.math.BigDecimal;
@@ -58,6 +59,7 @@ public class GatheringService {
     private final GatheringMemberRepository gatheringMemberRepository;
     private final GatheringImageRepository gatheringImageRepository;
     private final GatheringLikeRepository gatheringLikeRepository;
+    private final ImageStorageService imageStorageService;
     private final UserClient userClient;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -193,6 +195,9 @@ public class GatheringService {
                 command.startDate(),
                 command.endDate()
         );
+        if (command.imageUrls() != null) {
+            replaceImages(gathering.getId(), command.imageUrls());
+        }
 
         publishGatheringUpdatedEvent(gathering);
         return UpdateGatheringResponse.from(
@@ -227,13 +232,15 @@ public class GatheringService {
                 currentTags
         );
 
-
         replaceWeeklyPlansFromUpdate(
                 gathering.getId(),
                 command.weeklyGuides(),
                 gathering.getStartDate(),
                 command.endDate()
         );
+        if (command.imageUrls() != null) {
+            replaceImages(gathering.getId(), command.imageUrls());
+        }
 
         publishGatheringUpdatedEvent(gathering);
         List<String> currentCategoryNames = findCategoryNames(currentCategoryIds);
@@ -363,6 +370,22 @@ public class GatheringService {
     private int calculateTotalWeeks(LocalDate startDate, LocalDate endDate) {
         long days = ChronoUnit.DAYS.between(startDate, endDate);
         return (int) (days / 7) + 1;
+    }
+
+    private void replaceImages(Long gatheringId, List<String> imageUrls) {
+        List<String> existingImageUrls = gatheringImageRepository
+                .findByGatheringIdOrderByDisplayOrderAsc(gatheringId).stream()
+                .map(GatheringImage::getImageUrl)
+                .toList();
+
+        List<String> finalImageUrls = imageUrls == null ? List.of() : imageUrls;
+
+        gatheringImageRepository.deleteByGatheringId(gatheringId);
+        saveImages(gatheringId, finalImageUrls);
+
+        existingImageUrls.stream()
+                .filter(existingUrl -> !finalImageUrls.contains(existingUrl))
+                .forEach(imageStorageService::delete);
     }
 
     private void saveImages(Long gatheringId, List<String> imageUrls) {

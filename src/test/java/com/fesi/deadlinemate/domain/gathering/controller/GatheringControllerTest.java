@@ -180,7 +180,6 @@ class GatheringControllerTest {
     @Nested
     @DisplayName("PUT /api/v1/gatherings/{gatheringId}")
     class Update {
-
         @Test
         @DisplayName("인증된 사용자는 모임을 수정할 수 있다")
         void update_success() throws Exception {
