@@ -17,6 +17,9 @@ import com.fesi.deadlinemate.domain.gathering.service.MembershipCommandService;
 import com.fesi.deadlinemate.domain.gathering.service.MembershipQueryService;
 import com.fesi.deadlinemate.global.common.ApiResponse;
 import com.fesi.deadlinemate.global.common.ImageStorageService;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +52,8 @@ public class GatheringController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<CreateGatheringResponse> create(
+            @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = CreateGatheringRequest.class)))
             @RequestPart("request") @Valid CreateGatheringRequest request,
             @RequestPart(value = "images", required = false) List<MultipartFile> images,
             Authentication authentication
