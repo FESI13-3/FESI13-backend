@@ -226,6 +226,7 @@ class GatheringQueryServiceTest {
         }
     }
 
+
     // ---- helpers ----
 
     private GatheringListRow sampleRow(Long id, Long leaderId) {
@@ -238,6 +239,7 @@ class GatheringQueryServiceTest {
                 .status(GatheringStatus.RECRUITING)
                 .build();
     }
+
 
     /**
      * {@code toListItemResponses} 내부 호출되는 공통 의존성 모킹.
