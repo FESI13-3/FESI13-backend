@@ -7,6 +7,7 @@ import com.fesi.deadlinemate.global.error.BusinessException;
 import com.fesi.deadlinemate.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -16,6 +17,7 @@ public class NotificationCommandService {
 
     private final NotificationRepository notificationRepository;
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void send(SendNotificationCommand command) {
         Notification notification = Notification.builder()
                 .userId(command.userId())

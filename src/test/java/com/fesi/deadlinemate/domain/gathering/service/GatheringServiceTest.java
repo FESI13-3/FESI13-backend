@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 
 import com.fesi.deadlinemate.domain.category.entity.Category;
 import com.fesi.deadlinemate.domain.category.entity.GatheringCategory;
@@ -27,7 +28,9 @@ import com.fesi.deadlinemate.domain.gathering.entity.GatheringTag;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringType;
 import com.fesi.deadlinemate.domain.gathering.entity.WeeklyPlan;
 import com.fesi.deadlinemate.domain.gathering.entity.WeeklyPlanDetail;
+import com.fesi.deadlinemate.domain.gathering.event.GatheringCompletedEvent;
 import com.fesi.deadlinemate.domain.gathering.event.GatheringCreatedEvent;
+import com.fesi.deadlinemate.domain.gathering.event.GatheringDeletedEvent;
 import com.fesi.deadlinemate.domain.gathering.event.GatheringUpdatedEvent;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringImageRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringMemberRepository;
@@ -561,6 +564,132 @@ class GatheringServiceTest {
             then(gatheringTagRepository).should(never()).findByGatheringIdOrderByIdAsc(anyLong());
             then(weeklyPlanRepository).should(never()).deleteByGatheringId(anyLong());
             then(weeklyPlanRepository).should(never()).saveAll(anyList());
+            then(eventPublisher).should(never()).publishEvent(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("모임 삭제 테스트")
+    class Delete {
+
+        @Test
+        @DisplayName("모임 삭제 시 관련 데이터가 모두 삭제되고 이벤트가 발행된다")
+        void deleteSuccess() {
+            Gathering gathering = recruitingGathering();
+            given(gatheringRepository.findById(100L)).willReturn(Optional.of(gathering));
+
+            WeeklyPlan plan = WeeklyPlan.builder()
+                    .gatheringId(100L).weekNumber(1).title("1주차")
+                    .startDate(LocalDate.of(2025, 3, 22)).endDate(LocalDate.of(2025, 3, 28))
+                    .build();
+            setField(plan, "id", 11L);
+            given(weeklyPlanRepository.findByGatheringIdOrderByWeekNumberAsc(100L))
+                    .willReturn(List.of(plan));
+
+            gatheringService.delete(100L, 1L);
+
+            then(weeklyPlanDetailRepository).should().deleteByWeeklyPlanIdIn(List.of(11L));
+            then(weeklyPlanRepository).should().deleteByGatheringId(100L);
+            then(gatheringCategoryRepository).should().deleteByGatheringId(100L);
+            then(gatheringTagRepository).should().deleteByGatheringId(100L);
+            then(gatheringMemberRepository).should().deleteByGatheringId(100L);
+            then(gatheringLikeRepository).should().deleteByGatheringId(100L);
+            then(gatheringRepository).should().delete(gathering);
+
+            ArgumentCaptor<GatheringDeletedEvent> eventCaptor = ArgumentCaptor.forClass(GatheringDeletedEvent.class);
+            then(eventPublisher).should().publishEvent(eventCaptor.capture());
+            assertThat(eventCaptor.getValue().gatheringId()).isEqualTo(100L);
+            assertThat(eventCaptor.getValue().leaderId()).isEqualTo(1L);
+            assertThat(eventCaptor.getValue().title()).isEqualTo("React 완전 정복 스터디");
+        }
+
+        @Test
+        @DisplayName("모임장이 아닌 유저가 삭제 시 예외가 발생한다")
+        void failWhenRequesterIsNotLeader() {
+            Gathering gathering = recruitingGathering();
+            given(gatheringRepository.findById(100L)).willReturn(Optional.of(gathering));
+
+            assertThatThrownBy(() -> gatheringService.delete(100L, 999L))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ErrorCode.INVALID_GATHERING_LEADER);
+
+            then(gatheringRepository).should(never()).delete(any());
+            then(eventPublisher).should(never()).publishEvent(any());
+        }
+
+        @Test
+        @DisplayName("진행 중인 모임은 삭제할 수 없다")
+        void failWhenGatheringIsInProgress() {
+            Gathering gathering = inProgressGathering();
+            given(gatheringRepository.findById(100L)).willReturn(Optional.of(gathering));
+
+            assertThatThrownBy(() -> gatheringService.delete(100L, 1L))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ErrorCode.GATHERING_DELETE_NOT_ALLOWED);
+
+            then(gatheringRepository).should(never()).delete(any());
+            then(eventPublisher).should(never()).publishEvent(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("모임 완료 처리 테스트")
+    class CompleteEndedGatherings {
+
+        @Test
+        @DisplayName("종료일이 지난 IN_PROGRESS 모임들을 완료 처리하고 이벤트를 발행한다")
+        void completesEndedGatherings() {
+            Gathering g1 = inProgressGathering(); // id=100, leaderId=1
+
+            Gathering g2 = Gathering.builder()
+                    .leaderId(2L)
+                    .type(GatheringType.STUDY)
+                    .title("다른 스터디")
+                    .shortDescription("짧은 소개")
+                    .description("설명")
+                    .goal("목표")
+                    .maxMembers(4)
+                    .currentMembers(4)
+                    .recruitDeadline(LocalDate.of(2025, 2, 1))
+                    .startDate(LocalDate.of(2025, 2, 3))
+                    .endDate(LocalDate.of(2025, 3, 1))
+                    .totalWeeks(4)
+                    .status(GatheringStatus.IN_PROGRESS)
+                    .viewCount(5)
+                    .build();
+            setField(g2, "id", 200L);
+
+            LocalDate today = LocalDate.of(2025, 4, 19);
+            given(gatheringRepository.findByStatusAndEndDateLessThanEqual(GatheringStatus.IN_PROGRESS, today))
+                    .willReturn(List.of(g1, g2));
+
+            gatheringService.completeEndedGatherings(today);
+
+            assertThat(g1.getStatus()).isEqualTo(GatheringStatus.COMPLETED);
+            assertThat(g2.getStatus()).isEqualTo(GatheringStatus.COMPLETED);
+
+            ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
+            then(eventPublisher).should(times(2)).publishEvent(eventCaptor.capture());
+
+            List<Object> events = eventCaptor.getAllValues();
+            assertThat(events).allMatch(e -> e instanceof GatheringCompletedEvent);
+
+            GatheringCompletedEvent event1 = (GatheringCompletedEvent) events.get(0);
+            assertThat(event1.gatheringId()).isEqualTo(100L);
+            assertThat(event1.leaderId()).isEqualTo(1L);
+        }
+
+        @Test
+        @DisplayName("완료 처리할 모임이 없으면 아무것도 하지 않는다")
+        void doesNothingWhenNoGatheringsToComplete() {
+            LocalDate today = LocalDate.of(2025, 4, 19);
+            given(gatheringRepository.findByStatusAndEndDateLessThanEqual(GatheringStatus.IN_PROGRESS, today))
+                    .willReturn(List.of());
+
+            gatheringService.completeEndedGatherings(today);
+
             then(eventPublisher).should(never()).publishEvent(any());
         }
     }

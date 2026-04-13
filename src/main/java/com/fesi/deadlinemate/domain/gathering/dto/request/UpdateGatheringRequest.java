@@ -3,6 +3,8 @@ package com.fesi.deadlinemate.domain.gathering.dto.request;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fesi.deadlinemate.domain.gathering.command.UpdateGatheringCommand;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringType;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -21,6 +23,7 @@ public record UpdateGatheringRequest(
 
         @NotEmpty(message = "카테고리는 최소 1개 이상 선택해야 합니다.")
         @Size(max = 3, message = "카테고리는 최대 3개까지 선택할 수 있습니다.")
+        @ArraySchema(schema = @Schema(type = "integer", format = "int64"))
         List<@NotNull(message = "카테고리 ID는 비어 있을 수 없습니다.") Long> categoryIds,
 
         @NotBlank(message = "제목은 필수입니다.")

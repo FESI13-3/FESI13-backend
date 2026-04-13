@@ -23,13 +23,16 @@ services:
       DB_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-fesi13db}?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
       DB_USERNAME: ${DB_USERNAME:-fesi13user}
       DB_PASSWORD: ${DB_PASSWORD:-fesi13pass}
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET:-fesi13-default-secret-key-that-is-at-least-256-bits-long-for-hs256}
       JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION:-3600000}
       JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-604800000}
       KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
       KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET:-}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      IMAGE_UPLOAD_DIR: /app/data/images
+    volumes:
+      - app_images:/app/data/images
     depends_on:
       - mysql
     networks:
@@ -37,6 +40,7 @@ services:
 
 volumes:
   mysql_data:
+  app_images:
 
 networks:
   backend:
