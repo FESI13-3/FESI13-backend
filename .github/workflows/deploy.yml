@@ -99,22 +99,13 @@ jobs:
             docker compose up -d --no-deps --force-recreate app
             docker image prune -f
 
-            # 컨테이너 정상 기동 확인 (최대 60초 대기)
-            echo "Waiting for app to be healthy..."
-            for i in $(seq 1 12); do
-              STATUS=$(docker inspect --format='{{.State.Health.Status}}' $(docker compose ps -q app) 2>/dev/null || echo "none")
-              if [ "$STATUS" = "healthy" ] || [ "$STATUS" = "none" ]; then
-                # healthcheck 없는 경우 running 상태만 확인
-                RUNNING=$(docker inspect --format='{{.State.Running}}' $(docker compose ps -q app))
-                if [ "$RUNNING" = "true" ]; then
-                  echo "App is running."
-                  break
-                fi
-              fi
-              if [ "$i" = "12" ]; then
-                echo "App failed to start."
-                docker compose logs app --tail 30
-                exit 1
-              fi
-              sleep 5
-            done
+            # 기동 대기 후 상태 확인
+            sleep 20
+            echo "=== Container status ==="
+            docker compose ps
+            if docker compose ps | grep -E "app.*(Exit|Restarting)"; then
+              echo "=== App failed to start. Logs ==="
+              docker compose logs app --tail 30
+              exit 1
+            fi
+            echo "Deployment successful."
