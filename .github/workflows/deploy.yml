@@ -74,6 +74,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           envs: DOCKER_IMAGE,MYSQL_ROOT_PASSWORD,MYSQL_DATABASE,DB_USERNAME,DB_PASSWORD,JWT_SECRET,JWT_ACCESS_EXPIRATION,JWT_REFRESH_EXPIRATION,KAKAO_CLIENT_ID,KAKAO_CLIENT_SECRET,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET
           script: |
+            set -e
             cd /home/ubuntu/app
 
             BASE_URL="https://${{ secrets.EC2_DOMAIN }}"
@@ -95,5 +96,25 @@ jobs:
 
             docker compose up -d mysql
             docker compose pull app
-            docker compose up -d --no-deps app
+            docker compose up -d --no-deps --force-recreate app
             docker image prune -f
+
+            # 컨테이너 정상 기동 확인 (최대 60초 대기)
+            echo "Waiting for app to be healthy..."
+            for i in $(seq 1 12); do
+              STATUS=$(docker inspect --format='{{.State.Health.Status}}' $(docker compose ps -q app) 2>/dev/null || echo "none")
+              if [ "$STATUS" = "healthy" ] || [ "$STATUS" = "none" ]; then
+                # healthcheck 없는 경우 running 상태만 확인
+                RUNNING=$(docker inspect --format='{{.State.Running}}' $(docker compose ps -q app))
+                if [ "$RUNNING" = "true" ]; then
+                  echo "App is running."
+                  break
+                fi
+              fi
+              if [ "$i" = "12" ]; then
+                echo "App failed to start."
+                docker compose logs app --tail 30
+                exit 1
+              fi
+              sleep 5
+            done
