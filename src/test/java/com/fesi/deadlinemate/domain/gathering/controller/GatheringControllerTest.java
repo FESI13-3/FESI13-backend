@@ -186,10 +186,20 @@ class GatheringControllerTest {
             given(gatheringService.update(eq(1L), any(UpdateGatheringCommand.class)))
                     .willReturn(updateGatheringResponse());
 
-            mockMvc.perform(put("/api/v1/gatherings/{gatheringId}", 1L)
+            MockMultipartFile requestPart = new MockMultipartFile(
+                    "request",
+                    "request",
+                    MediaType.APPLICATION_JSON_VALUE,
+                    objectMapper.writeValueAsBytes(updateRequest)
+            );
+
+            mockMvc.perform(multipart("/api/v1/gatherings/{gatheringId}", 1L)
+                            .file(requestPart)
+                            .with(request -> {
+                                request.setMethod("PUT");
+                                return request;
+                            })
                             .header("Authorization", "Bearer " + token)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(updateRequest))
                             .with(csrf()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
