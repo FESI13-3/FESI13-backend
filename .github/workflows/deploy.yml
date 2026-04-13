@@ -51,8 +51,7 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/fesi13-backend:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          no-cache: true
 
       - name: Build .env and deploy via SSH
         uses: appleboy/ssh-action@v1
