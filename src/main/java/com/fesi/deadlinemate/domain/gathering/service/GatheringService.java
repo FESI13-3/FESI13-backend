@@ -133,6 +133,15 @@ public class GatheringService {
         gatheringTagRepository.deleteByGatheringId(gatheringId);
         gatheringMemberRepository.deleteByGatheringId(gatheringId);
         gatheringLikeRepository.deleteByGatheringId(gatheringId);
+
+        List<String> imageUrls = gatheringImageRepository
+                .findByGatheringIdOrderByDisplayOrderAsc(gatheringId)
+                .stream()
+                .map(GatheringImage::getImageUrl)
+                .toList();
+        gatheringImageRepository.deleteByGatheringId(gatheringId);
+        imageUrls.forEach(imageStorageService::delete);
+
         gatheringRepository.delete(gathering);
 
         eventPublisher.publishEvent(new GatheringDeletedEvent(
