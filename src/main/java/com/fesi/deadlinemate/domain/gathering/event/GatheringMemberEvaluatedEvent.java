@@ -6,6 +6,7 @@ public record GatheringMemberEvaluatedEvent(
         Long gatheringId,
         Long userId,
         BigDecimal reputationDelta,
-        boolean hasPenalty
+        boolean hasWeeklyPenalty,
+        boolean hasConsecutivePenalty
 ) {
 }

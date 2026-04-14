@@ -122,10 +122,11 @@ public class GatheringReportService {
 
         memberRows.forEach(row -> {
             BigDecimal delta = calculateReputationDelta(row.overallRate(), row.weeklyRates());
-            boolean hasPenalty = row.weeklyRates().stream()
+            boolean hasWeeklyPenalty = row.weeklyRates().stream()
                     .anyMatch(r -> r.compareTo(BigDecimal.valueOf(50)) < 0);
+            boolean hasConsecutivePenalty = hasConsecutiveFailure(row.weeklyRates());
             eventPublisher.publishEvent(new GatheringMemberEvaluatedEvent(
-                    gatheringId, row.userId(), delta, hasPenalty
+                    gatheringId, row.userId(), delta, hasWeeklyPenalty, hasConsecutivePenalty
             ));
         });
     }
@@ -256,6 +257,18 @@ public class GatheringReportService {
         } catch (JsonProcessingException e) {
             throw new BusinessException(ErrorCode.INVALID_GATHERING_REPORT_DATA);
         }
+    }
+
+    private boolean hasConsecutiveFailure(List<BigDecimal> weeklyRates) {
+        boolean prevFailed = false;
+        for (BigDecimal rate : weeklyRates) {
+            boolean failed = rate.compareTo(BigDecimal.valueOf(50)) < 0;
+            if (failed && prevFailed) {
+                return true;
+            }
+            prevFailed = failed;
+        }
+        return false;
     }
 
     private BigDecimal calculateReputationDelta(BigDecimal overallRate, List<BigDecimal> weeklyRates) {

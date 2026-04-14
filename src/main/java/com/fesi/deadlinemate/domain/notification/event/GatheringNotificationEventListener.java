@@ -65,14 +65,25 @@ public class GatheringNotificationEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleMemberEvaluated(GatheringMemberEvaluatedEvent event) {
-        if (!event.hasPenalty()) {
+        if (!event.hasWeeklyPenalty() && !event.hasConsecutivePenalty()) {
             return;
         }
+
+        String targetUrl;
+        String content;
+        if (event.hasConsecutivePenalty()) {
+            targetUrl = "/my";
+            content = "연속으로 주간 목표를 달성하지 못해 평판 점수가 조정되었습니다. 마이페이지에서 확인해 보세요.";
+        } else {
+            targetUrl = "/gatherings/" + event.gatheringId() + "/dashboard?tab=todos";
+            content = "주간 달성률이 50% 미만이어서 평판 점수가 조정되었습니다. 할 일을 확인해 보세요.";
+        }
+
         notificationCommandService.send(new SendNotificationCommand(
                 event.userId(),
                 NotificationType.PENALTY_WARNING,
-                "평판 점수가 조정되었습니다. 마이페이지에서 확인해 보세요.",
-                "/mypage",
+                content,
+                targetUrl,
                 event.gatheringId(),
                 ReferenceType.GATHERING
         ));
