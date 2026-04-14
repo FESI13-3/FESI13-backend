@@ -149,4 +149,15 @@ public class GatheringController {
         membershipCommandService.leaveGathering(gatheringId, userId);
         return ApiResponse.success();
     }
+
+    @PostMapping("/{gatheringId}/members/{targetUserId}/poke")
+    public ApiResponse<Void> poke(
+            @PathVariable Long gatheringId,
+            @PathVariable Long targetUserId,
+            Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        membershipCommandService.poke(gatheringId, targetUserId, userId);
+        return ApiResponse.success();
+    }
 }

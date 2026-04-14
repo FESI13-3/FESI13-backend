@@ -41,8 +41,10 @@ public class UserController {
             @RequestPart(value = "profileImage", required = false) MultipartFile profileImage) {
         Long userId = (Long) authentication.getPrincipal();
 
+        String oldImageUrl = null;
         String imageUrl = null;
         if (profileImage != null && !profileImage.isEmpty()) {
+            oldImageUrl = userService.findById(userId).getProfileImage();
             imageUrl = imageStorageService.upload(profileImage, "profiles");
         } else if (request != null) {
             imageUrl = request.getProfileImage();
@@ -50,6 +52,11 @@ public class UserController {
 
         String nickname = (request != null) ? request.getNickname() : null;
         User user = userService.updateProfile(userId, nickname, imageUrl);
+
+        if (oldImageUrl != null) {
+            imageStorageService.delete(oldImageUrl);
+        }
+
         return ResponseEntity.ok(ApiResponse.success(UserProfileResponse.from(user)));
     }
 
