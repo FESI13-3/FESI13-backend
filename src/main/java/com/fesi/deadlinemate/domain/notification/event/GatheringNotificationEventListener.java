@@ -1,6 +1,7 @@
 package com.fesi.deadlinemate.domain.notification.event;
 
 import com.fesi.deadlinemate.domain.gathering.event.GatheringCompletedEvent;
+import com.fesi.deadlinemate.domain.gathering.event.GatheringMemberEvaluatedEvent;
 import com.fesi.deadlinemate.domain.gathering.event.GatheringPokedEvent;
 import com.fesi.deadlinemate.domain.gathering.event.GatheringStartedEvent;
 import com.fesi.deadlinemate.domain.notification.command.SendNotificationCommand;
@@ -60,6 +61,21 @@ public class GatheringNotificationEventListener {
                     ReferenceType.GATHERING
             ));
         });
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleMemberEvaluated(GatheringMemberEvaluatedEvent event) {
+        if (!event.hasPenalty()) {
+            return;
+        }
+        notificationCommandService.send(new SendNotificationCommand(
+                event.userId(),
+                NotificationType.PENALTY_WARNING,
+                "평판 점수가 조정되었습니다. 마이페이지에서 확인해 보세요.",
+                "/mypage",
+                event.gatheringId(),
+                ReferenceType.GATHERING
+        ));
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
