@@ -32,14 +32,22 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
+        String[] allowedOrigins = {
+                "http://localhost:3000",
+                "http://localhost:3001",
+                "https://chukjibeob.store",
+                "https://completionisland.vercel.app"
+        };
+
         registry.addMapping("/api/**")
-                .allowedOrigins(
-                        "http://localhost:3000",
-                        "http://localhost:3001",
-                        "https://chukjibeob.store",
-                        "https://completionisland.vercel.app"
-                )
+                .allowedOrigins(allowedOrigins)
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true);
+
+        registry.addMapping("/images/**")
+                .allowedOrigins(allowedOrigins)
+                .allowedMethods("GET")
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }
