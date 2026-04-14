@@ -26,7 +26,7 @@ public record CreateGatheringResponse(
         GatheringStatus status,
         List<String> imageUrls
 ) {
-    public static CreateGatheringResponse from(Gathering gathering, List<String> categories, List<String> tags) {
+    public static CreateGatheringResponse from(Gathering gathering, List<String> categories, List<String> tags, List<String> imageUrls) {
         return CreateGatheringResponse.builder()
                 .id(gathering.getId())
                 .type(gathering.getType().getDisplayName())
@@ -43,6 +43,7 @@ public record CreateGatheringResponse(
                 .endDate(gathering.getEndDate())
                 .totalWeeks(gathering.getTotalWeeks())
                 .status(gathering.getStatus())
+                .imageUrls(imageUrls == null ? List.of() : imageUrls)
                 .build();
     }
 }
