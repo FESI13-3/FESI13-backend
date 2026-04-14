@@ -214,6 +214,15 @@ public class GatheringQueryService {
                         Collectors.mapping(GatheringTag::getTag, Collectors.toList())
                 ));
 
+        Map<Long, List<String>> imageUrlsMap = gatheringImageRepository
+                .findByGatheringIdInOrderByGatheringIdAscDisplayOrderAsc(gatheringIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        image -> image.getGatheringId(),
+                        LinkedHashMap::new,
+                        Collectors.mapping(image -> image.getImageUrl(), Collectors.toList())
+                ));
+
         Map<Long, List<String>> categoryMap = buildCategoryMap(gatheringIds);
 
         Map<Long, UserInfo> leaderMap = loadUsers(
@@ -230,6 +239,7 @@ public class GatheringQueryService {
                             .categories(categoryMap.getOrDefault(row.id(), List.of()))
                             .title(row.title())
                             .shortDescription(row.shortDescription())
+                            .imageUrls(imageUrlsMap.getOrDefault(row.id(), List.of()))
                             .tags(tagsMap.getOrDefault(row.id(), List.of()))
                             .maxMembers(row.maxMembers())
                             .currentMembers(row.currentMembers())
