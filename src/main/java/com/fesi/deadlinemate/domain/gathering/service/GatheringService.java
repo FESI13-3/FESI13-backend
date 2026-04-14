@@ -105,7 +105,8 @@ public class GatheringService {
 
         return CreateGatheringResponse.from(saved,
                 categories.stream().map(Category::getName).toList(),
-                normalizeTags(command.tags()));
+                normalizeTags(command.tags()),
+                command.imageUrls());
     }
 
     public UpdateGatheringResponse update(Long gatheringId, UpdateGatheringCommand command) {

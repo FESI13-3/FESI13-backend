@@ -17,11 +17,6 @@ import com.fesi.deadlinemate.domain.gathering.service.MembershipCommandService;
 import com.fesi.deadlinemate.domain.gathering.service.MembershipQueryService;
 import com.fesi.deadlinemate.global.common.ApiResponse;
 import com.fesi.deadlinemate.global.common.ImageStorageService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Encoding;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -51,12 +46,6 @@ public class GatheringController {
     private final MembershipQueryService membershipQueryService;
     private final ImageStorageService imageStorageService;
 
-    @Operation(requestBody = @RequestBody(
-            content = @Content(
-                    mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
-                    encoding = @Encoding(name = "request", contentType = MediaType.APPLICATION_JSON_VALUE)
-            )
-    ))
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<CreateGatheringResponse> create(

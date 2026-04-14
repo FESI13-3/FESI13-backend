@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface GatheringImageRepository extends JpaRepository<GatheringImage,Long> {
     List<GatheringImage> findByGatheringIdOrderByDisplayOrderAsc(Long gatheringId);
+
+    List<GatheringImage> findByGatheringIdInOrderByGatheringIdAscDisplayOrderAsc(List<Long> gatheringIds);
 }

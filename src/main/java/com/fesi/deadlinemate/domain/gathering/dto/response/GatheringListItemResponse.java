@@ -12,6 +12,7 @@ public record GatheringListItemResponse(
         List<String> categories,
         String title,
         String shortDescription,
+        List<String> imageUrls,
         List<String> tags,
         int maxMembers,
         int currentMembers,
