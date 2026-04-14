@@ -13,6 +13,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Builder;
 
@@ -74,9 +75,21 @@ public record UpdateGatheringRequest(
 
         @Valid
         @NotEmpty(message = "주차별 계획은 최소 1개 이상 필요합니다.")
-        List<WeeklyGuideRequest> weeklyGuides
+        List<WeeklyGuideRequest> weeklyGuides,
+
+        List<String> keepImageUrls
 ) {
-    public UpdateGatheringCommand toCommand(Long requesterId) {
+    public UpdateGatheringCommand toCommand(Long requesterId,List<String> newImageUrls) {
+
+            List<String> finalImageUrls = null;
+
+            if (keepImageUrls != null) {
+                    finalImageUrls = new ArrayList<>(keepImageUrls);
+                    if (newImageUrls != null && !newImageUrls.isEmpty()) {
+                            finalImageUrls.addAll(newImageUrls);
+                    }
+            }
+
         return UpdateGatheringCommand.builder()
                 .requesterId(requesterId)
                 .type(type)
@@ -99,7 +112,7 @@ public record UpdateGatheringRequest(
                                 ))
                                 .toList()
                 )
-                .imageUrls(List.of())
+                .imageUrls(finalImageUrls)
                 .build();
     }
 

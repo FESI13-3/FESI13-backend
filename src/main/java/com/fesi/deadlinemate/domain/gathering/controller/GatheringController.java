@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -65,14 +64,20 @@ public class GatheringController {
         return ApiResponse.success(response);
     }
 
-    @PutMapping(value = "/{gatheringId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/{gatheringId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<UpdateGatheringResponse> update(
             @PathVariable Long gatheringId,
-            @RequestBody @Valid UpdateGatheringRequest request,
+            @RequestPart("request") @Valid UpdateGatheringRequest request,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
             Authentication authentication
     ) {
         Long userId = (Long) authentication.getPrincipal();
-        UpdateGatheringResponse response = gatheringService.update(gatheringId, request.toCommand(userId));
+
+        List<String> newImageUrls = (images != null && !images.isEmpty())
+                ? imageStorageService.uploadAll(images, "gatherings")
+                : List.of();
+
+        UpdateGatheringResponse response = gatheringService.update(gatheringId, request.toCommand(userId,newImageUrls));
         return ApiResponse.success(response);
     }
 
