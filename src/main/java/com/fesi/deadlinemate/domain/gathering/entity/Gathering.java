@@ -199,6 +199,10 @@ public class Gathering extends BaseTimeEntity {
         this.totalWeeks = calculateTotalWeeks(this.startDate, endDate);
     }
 
+    public void start() {
+        this.status = GatheringStatus.IN_PROGRESS;
+    }
+
     public void complete() {
         if (this.status != GatheringStatus.IN_PROGRESS) {
             throw new BusinessException(ErrorCode.GATHERING_COMPLETE_NOT_ALLOWED);

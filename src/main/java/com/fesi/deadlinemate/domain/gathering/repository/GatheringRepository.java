@@ -30,6 +30,8 @@ public interface GatheringRepository extends JpaRepository<Gathering, Long>, Gat
     @Query("UPDATE Gathering g SET g.currentMembers = g.currentMembers - 1 WHERE g.id = :id AND g.currentMembers > 0")
     int decreaseCurrentMembers(@Param("id") Long gatheringId);
 
+    List<Gathering> findByStatusAndStartDateLessThanEqual(GatheringStatus status, LocalDate startDate);
+
     List<Gathering> findByStatusAndEndDateLessThanEqual(GatheringStatus status, LocalDate endDate);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

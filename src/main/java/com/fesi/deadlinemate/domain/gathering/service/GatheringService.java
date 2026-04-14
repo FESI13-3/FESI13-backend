@@ -17,6 +17,7 @@ import com.fesi.deadlinemate.domain.gathering.entity.WeeklyPlanDetail;
 import com.fesi.deadlinemate.domain.gathering.event.GatheringCompletedEvent;
 import com.fesi.deadlinemate.domain.gathering.event.GatheringCreatedEvent;
 import com.fesi.deadlinemate.domain.gathering.event.GatheringDeletedEvent;
+import com.fesi.deadlinemate.domain.gathering.event.GatheringStartedEvent;
 import com.fesi.deadlinemate.domain.gathering.event.GatheringUpdatedEvent;
 import com.fesi.deadlinemate.domain.category.repository.CategoryRepository;
 import com.fesi.deadlinemate.domain.category.repository.GatheringCategoryRepository;
@@ -151,6 +152,30 @@ public class GatheringService {
         ));
     }
 
+    public void startBegunGatherings(LocalDate today) {
+        List<Gathering> gatherings = gatheringRepository.findByStatusAndStartDateLessThanEqual(
+                GatheringStatus.RECRUITING,
+                today
+        );
+
+        for (Gathering gathering : gatherings) {
+            gathering.start();
+
+            List<Long> memberIds = gatheringMemberRepository
+                    .findByGatheringIdAndIsActiveTrueOrderByIdAsc(gathering.getId())
+                    .stream()
+                    .map(GatheringMember::getUserId)
+                    .toList();
+
+            eventPublisher.publishEvent(new GatheringStartedEvent(
+                    gathering.getId(),
+                    gathering.getLeaderId(),
+                    gathering.getTitle(),
+                    memberIds
+            ));
+        }
+    }
+
     public void completeEndedGatherings(LocalDate today) {
         List<Gathering> gatherings = gatheringRepository.findByStatusAndEndDateLessThanEqual(
                 GatheringStatus.IN_PROGRESS,
@@ -160,10 +185,17 @@ public class GatheringService {
         for (Gathering gathering : gatherings) {
             gathering.complete();
 
+            List<Long> memberIds = gatheringMemberRepository
+                    .findByGatheringIdAndIsActiveTrueOrderByIdAsc(gathering.getId())
+                    .stream()
+                    .map(GatheringMember::getUserId)
+                    .toList();
+
             eventPublisher.publishEvent(new GatheringCompletedEvent(
                     gathering.getId(),
                     gathering.getLeaderId(),
-                    gathering.getTitle()
+                    gathering.getTitle(),
+                    memberIds
             ));
         }
     }

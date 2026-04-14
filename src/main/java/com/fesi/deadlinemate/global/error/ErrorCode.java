@@ -90,6 +90,7 @@ public enum ErrorCode {
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 멤버를 찾을 수 없습니다."),
     CANNOT_KICK_LEADER(HttpStatus.BAD_REQUEST, "모임장은 퇴출할 수 없습니다."),
     LEADER_CANNOT_LEAVE(HttpStatus.BAD_REQUEST, "모임장은 모임을 탈퇴할 수 없습니다."),
+    CANNOT_POKE_SELF(HttpStatus.BAD_REQUEST, "자기 자신을 찌를 수 없습니다."),
 
     // Review
     REVIEW_ALREADY_SUBMITTED(HttpStatus.CONFLICT, "이미 리뷰를 작성했습니다."),
