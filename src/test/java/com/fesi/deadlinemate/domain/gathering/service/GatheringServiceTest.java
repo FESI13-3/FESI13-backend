@@ -40,6 +40,7 @@ import com.fesi.deadlinemate.domain.gathering.repository.WeeklyPlanDetailReposit
 import com.fesi.deadlinemate.domain.gathering.repository.WeeklyPlanRepository;
 import com.fesi.deadlinemate.domain.like.repository.GatheringLikeRepository;
 import com.fesi.deadlinemate.domain.user.client.UserClient;
+import com.fesi.deadlinemate.global.common.ImageStorageService;
 import com.fesi.deadlinemate.global.error.BusinessException;
 import com.fesi.deadlinemate.global.error.ErrorCode;
 import java.lang.reflect.Field;
@@ -83,6 +84,9 @@ class GatheringServiceTest {
 
     @Mock
     private GatheringImageRepository gatheringImageRepository;
+
+    @Mock
+    private ImageStorageService imageStorageService;
 
     @Mock
     private GatheringLikeRepository gatheringLikeRepository;
@@ -147,7 +151,7 @@ class GatheringServiceTest {
                                 2, "2주차", List.of("도메인 설계")
                         )
                 ))
-                .imageUrls(List.of())
+                .imageUrls(null)
                 .build();
 
         inProgressAllowedUpdateCommand = UpdateGatheringCommand.builder()
@@ -171,7 +175,7 @@ class GatheringServiceTest {
                                 2, "2주차 수정", List.of("State 심화")
                         )
                 ))
-                .imageUrls(List.of())
+                .imageUrls(null)
                 .build();
     }
     @Nested
@@ -494,6 +498,9 @@ class GatheringServiceTest {
             then(weeklyPlanRepository).should().deleteByGatheringId(100L);
             then(weeklyPlanRepository).should().saveAll(anyList());
             then(weeklyPlanDetailRepository).should().saveAll(anyList());
+
+            then(gatheringImageRepository).shouldHaveNoInteractions();
+            then(imageStorageService).shouldHaveNoInteractions();
 
             ArgumentCaptor<GatheringUpdatedEvent> eventCaptor =
                     ArgumentCaptor.forClass(GatheringUpdatedEvent.class);
