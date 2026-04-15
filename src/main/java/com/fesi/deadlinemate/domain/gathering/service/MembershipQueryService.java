@@ -17,10 +17,13 @@ import com.fesi.deadlinemate.domain.gathering.repository.GatheringTagRepository;
 import com.fesi.deadlinemate.domain.gatheringApplication.entity.ApplicationStatus;
 import com.fesi.deadlinemate.domain.gatheringApplication.repository.GatheringApplicationRepository;
 import com.fesi.deadlinemate.domain.review.repository.ReviewRepository;
+import com.fesi.deadlinemate.domain.todo.repository.TodoRepository;
 import com.fesi.deadlinemate.domain.user.client.UserClient;
 import com.fesi.deadlinemate.domain.user.client.dto.UserInfo;
 import com.fesi.deadlinemate.global.error.BusinessException;
 import com.fesi.deadlinemate.global.error.ErrorCode;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +49,7 @@ public class MembershipQueryService {
     private final GatheringCategoryRepository gatheringCategoryRepository;
     private final CategoryRepository categoryRepository;
     private final UserClient userClient;
+    private final TodoRepository todoRepository;
 
     public MyGatheringListResponse getMyGatherings(Long userId, String status, String sort, int page, int limit) {
         int validatedPage = Math.max(page, 1);
@@ -136,7 +140,24 @@ public class MembershipQueryService {
         List<Long> userIds = members.stream().map(GatheringMember::getUserId).distinct().toList();
         Map<Long, UserInfo> userMap = userClient.findByIds(userIds);
 
-        return MemberListResponse.of(members, userMap);
+        Map<Long, BigDecimal> achievementRates = members.stream()
+                .collect(Collectors.toMap(
+                        GatheringMember::getUserId,
+                        member -> calculateOverallAchievementRate(gatheringId, member.getUserId())
+                ));
+
+        return MemberListResponse.of(members, userMap, achievementRates);
+    }
+
+    private BigDecimal calculateOverallAchievementRate(Long gatheringId, Long userId) {
+        long totalCount = todoRepository.countByGatheringIdAndUserId(gatheringId, userId);
+        if (totalCount == 0) {
+            return BigDecimal.ZERO.setScale(1);
+        }
+        long completedCount = todoRepository.countByGatheringIdAndUserIdAndIsCompletedTrue(gatheringId, userId);
+        return BigDecimal.valueOf(completedCount)
+                .multiply(BigDecimal.valueOf(100))
+                .divide(BigDecimal.valueOf(totalCount), 1, RoundingMode.HALF_UP);
     }
 
     private Page<Gathering> resolveGatheringPage(List<Long> ids, String status, boolean isOldest, PageRequest pageable) {

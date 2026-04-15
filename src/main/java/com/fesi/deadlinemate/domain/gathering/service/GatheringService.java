@@ -32,7 +32,6 @@ import com.fesi.deadlinemate.domain.user.client.UserClient;
 import com.fesi.deadlinemate.global.common.ImageStorageService;
 import com.fesi.deadlinemate.global.error.BusinessException;
 import com.fesi.deadlinemate.global.error.ErrorCode;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -648,7 +647,6 @@ public class GatheringService {
                 .userId(leaderId)
                 .role(GatheringRole.LEADER)
                 .personalGoal(null)
-                .overallAchievementRate(BigDecimal.ZERO.setScale(2))
                 .isActive(true)
                 .build();
 

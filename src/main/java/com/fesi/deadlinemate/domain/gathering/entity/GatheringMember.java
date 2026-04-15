@@ -10,7 +10,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import java.math.BigDecimal;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -40,20 +39,16 @@ public class GatheringMember {
     @Lob
     private String personalGoal;
 
-    @Column(nullable = false, precision = 5, scale = 2)
-    private BigDecimal overallAchievementRate;
-
     @Column(nullable = false)
     private boolean isActive;
 
     @Builder
     public GatheringMember(Long gatheringId, Long userId, GatheringRole role,
-                           String personalGoal, BigDecimal overallAchievementRate, boolean isActive) {
+                           String personalGoal, boolean isActive) {
         this.gatheringId = gatheringId;
         this.userId = userId;
         this.role = role;
         this.personalGoal = personalGoal;
-        this.overallAchievementRate = overallAchievementRate;
         this.isActive = isActive;
     }
 

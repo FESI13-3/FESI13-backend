@@ -24,7 +24,6 @@ import com.fesi.deadlinemate.domain.user.client.UserClient;
 import com.fesi.deadlinemate.domain.user.client.dto.UserInfo;
 import com.fesi.deadlinemate.global.error.BusinessException;
 import com.fesi.deadlinemate.global.error.ErrorCode;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -254,7 +253,6 @@ public class GatheringApplicationService {
                 .userId(application.getApplicantId())
                 .role(GatheringRole.MEMBER)
                 .personalGoal(application.getPersonalGoal())
-                .overallAchievementRate(BigDecimal.ZERO.setScale(2))
                 .isActive(true)
                 .build();
 
