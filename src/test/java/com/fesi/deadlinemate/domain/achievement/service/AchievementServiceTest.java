@@ -27,7 +27,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class AchievementQueryServiceTest {
+class AchievementServiceTest {
 
     @Mock
     private GatheringRepository gatheringRepository;
@@ -42,7 +42,7 @@ class AchievementQueryServiceTest {
     private UserClient userClient;
 
     @InjectMocks
-    private AchievementQueryService achievementQueryService;
+    private AchievementService achievementService;
 
     private final Long GATHERING_ID = 1L;
     private final Long USER_ID_1 = 10L;
@@ -95,7 +95,7 @@ class AchievementQueryServiceTest {
 
         // when
         AchievementResponse response =
-                achievementQueryService.getAchievements(GATHERING_ID, USER_ID_1);
+                achievementService.getAchievements(GATHERING_ID, USER_ID_1);
 
         // then
         assertThat(response.members()).hasSize(2);
@@ -114,7 +114,7 @@ class AchievementQueryServiceTest {
 
         // when & then
         assertThatThrownBy(() ->
-                achievementQueryService.getAchievements(GATHERING_ID, USER_ID_1))
+                achievementService.getAchievements(GATHERING_ID, USER_ID_1))
                 .isInstanceOf(BusinessException.class);
     }
 }
