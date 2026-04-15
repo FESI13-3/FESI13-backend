@@ -27,6 +27,7 @@ import com.fesi.deadlinemate.global.error.ErrorCode;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -184,7 +185,7 @@ public class GatheringApplicationService {
                     Gathering gathering = gatheringMap.get(application.getGatheringId());
 
                     if (gathering == null) {
-                        throw new BusinessException(ErrorCode.GATHERING_NOT_FOUND);
+                        return null;
                     }
 
                     return MyApplicationListResponse.MyApplicationItemResponse.builder()
@@ -200,6 +201,7 @@ public class GatheringApplicationService {
                             .createdAt(application.getCreatedAt())
                             .build();
                 })
+                .filter(Objects::nonNull)
                 .toList();
 
         return MyApplicationListResponse.of(responses);
