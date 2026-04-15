@@ -22,6 +22,7 @@ import com.fesi.deadlinemate.domain.gathering.repository.GatheringTagRepository;
 import com.fesi.deadlinemate.domain.gatheringApplication.entity.ApplicationStatus;
 import com.fesi.deadlinemate.domain.gatheringApplication.repository.GatheringApplicationRepository;
 import com.fesi.deadlinemate.domain.review.repository.ReviewRepository;
+import com.fesi.deadlinemate.domain.todo.repository.TodoRepository;
 import com.fesi.deadlinemate.domain.user.client.UserClient;
 import com.fesi.deadlinemate.domain.user.client.dto.UserInfo;
 import com.fesi.deadlinemate.global.error.BusinessException;
@@ -54,6 +55,7 @@ class MembershipQueryServiceTest {
     @Mock private GatheringCategoryRepository gatheringCategoryRepository;
     @Mock private CategoryRepository categoryRepository;
     @Mock private UserClient userClient;
+    @Mock private TodoRepository todoRepository;
 
     @InjectMocks
     private MembershipQueryService membershipQueryService;
@@ -193,10 +195,14 @@ class MembershipQueryServiceTest {
                     .willReturn(List.of(member));
             given(userClient.findByIds(List.of(10L))).willReturn(
                     Map.of(10L, UserInfo.builder().id(10L).nickname("leader").build()));
+            given(todoRepository.countByGatheringIdAndUserId(1L, 10L)).willReturn(4L);
+            given(todoRepository.countByGatheringIdAndUserIdAndIsCompletedTrue(1L, 10L)).willReturn(4L);
 
             MemberListResponse response = membershipQueryService.getMembers(1L, 10L);
 
             assertThat(response.members()).hasSize(1);
+            assertThat(response.members().get(0).overallAchievementRate())
+                    .isEqualByComparingTo("100.0");
         }
 
         @Test
@@ -214,7 +220,7 @@ class MembershipQueryServiceTest {
     private GatheringMember member(Long id, Long gatheringId, Long userId, GatheringRole role) {
         GatheringMember m = GatheringMember.builder()
                 .gatheringId(gatheringId).userId(userId).role(role)
-                .overallAchievementRate(BigDecimal.ZERO).isActive(true).build();
+.isActive(true).build();
         setField(m, "id", id);
         return m;
     }

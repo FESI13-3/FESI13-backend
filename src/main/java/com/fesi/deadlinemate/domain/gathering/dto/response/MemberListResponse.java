@@ -22,7 +22,10 @@ public record MemberListResponse(List<MemberItem> members) {
     ) {
     }
 
-    public static MemberListResponse of(List<GatheringMember> members, Map<Long, UserInfo> userMap) {
+    public static MemberListResponse of(
+            List<GatheringMember> members,
+            Map<Long, UserInfo> userMap,
+            Map<Long, BigDecimal> achievementRates) {
         List<MemberItem> items = members.stream()
                 .map(member -> {
                     UserInfo user = userMap.get(member.getUserId());
@@ -31,7 +34,8 @@ public record MemberListResponse(List<MemberItem> members) {
                             .nickname(user != null ? user.getNickname() : null)
                             .profileImage(user != null ? user.getProfileImage() : null)
                             .role(member.getRole())
-                            .overallAchievementRate(member.getOverallAchievementRate())
+                            .overallAchievementRate(achievementRates.getOrDefault(
+                                    member.getUserId(), BigDecimal.ZERO.setScale(1)))
                             .isActive(member.isActive())
                             .build();
                 })

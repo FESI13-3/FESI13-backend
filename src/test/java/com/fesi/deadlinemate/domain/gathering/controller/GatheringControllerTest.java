@@ -330,7 +330,6 @@ class GatheringControllerTest {
                                 .nickname("모임장")
                                 .profileImage("https://profile.test/1.png")
                                 .role(GatheringRole.LEADER)
-                                .overallAchievementRate(BigDecimal.valueOf(80.0))
                                 .isActive(true)
                                 .build()
                 ))

@@ -13,6 +13,11 @@ public class GatheringCompletionScheduler {
     private final GatheringService gatheringService;
 
     @Scheduled(cron = "0 5 0 * * *", zone = "Asia/Seoul")
+    public void startBegunGatherings() {
+        gatheringService.startBegunGatherings(LocalDate.now());
+    }
+
+    @Scheduled(cron = "0 5 0 * * *", zone = "Asia/Seoul")
     public void completeEndedGatherings() {
         gatheringService.completeEndedGatherings(LocalDate.now());
     }

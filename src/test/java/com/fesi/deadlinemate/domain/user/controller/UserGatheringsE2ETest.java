@@ -77,7 +77,7 @@ class UserGatheringsE2ETest {
         gatheringMemberRepository.save(GatheringMember.builder()
                 .gatheringId(gathering.getId()).userId(user.getId())
                 .role(GatheringRole.LEADER).isActive(true)
-                .overallAchievementRate(BigDecimal.ZERO).build());
+.build());
 
         token = jwtTokenProvider.generateAccessToken(user.getId(), user.getEmail());
     }
@@ -111,7 +111,7 @@ class UserGatheringsE2ETest {
         gatheringMemberRepository.save(GatheringMember.builder()
                 .gatheringId(gathering2.getId()).userId(user.getId())
                 .role(GatheringRole.MEMBER).isActive(true)
-                .overallAchievementRate(BigDecimal.ZERO).build());
+.build());
 
         mockMvc.perform(get("/api/v1/users/me/gatherings")
                         .header("Authorization", "Bearer " + token)
@@ -148,7 +148,7 @@ class UserGatheringsE2ETest {
         gatheringMemberRepository.save(GatheringMember.builder()
                 .gatheringId(otherGathering.getId()).userId(user.getId())
                 .role(GatheringRole.MEMBER).isActive(true)
-                .overallAchievementRate(BigDecimal.ZERO).build());
+.build());
 
         mockMvc.perform(get("/api/v1/users/me/gatherings")
                         .header("Authorization", "Bearer " + token))

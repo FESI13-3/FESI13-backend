@@ -7,6 +7,7 @@ import com.fesi.deadlinemate.domain.gathering.entity.GatheringMember;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringStatus;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringMemberRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
+import com.fesi.deadlinemate.domain.gathering.event.GatheringMemberEvaluatedEvent;
 import com.fesi.deadlinemate.domain.report.dto.WeeklyRateDto;
 import com.fesi.deadlinemate.domain.report.entity.GatheringReport;
 import com.fesi.deadlinemate.domain.report.repository.GatheringReportRepository;
@@ -25,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +40,7 @@ public class GatheringReportService {
     private final TodoRepository todoRepository;
     private final GatheringReportRepository gatheringReportRepository;
     private final ObjectMapper objectMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void createReport(Long gatheringId) {
@@ -126,6 +129,16 @@ public class GatheringReportService {
                 .build();
 
         gatheringReportRepository.save(report);
+
+        memberRows.forEach(row -> {
+            BigDecimal delta = calculateReputationDelta(row.overallRate(), row.weeklyRates());
+            boolean hasWeeklyPenalty = row.weeklyRates().stream()
+                    .anyMatch(r -> r.compareTo(BigDecimal.valueOf(50)) < 0);
+            boolean hasConsecutivePenalty = hasConsecutiveFailure(row.weeklyRates());
+            eventPublisher.publishEvent(new GatheringMemberEvaluatedEvent(
+                    gatheringId, row.userId(), delta, hasWeeklyPenalty, hasConsecutivePenalty
+            ));
+        });
     }
 
     private Map<Long, List<Todo>> groupByUser(List<Todo> todos) {
@@ -211,6 +224,7 @@ public class GatheringReportService {
         return new MemberReportRow(
                 userId,
                 overallRate,
+                weeklyRates,
                 longestStreak,
                 improvement,
                 attendanceAwardWinner
@@ -278,9 +292,51 @@ public class GatheringReportService {
         }
     }
 
+    private boolean hasConsecutiveFailure(List<BigDecimal> weeklyRates) {
+        boolean prevFailed = false;
+        for (BigDecimal rate : weeklyRates) {
+            boolean failed = rate.compareTo(BigDecimal.valueOf(50)) < 0;
+            if (failed && prevFailed) {
+                return true;
+            }
+            prevFailed = failed;
+        }
+        return false;
+    }
+
+    private BigDecimal calculateReputationDelta(BigDecimal overallRate, List<BigDecimal> weeklyRates) {
+        BigDecimal delta = BigDecimal.ZERO;
+
+        if (overallRate.compareTo(BigDecimal.valueOf(80)) >= 0) {
+            delta = delta.add(BigDecimal.valueOf(0.5));
+        } else if (overallRate.compareTo(BigDecimal.valueOf(50)) >= 0) {
+            delta = delta.add(BigDecimal.valueOf(0.1));
+        }
+
+        boolean prevFailed = false;
+        boolean hasConsecutiveFailure = false;
+        for (BigDecimal weeklyRate : weeklyRates) {
+            boolean thisFailed = weeklyRate.compareTo(BigDecimal.valueOf(50)) < 0;
+            if (thisFailed) {
+                delta = delta.subtract(BigDecimal.valueOf(0.3));
+                if (prevFailed) {
+                    hasConsecutiveFailure = true;
+                }
+            }
+            prevFailed = thisFailed;
+        }
+
+        if (hasConsecutiveFailure) {
+            delta = delta.subtract(BigDecimal.valueOf(0.5));
+        }
+
+        return delta.setScale(1, RoundingMode.HALF_UP);
+    }
+
     private record MemberReportRow(
             Long userId,
             BigDecimal overallRate,
+            List<BigDecimal> weeklyRates,
             int longestStreak,
             BigDecimal improvement,
             boolean attendanceAwardWinner

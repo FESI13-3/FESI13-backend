@@ -189,7 +189,7 @@ class GatheringMemberRepositoryTest {
                 .gatheringId(gatheringId)
                 .userId(userId)
                 .role(role)
-                .overallAchievementRate(BigDecimal.ZERO)
+
                 .isActive(active)
                 .build();
     }

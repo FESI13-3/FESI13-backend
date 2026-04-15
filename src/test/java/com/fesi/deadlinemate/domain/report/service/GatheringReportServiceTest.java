@@ -3,6 +3,7 @@ package com.fesi.deadlinemate.domain.report.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.context.ApplicationEventPublisher;
 import com.fesi.deadlinemate.domain.gathering.entity.Gathering;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringMember;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringRole;
@@ -53,6 +54,9 @@ class GatheringReportServiceTest {
 
     @Mock
     private ObjectMapper objectMapper;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private GatheringReportService gatheringReportService;
@@ -252,7 +256,6 @@ class GatheringReportServiceTest {
                 .userId(userId)
                 .role(role)
                 .personalGoal("개인 목표")
-                .overallAchievementRate(BigDecimal.ZERO.setScale(2))
                 .isActive(true)
                 .build();
 

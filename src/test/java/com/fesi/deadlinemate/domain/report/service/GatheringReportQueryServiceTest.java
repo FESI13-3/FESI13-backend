@@ -306,7 +306,6 @@ class GatheringReportQueryServiceTest {
                 .userId(userId)
                 .role(role)
                 .personalGoal("개인 목표")
-                .overallAchievementRate(BigDecimal.ZERO.setScale(2))
                 .isActive(true)
                 .build();
 

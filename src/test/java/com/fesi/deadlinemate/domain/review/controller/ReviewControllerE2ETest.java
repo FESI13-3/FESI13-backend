@@ -76,12 +76,12 @@ class ReviewControllerE2ETest {
         gatheringMemberRepository.save(GatheringMember.builder()
                 .gatheringId(gathering.getId()).userId(reviewer.getId())
                 .role(GatheringRole.LEADER).isActive(true)
-                .overallAchievementRate(BigDecimal.ZERO).build());
+.build());
 
         gatheringMemberRepository.save(GatheringMember.builder()
                 .gatheringId(gathering.getId()).userId(target.getId())
                 .role(GatheringRole.MEMBER).isActive(true)
-                .overallAchievementRate(BigDecimal.ZERO).build());
+.build());
     }
 
     @Nested

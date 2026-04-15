@@ -116,7 +116,7 @@ class MembershipCommandServiceTest {
     private GatheringMember member(Long id, Long gatheringId, Long userId, GatheringRole role) {
         GatheringMember m = GatheringMember.builder()
                 .gatheringId(gatheringId).userId(userId).role(role)
-                .overallAchievementRate(BigDecimal.ZERO).isActive(true).build();
+.isActive(true).build();
         setField(m, "id", id);
         return m;
     }
