@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class AchievementQueryService {
+public class AchievementService {
 
     private final GatheringRepository gatheringRepository;
     private final GatheringMemberRepository gatheringMemberRepository;
@@ -57,17 +57,20 @@ public class AchievementQueryService {
                         .toList()
         );
 
+        Map<Long, List<Todo>> todosByUser = groupByUser(todos);
+        Map<Integer, List<Todo>> teamTodosByWeek = groupByWeek(todos);
+        Map<Long, Map<Integer, List<Todo>>> todosByUserAndWeek = groupByUserAndWeek(todos);
+
         List<AchievementResponse.MemberAchievementResponse> memberResponses = activeMembers.stream()
                 .map(member -> {
                     Long userId = member.getUserId();
                     UserInfo user = userMap.get(userId);
 
-                    List<Todo> memberTodos = todos.stream()
-                            .filter(todo -> todo.getUserId().equals(userId))
-                            .toList();
+                    List<Todo> memberTodos = todosByUser.getOrDefault(userId, List.of());
+                    Map<Integer, List<Todo>> memberWeekMap = todosByUserAndWeek.getOrDefault(userId, Map.of());
 
                     List<AchievementResponse.WeeklyRateResponse> weeklyRates =
-                            buildWeeklyRates(memberTodos, gathering.getTotalWeeks());
+                            buildWeeklyRates(memberWeekMap, gathering.getTotalWeeks());
 
                     BigDecimal overallRate = calculateOverallRate(memberTodos);
 
@@ -81,7 +84,7 @@ public class AchievementQueryService {
                 .toList();
 
         List<AchievementResponse.WeeklyRateResponse> teamWeeklyRates =
-                buildWeeklyRates(todos, gathering.getTotalWeeks());
+                buildWeeklyRates(teamTodosByWeek, gathering.getTotalWeeks());
 
         BigDecimal teamOverallRate = calculateOverallRate(todos);
 
@@ -114,17 +117,13 @@ public class AchievementQueryService {
                         .toList()
         );
 
-        List<MemberRateRow> memberRates = activeMembers.stream()
-                .map(member -> {
-                    List<Todo> memberTodos = todos.stream()
-                            .filter(todo -> todo.getUserId().equals(member.getUserId()))
-                            .toList();
+        Map<Long, List<Todo>> todosByUser = groupByUser(todos);
 
-                    return new MemberRateRow(
-                            member.getUserId(),
-                            calculateOverallRate(memberTodos)
-                    );
-                })
+        List<MemberRateRow> memberRates = activeMembers.stream()
+                .map(member -> new MemberRateRow(
+                        member.getUserId(),
+                        calculateOverallRate(todosByUser.getOrDefault(member.getUserId(), List.of()))
+                ))
                 .sorted(Comparator
                         .comparing(MemberRateRow::overallRate, Comparator.reverseOrder())
                         .thenComparing(MemberRateRow::userId))
@@ -147,6 +146,56 @@ public class AchievementQueryService {
         return AchievementRankingResponse.of(ranking);
     }
 
+    @Transactional
+    public void sync(Long gatheringId, Long userId) {
+        GatheringMember member = gatheringMemberRepository
+                .findByGatheringIdAndUserIdAndIsActiveTrue(gatheringId, userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        long totalCount = todoRepository.countByGatheringIdAndUserId(gatheringId, userId);
+        long completedCount = todoRepository.countByGatheringIdAndUserIdAndIsCompletedTrue(gatheringId, userId);
+
+        BigDecimal rate = totalCount == 0
+                ? BigDecimal.ZERO
+                : BigDecimal.valueOf(completedCount)
+                        .multiply(BigDecimal.valueOf(100))
+                        .divide(BigDecimal.valueOf(totalCount), 1, RoundingMode.HALF_UP);
+
+        member.updateOverallAchievementRate(rate);
+    }
+
+    private Map<Long, List<Todo>> groupByUser(List<Todo> todos) {
+        return todos.stream()
+                .collect(Collectors.groupingBy(
+                        Todo::getUserId,
+                        LinkedHashMap::new,
+                        Collectors.toList()
+                ));
+    }
+
+    private Map<Integer, List<Todo>> groupByWeek(List<Todo> todos) {
+        return todos.stream()
+                .collect(Collectors.groupingBy(
+                        Todo::getWeekNumber,
+                        LinkedHashMap::new,
+                        Collectors.toList()
+                ));
+    }
+
+    private Map<Long, Map<Integer, List<Todo>>> groupByUserAndWeek(List<Todo> todos) {
+        return todos.stream()
+                .collect(Collectors.groupingBy(
+                        Todo::getUserId,
+                        LinkedHashMap::new,
+                        Collectors.groupingBy(
+                                Todo::getWeekNumber,
+                                LinkedHashMap::new,
+                                Collectors.toList()
+                        )
+                ));
+    }
+
+
     private Gathering findGathering(Long gatheringId) {
         return gatheringRepository.findById(gatheringId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.GATHERING_NOT_FOUND));
@@ -161,15 +210,14 @@ public class AchievementQueryService {
         }
     }
 
-    private List<AchievementResponse.WeeklyRateResponse> buildWeeklyRates(List<Todo> todos, int totalWeeks) {
+    private List<AchievementResponse.WeeklyRateResponse> buildWeeklyRates(
+            Map<Integer, List<Todo>> todosByWeek,
+            int totalWeeks
+    ) {
         List<AchievementResponse.WeeklyRateResponse> result = new ArrayList<>();
 
         for (int week = 1; week <= totalWeeks; week++) {
-            final int targetWeek = week;
-
-            List<Todo> weeklyTodos = todos.stream()
-                    .filter(todo -> todo.getWeekNumber() == targetWeek)
-                    .toList();
+            List<Todo> weeklyTodos = todosByWeek.getOrDefault(week, List.of());
 
             result.add(AchievementResponse.WeeklyRateResponse.builder()
                     .week(week)

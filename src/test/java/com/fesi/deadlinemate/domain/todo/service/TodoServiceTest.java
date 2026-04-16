@@ -8,7 +8,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fesi.deadlinemate.domain.achievement.service.AchievementService;
 import com.fesi.deadlinemate.domain.gathering.entity.Gathering;
+import com.fesi.deadlinemate.domain.gathering.entity.GatheringMember;
+import com.fesi.deadlinemate.domain.gathering.entity.GatheringRole;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringStatus;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringType;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringMemberRepository;
@@ -63,6 +66,9 @@ class TodoServiceTest {
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    private AchievementService achievementService;
 
     @InjectMocks
     private TodoService todoService;
@@ -298,6 +304,8 @@ class TodoServiceTest {
             todoService.delete(100L, 1L, 200L);
 
             verify(todoRepository).delete(todo);
+            verify(todoRepository).flush();
+            verify(achievementService).sync(100L, 200L);
 
             ArgumentCaptor<TodoDeletedEvent> eventCaptor = ArgumentCaptor.forClass(TodoDeletedEvent.class);
             verify(eventPublisher).publishEvent(eventCaptor.capture());
@@ -339,6 +347,24 @@ class TodoServiceTest {
             setField(todo2, "id", 2L);
             setField(todo2, "createdAt", LocalDateTime.of(2025, 3, 22, 10, 0));
 
+            GatheringMember member1 = GatheringMember.builder()
+                    .gatheringId(100L)
+                    .userId(200L)
+                    .role(GatheringRole.LEADER)
+                    .personalGoal(null)
+                    .overallAchievementRate(BigDecimal.ZERO.setScale(1))
+                    .isActive(true)
+                    .build();
+
+            GatheringMember member2 = GatheringMember.builder()
+                    .gatheringId(100L)
+                    .userId(201L)
+                    .role(GatheringRole.MEMBER)
+                    .personalGoal(null)
+                    .overallAchievementRate(BigDecimal.ZERO.setScale(1))
+                    .isActive(true)
+                    .build();
+
             UserInfo user1 = UserInfo.builder()
                     .id(200L)
                     .nickname("유저1")
@@ -362,6 +388,8 @@ class TodoServiceTest {
             when(gatheringMemberRepository.existsByGatheringIdAndUserIdAndIsActiveTrue(100L, 200L)).thenReturn(true);
             when(todoRepository.findByGatheringIdOrderByWeekNumberAscCreatedAtAsc(100L))
                     .thenReturn(List.of(todo1, todo2));
+            when(gatheringMemberRepository.findByGatheringIdAndIsActiveTrueOrderByIdAsc(100L))
+                    .thenReturn(List.of(member1, member2));
             when(userClient.findByIds(List.of(200L, 201L))).thenReturn(userMap);
 
             TodoListResponse response = todoService.getTodos(100L, 200L, null);

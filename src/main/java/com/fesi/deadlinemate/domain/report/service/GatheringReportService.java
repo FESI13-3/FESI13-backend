@@ -20,6 +20,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,14 +69,23 @@ public class GatheringReportService {
                 .filter(todo -> userIdSet.contains(todo.getUserId()))
                 .toList();
 
-        List<WeeklyRateDto> teamWeeklyRates = buildTeamWeeklyRates(todos, gathering.getTotalWeeks());
+        Map<Long, List<Todo>> todosByUser = groupByUser(todos);
+        Map<Integer, List<Todo>> teamTodosByWeek = groupByWeek(todos);
+        Map<Long, Map<Integer, List<Todo>>> todosByUserAndWeek = groupByUserAndWeek(todos);
+
+        List<WeeklyRateDto> teamWeeklyRates = buildWeeklyRates(teamTodosByWeek, gathering.getTotalWeeks());
         BigDecimal teamOverallRate = calculateRate(
                 todos.stream().filter(Todo::isCompleted).count(),
                 todos.size()
         );
 
         List<MemberReportRow> memberRows = activeMembers.stream()
-                .map(member -> buildMemberReportRow(member.getUserId(), gathering.getTotalWeeks(), todos))
+                .map(member -> buildMemberReportRow(
+                        member.getUserId(),
+                        gathering.getTotalWeeks(),
+                        todosByUser.getOrDefault(member.getUserId(), List.of()),
+                        todosByUserAndWeek.getOrDefault(member.getUserId(), Map.of())
+                ))
                 .toList();
 
         Long mvpUserId = memberRows.stream()
@@ -110,7 +120,7 @@ public class GatheringReportService {
 
         GatheringReport report = GatheringReport.builder()
                 .gatheringId(gatheringId)
-                .teamOverallRate(teamOverallRate.setScale(2, RoundingMode.HALF_UP))
+                .teamOverallRate(teamOverallRate.setScale(1, RoundingMode.HALF_UP))
                 .mvpUserId(mvpUserId)
                 .longestStreakUserId(longestStreakUserId)
                 .mostImprovedUserId(mostImprovedUserId)
@@ -131,15 +141,42 @@ public class GatheringReportService {
         });
     }
 
-    private List<WeeklyRateDto> buildTeamWeeklyRates(List<Todo> todos, int totalWeeks) {
+    private Map<Long, List<Todo>> groupByUser(List<Todo> todos) {
+        return todos.stream()
+                .collect(Collectors.groupingBy(
+                        Todo::getUserId,
+                        LinkedHashMap::new,
+                        Collectors.toList()
+                ));
+    }
+
+    private Map<Integer, List<Todo>> groupByWeek(List<Todo> todos) {
+        return todos.stream()
+                .collect(Collectors.groupingBy(
+                        Todo::getWeekNumber,
+                        LinkedHashMap::new,
+                        Collectors.toList()
+                ));
+    }
+
+    private Map<Long, Map<Integer, List<Todo>>> groupByUserAndWeek(List<Todo> todos) {
+        return todos.stream()
+                .collect(Collectors.groupingBy(
+                        Todo::getUserId,
+                        LinkedHashMap::new,
+                        Collectors.groupingBy(
+                                Todo::getWeekNumber,
+                                LinkedHashMap::new,
+                                Collectors.toList()
+                        )
+                ));
+    }
+
+    private List<WeeklyRateDto> buildWeeklyRates(Map<Integer, List<Todo>> todosByWeek, int totalWeeks) {
         List<WeeklyRateDto> result = new ArrayList<>();
 
         for (int week = 1; week <= totalWeeks; week++) {
-            final int targetWeek = week;
-
-            List<Todo> weeklyTodos = todos.stream()
-                    .filter(todo -> todo.getWeekNumber() == targetWeek)
-                    .toList();
+            List<Todo> weeklyTodos = todosByWeek.getOrDefault(week, List.of());
 
             long totalCount = weeklyTodos.size();
             long completedCount = weeklyTodos.stream()
@@ -155,11 +192,12 @@ public class GatheringReportService {
         return result;
     }
 
-    private MemberReportRow buildMemberReportRow(Long userId, int totalWeeks, List<Todo> allTodos) {
-        List<Todo> memberTodos = allTodos.stream()
-                .filter(todo -> todo.getUserId().equals(userId))
-                .toList();
-
+    private MemberReportRow buildMemberReportRow(
+            Long userId,
+            int totalWeeks,
+            List<Todo> memberTodos,
+            Map<Integer, List<Todo>> memberTodosByWeek
+    ) {
         long totalTodos = memberTodos.size();
         long completedTodos = memberTodos.stream()
                 .filter(Todo::isCompleted)
@@ -169,11 +207,7 @@ public class GatheringReportService {
 
         List<BigDecimal> weeklyRates = new ArrayList<>();
         for (int week = 1; week <= totalWeeks; week++) {
-            final int targetWeek = week;
-
-            List<Todo> weeklyTodos = memberTodos.stream()
-                    .filter(todo -> todo.getWeekNumber() == targetWeek)
-                    .toList();
+            List<Todo> weeklyTodos = memberTodosByWeek.getOrDefault(week, List.of());
 
             long weekTotal = weeklyTodos.size();
             long weekCompleted = weeklyTodos.stream()
@@ -185,7 +219,7 @@ public class GatheringReportService {
 
         int longestStreak = calculateLongestPerfectStreak(weeklyRates);
         BigDecimal improvement = calculateImprovement(weeklyRates);
-        boolean attendanceAwardWinner = isAttendanceAwardWinner(memberTodos, totalWeeks);
+        boolean attendanceAwardWinner = isAttendanceAwardWinner(memberTodosByWeek, totalWeeks);
 
         return new MemberReportRow(
                 userId,
@@ -234,16 +268,15 @@ public class GatheringReportService {
         return lastWeek.subtract(firstWeek).setScale(1, RoundingMode.HALF_UP);
     }
 
-    private boolean isAttendanceAwardWinner(List<Todo> memberTodos, int totalWeeks) {
-        Map<Integer, Long> completedCountByWeek = memberTodos.stream()
-                .filter(Todo::isCompleted)
-                .collect(Collectors.groupingBy(
-                        Todo::getWeekNumber,
-                        Collectors.counting()
-                ));
-
+    private boolean isAttendanceAwardWinner(Map<Integer, List<Todo>> memberTodosByWeek, int totalWeeks) {
         for (int week = 1; week <= totalWeeks; week++) {
-            if (completedCountByWeek.getOrDefault(week, 0L) < 1L) {
+            List<Todo> weeklyTodos = memberTodosByWeek.getOrDefault(week, List.of());
+
+            long completedCount = weeklyTodos.stream()
+                    .filter(Todo::isCompleted)
+                    .count();
+
+            if (completedCount < 1L) {
                 return false;
             }
         }

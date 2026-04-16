@@ -1,6 +1,8 @@
 package com.fesi.deadlinemate.domain.todo.service;
 
+import com.fesi.deadlinemate.domain.achievement.service.AchievementService;
 import com.fesi.deadlinemate.domain.gathering.entity.Gathering;
+import com.fesi.deadlinemate.domain.gathering.entity.GatheringMember;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringMemberRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
 import com.fesi.deadlinemate.domain.todo.command.CreateTodoCommand;
@@ -24,6 +26,8 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -37,6 +41,7 @@ public class TodoService {
     private final TodoRepository todoRepository;
     private final GatheringRepository gatheringRepository;
     private final GatheringMemberRepository gatheringMemberRepository;
+    private final AchievementService achievementService;
     private final UserClient userClient;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -57,6 +62,8 @@ public class TodoService {
                 .build();
 
         Todo saved = todoRepository.save(todo);
+
+        achievementService.sync(saved.getGatheringId(), saved.getUserId());
 
         eventPublisher.publishEvent(new TodoCreatedEvent(
                 saved.getId(),
@@ -97,6 +104,8 @@ public class TodoService {
             throw new BusinessException(ErrorCode.TODO_NOT_CHANGED);
         }
 
+        achievementService.sync(todo.getGatheringId(), todo.getUserId());
+
         eventPublisher.publishEvent(new TodoUpdatedEvent(
                 todo.getId(),
                 todo.getGatheringId(),
@@ -119,7 +128,12 @@ public class TodoService {
         todo.validateDeletableBy(requesterId);
         validateCurrentWeek(gathering, todo.getWeekNumber());
 
+        Long ownerId = todo.getUserId();
+
         todoRepository.delete(todo);
+        todoRepository.flush();
+
+        achievementService.sync(gatheringId, ownerId);
 
         eventPublisher.publishEvent(new TodoDeletedEvent(
                 todo.getId(),
@@ -136,6 +150,16 @@ public class TodoService {
         List<Todo> todos = (week == null)
                 ? todoRepository.findByGatheringIdOrderByWeekNumberAscCreatedAtAsc(gatheringId)
                 : todoRepository.findByGatheringIdAndWeekNumberOrderByCreatedAtAsc(gatheringId, week);
+
+        Set<Long> activeUserIds = gatheringMemberRepository
+                .findByGatheringIdAndIsActiveTrueOrderByIdAsc(gatheringId)
+                .stream()
+                .map(GatheringMember::getUserId)
+                .collect(Collectors.toSet());
+
+        todos = todos.stream()
+                .filter(todo -> activeUserIds.contains(todo.getUserId()))
+                .toList();
 
         Map<Long, UserInfo> userMap = loadUsers(
                 todos.stream()

@@ -10,6 +10,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -58,5 +60,13 @@ public class GatheringMember {
 
     public void deactivate() {
         this.isActive = false;
+    }
+
+    public void updateOverallAchievementRate(BigDecimal overallAchievementRate) {
+        if (overallAchievementRate == null) {
+            this.overallAchievementRate = BigDecimal.ZERO.setScale(1, RoundingMode.HALF_UP);
+            return;
+        }
+        this.overallAchievementRate = overallAchievementRate.setScale(1, RoundingMode.HALF_UP);
     }
 }
