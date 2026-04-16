@@ -553,6 +553,185 @@ class GatheringApplicationServiceTest {
             verify(gatheringMemberRepository, never()).saveAndFlush(any());
             verify(eventPublisher, never()).publishEvent(any());
         }
+
+        @Test
+        @DisplayName("모임장이 아니면 수락할 수 없다")
+        void updateApplication_fail_notLeader_accept() {
+            UpdateApplicationCommand updateCommand = UpdateApplicationCommand.builder()
+                    .gatheringId(100L)
+                    .applicationId(1L)
+                    .requesterId(999L) // 모임장(10L)이 아님
+                    .status(ApplicationStatus.ACCEPTED)
+                    .build();
+
+            when(gatheringRepository.findByIdForUpdate(100L)).thenReturn(Optional.of(recruitingGathering));
+
+            assertThatThrownBy(() -> gatheringApplicationService.updateApplication(updateCommand))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting(ex -> ((BusinessException) ex).getErrorCode())
+                    .isEqualTo(ErrorCode.INVALID_GATHERING_LEADER);
+
+            verify(gatheringMemberRepository, never()).saveAndFlush(any());
+            verify(eventPublisher, never()).publishEvent(any());
+        }
+
+        @Test
+        @DisplayName("모임장이 아니면 거절할 수 없다")
+        void updateApplication_fail_notLeader_reject() {
+            UpdateApplicationCommand updateCommand = UpdateApplicationCommand.builder()
+                    .gatheringId(100L)
+                    .applicationId(1L)
+                    .requesterId(999L) // 모임장(10L)이 아님
+                    .status(ApplicationStatus.REJECTED)
+                    .build();
+
+            when(gatheringRepository.findById(100L)).thenReturn(Optional.of(recruitingGathering));
+
+            assertThatThrownBy(() -> gatheringApplicationService.updateApplication(updateCommand))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting(ex -> ((BusinessException) ex).getErrorCode())
+                    .isEqualTo(ErrorCode.INVALID_GATHERING_LEADER);
+
+            verify(gatheringMemberRepository, never()).saveAndFlush(any());
+            verify(eventPublisher, never()).publishEvent(any());
+        }
+
+        @Test
+        @DisplayName("이미 활성 멤버인 경우 수락할 수 없다")
+        void updateApplication_fail_alreadyMember() {
+            UpdateApplicationCommand updateCommand = UpdateApplicationCommand.builder()
+                    .gatheringId(100L)
+                    .applicationId(1L)
+                    .requesterId(10L)
+                    .status(ApplicationStatus.ACCEPTED)
+                    .build();
+
+            GatheringApplication application = GatheringApplication.builder()
+                    .gatheringId(100L)
+                    .applicantId(200L)
+                    .personalGoal("개인 목표")
+                    .selfIntroduction("소개")
+                    .status(ApplicationStatus.PENDING)
+                    .build();
+            setField(application, "id", 1L);
+
+            when(gatheringRepository.findByIdForUpdate(100L)).thenReturn(Optional.of(recruitingGathering));
+            when(gatheringApplicationRepository.findByIdAndGatheringIdForUpdate(1L, 100L))
+                    .thenReturn(Optional.of(application));
+            when(gatheringMemberRepository.existsByGatheringIdAndUserIdAndIsActiveTrue(100L, 200L))
+                    .thenReturn(true);
+
+            assertThatThrownBy(() -> gatheringApplicationService.updateApplication(updateCommand))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting(ex -> ((BusinessException) ex).getErrorCode())
+                    .isEqualTo(ErrorCode.ALREADY_GATHERING_MEMBER);
+
+            verify(gatheringMemberRepository, never()).saveAndFlush(any());
+            verify(eventPublisher, never()).publishEvent(any());
+        }
+
+        @Test
+        @DisplayName("이미 처리된 신청(ACCEPTED)을 다시 수락하면 예외가 발생한다")
+        void updateApplication_fail_alreadyAccepted() {
+            UpdateApplicationCommand updateCommand = UpdateApplicationCommand.builder()
+                    .gatheringId(100L)
+                    .applicationId(1L)
+                    .requesterId(10L)
+                    .status(ApplicationStatus.ACCEPTED)
+                    .build();
+
+            GatheringApplication application = GatheringApplication.builder()
+                    .gatheringId(100L)
+                    .applicantId(200L)
+                    .personalGoal("개인 목표")
+                    .selfIntroduction("소개")
+                    .status(ApplicationStatus.ACCEPTED) // 이미 수락된 상태
+                    .build();
+            setField(application, "id", 1L);
+
+            when(gatheringRepository.findByIdForUpdate(100L)).thenReturn(Optional.of(recruitingGathering));
+            when(gatheringApplicationRepository.findByIdAndGatheringIdForUpdate(1L, 100L))
+                    .thenReturn(Optional.of(application));
+            when(gatheringMemberRepository.existsByGatheringIdAndUserIdAndIsActiveTrue(100L, 200L))
+                    .thenReturn(false);
+
+            assertThatThrownBy(() -> gatheringApplicationService.updateApplication(updateCommand))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting(ex -> ((BusinessException) ex).getErrorCode())
+                    .isEqualTo(ErrorCode.INVALID_APPLICATION_STATUS_CHANGE);
+
+            verify(gatheringMemberRepository, never()).saveAndFlush(any());
+            verify(eventPublisher, never()).publishEvent(any());
+        }
+
+        @Test
+        @DisplayName("이미 처리된 신청(REJECTED)을 거절하면 예외가 발생한다")
+        void updateApplication_fail_alreadyRejected() {
+            UpdateApplicationCommand updateCommand = UpdateApplicationCommand.builder()
+                    .gatheringId(100L)
+                    .applicationId(1L)
+                    .requesterId(10L)
+                    .status(ApplicationStatus.REJECTED)
+                    .build();
+
+            GatheringApplication application = GatheringApplication.builder()
+                    .gatheringId(100L)
+                    .applicantId(200L)
+                    .personalGoal("개인 목표")
+                    .selfIntroduction("소개")
+                    .status(ApplicationStatus.REJECTED) // 이미 거절된 상태
+                    .build();
+            setField(application, "id", 1L);
+
+            when(gatheringRepository.findById(100L)).thenReturn(Optional.of(recruitingGathering));
+            when(gatheringApplicationRepository.findByIdAndGatheringId(1L, 100L))
+                    .thenReturn(Optional.of(application));
+
+            assertThatThrownBy(() -> gatheringApplicationService.updateApplication(updateCommand))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting(ex -> ((BusinessException) ex).getErrorCode())
+                    .isEqualTo(ErrorCode.INVALID_APPLICATION_STATUS_CHANGE);
+
+            verify(eventPublisher, never()).publishEvent(any());
+        }
+
+        @Test
+        @DisplayName("수락 시 모임이 존재하지 않으면 예외가 발생한다")
+        void updateApplication_fail_gatheringNotFound_accept() {
+            UpdateApplicationCommand updateCommand = UpdateApplicationCommand.builder()
+                    .gatheringId(999L)
+                    .applicationId(1L)
+                    .requesterId(10L)
+                    .status(ApplicationStatus.ACCEPTED)
+                    .build();
+
+            when(gatheringRepository.findByIdForUpdate(999L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> gatheringApplicationService.updateApplication(updateCommand))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting(ex -> ((BusinessException) ex).getErrorCode())
+                    .isEqualTo(ErrorCode.GATHERING_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("수락 시 신청이 존재하지 않으면 예외가 발생한다")
+        void updateApplication_fail_applicationNotFound_accept() {
+            UpdateApplicationCommand updateCommand = UpdateApplicationCommand.builder()
+                    .gatheringId(100L)
+                    .applicationId(999L)
+                    .requesterId(10L)
+                    .status(ApplicationStatus.ACCEPTED)
+                    .build();
+
+            when(gatheringRepository.findByIdForUpdate(100L)).thenReturn(Optional.of(recruitingGathering));
+            when(gatheringApplicationRepository.findByIdAndGatheringIdForUpdate(999L, 100L))
+                    .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> gatheringApplicationService.updateApplication(updateCommand))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting(ex -> ((BusinessException) ex).getErrorCode())
+                    .isEqualTo(ErrorCode.APPLICATION_NOT_FOUND);
+        }
     }
 
     @Nested
