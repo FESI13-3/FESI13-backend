@@ -5,12 +5,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotAllowedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
+
+import java.util.NoSuchElementException;
 
 @Slf4j
 @RestControllerAdvice
@@ -94,6 +100,58 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .internalServerError()
                 .body(ErrorResponse.of(ErrorCode.INTERNAL_ERROR, "데이터 처리 중 오류가 발생했습니다."));
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    protected ResponseEntity<ErrorResponse> handleNoSuchElement(NoSuchElementException e) {
+        log.warn("NoSuchElementException: {}", e.getMessage());
+        return ResponseEntity
+                .status(404)
+                .body(ErrorResponse.of(ErrorCode.NOT_FOUND, e.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    protected ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException e) {
+        log.warn("IllegalArgumentException: {}", e.getMessage());
+        return ResponseEntity
+                .badRequest()
+                .body(ErrorResponse.of(ErrorCode.BAD_REQUEST, e.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    protected ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException e) {
+        log.warn("IllegalStateException: {}", e.getMessage());
+        return ResponseEntity
+                .status(409)
+                .body(ErrorResponse.of(ErrorCode.CONFLICT, e.getMessage()));
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotAllowedException.class)
+    protected ResponseEntity<ErrorResponse> handleMethodNotAllowed(HttpRequestMethodNotAllowedException e) {
+        return ResponseEntity
+                .status(405)
+                .body(ErrorResponse.of(ErrorCode.BAD_REQUEST, e.getMethod() + " 메서드는 지원하지 않습니다."));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    protected ResponseEntity<ErrorResponse> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException e) {
+        return ResponseEntity
+                .status(413)
+                .body(ErrorResponse.of(ErrorCode.IMAGE_TOO_LARGE));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    protected ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException e) {
+        return ResponseEntity
+                .status(403)
+                .body(ErrorResponse.of(ErrorCode.FORBIDDEN));
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    protected ResponseEntity<ErrorResponse> handleNoResourceFound(NoResourceFoundException e) {
+        return ResponseEntity
+                .status(404)
+                .body(ErrorResponse.of(ErrorCode.NOT_FOUND));
     }
 
     @ExceptionHandler(Exception.class)
