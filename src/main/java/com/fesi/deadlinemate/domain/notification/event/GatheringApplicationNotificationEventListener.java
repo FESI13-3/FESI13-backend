@@ -24,7 +24,7 @@ public class GatheringApplicationNotificationEventListener {
                 event.leaderId(),
                 NotificationType.APPLICATION_RECEIVED,
                 "'" + event.gatheringTitle() + "' 모임에 새로운 신청이 도착했습니다.",
-                "/gatherings/" + event.gatheringId() + "/applications",
+                "/gatherings/" + event.gatheringId(),
                 event.applicationId(),
                 ReferenceType.MEMBERSHIP
         ));

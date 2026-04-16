@@ -49,7 +49,7 @@ class GatheringApplicationNotificationEventListenerTest {
             assertThat(command.userId()).isEqualTo(100L); // 모임장 ID
             assertThat(command.type()).isEqualTo(NotificationType.APPLICATION_RECEIVED);
             assertThat(command.content()).contains("React 스터디");
-            assertThat(command.targetUrl()).isEqualTo("/gatherings/10/applications");
+            assertThat(command.targetUrl()).isEqualTo("/gatherings/10");
             assertThat(command.referenceId()).isEqualTo(1L);
             assertThat(command.referenceType()).isEqualTo(ReferenceType.MEMBERSHIP);
         }
