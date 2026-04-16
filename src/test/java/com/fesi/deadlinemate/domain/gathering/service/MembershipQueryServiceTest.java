@@ -206,6 +206,85 @@ class MembershipQueryServiceTest {
         }
 
         @Test
+        @DisplayName("할 일이 없는 멤버는 달성률 0.0%를 반환한다")
+        void getMembersWithNoTodos() {
+            GatheringMember member = member(1L, 1L, 10L, GatheringRole.MEMBER);
+            given(gatheringMemberRepository.existsByGatheringIdAndUserIdAndIsActiveTrue(1L, 10L)).willReturn(true);
+            given(gatheringMemberRepository.findByGatheringIdAndIsActiveTrueOrderByIdAsc(1L))
+                    .willReturn(List.of(member));
+            given(userClient.findByIds(List.of(10L))).willReturn(
+                    Map.of(10L, UserInfo.builder().id(10L).nickname("member").build()));
+            given(todoRepository.countByGatheringIdAndUserId(1L, 10L)).willReturn(0L);
+
+            MemberListResponse response = membershipQueryService.getMembers(1L, 10L);
+
+            assertThat(response.members().get(0).overallAchievementRate())
+                    .isEqualByComparingTo("0.0");
+        }
+
+        @Test
+        @DisplayName("일부 완료된 할 일이 있으면 달성률이 정확히 계산된다")
+        void getMembersWithPartialCompletion() {
+            GatheringMember member = member(1L, 1L, 10L, GatheringRole.MEMBER);
+            given(gatheringMemberRepository.existsByGatheringIdAndUserIdAndIsActiveTrue(1L, 10L)).willReturn(true);
+            given(gatheringMemberRepository.findByGatheringIdAndIsActiveTrueOrderByIdAsc(1L))
+                    .willReturn(List.of(member));
+            given(userClient.findByIds(List.of(10L))).willReturn(
+                    Map.of(10L, UserInfo.builder().id(10L).nickname("member").build()));
+            given(todoRepository.countByGatheringIdAndUserId(1L, 10L)).willReturn(4L);
+            given(todoRepository.countByGatheringIdAndUserIdAndIsCompletedTrue(1L, 10L)).willReturn(3L);
+
+            MemberListResponse response = membershipQueryService.getMembers(1L, 10L);
+
+            assertThat(response.members().get(0).overallAchievementRate())
+                    .isEqualByComparingTo("75.0");
+        }
+
+        @Test
+        @DisplayName("여러 멤버 각각의 달성률을 독립적으로 계산한다")
+        void getMembersWithMultipleMembersHavingDifferentRates() {
+            GatheringMember leader = member(1L, 1L, 10L, GatheringRole.LEADER);
+            GatheringMember memberA = member(2L, 1L, 20L, GatheringRole.MEMBER);
+            GatheringMember memberB = member(3L, 1L, 30L, GatheringRole.MEMBER);
+
+            given(gatheringMemberRepository.existsByGatheringIdAndUserIdAndIsActiveTrue(1L, 10L)).willReturn(true);
+            given(gatheringMemberRepository.findByGatheringIdAndIsActiveTrueOrderByIdAsc(1L))
+                    .willReturn(List.of(leader, memberA, memberB));
+            given(userClient.findByIds(List.of(10L, 20L, 30L))).willReturn(Map.of(
+                    10L, UserInfo.builder().id(10L).nickname("leader").build(),
+                    20L, UserInfo.builder().id(20L).nickname("memberA").build(),
+                    30L, UserInfo.builder().id(30L).nickname("memberB").build()
+            ));
+
+            // leader: 4/4 = 100%
+            given(todoRepository.countByGatheringIdAndUserId(1L, 10L)).willReturn(4L);
+            given(todoRepository.countByGatheringIdAndUserIdAndIsCompletedTrue(1L, 10L)).willReturn(4L);
+            // memberA: 0/0 = 0%
+            given(todoRepository.countByGatheringIdAndUserId(1L, 20L)).willReturn(0L);
+            // memberB: 1/2 = 50%
+            given(todoRepository.countByGatheringIdAndUserId(1L, 30L)).willReturn(2L);
+            given(todoRepository.countByGatheringIdAndUserIdAndIsCompletedTrue(1L, 30L)).willReturn(1L);
+
+            MemberListResponse response = membershipQueryService.getMembers(1L, 10L);
+
+            assertThat(response.members()).hasSize(3);
+
+            BigDecimal leaderRate = response.members().stream()
+                    .filter(m -> m.userId().equals(10L)).findFirst().orElseThrow()
+                    .overallAchievementRate();
+            BigDecimal memberARate = response.members().stream()
+                    .filter(m -> m.userId().equals(20L)).findFirst().orElseThrow()
+                    .overallAchievementRate();
+            BigDecimal memberBRate = response.members().stream()
+                    .filter(m -> m.userId().equals(30L)).findFirst().orElseThrow()
+                    .overallAchievementRate();
+
+            assertThat(leaderRate).isEqualByComparingTo("100.0");
+            assertThat(memberARate).isEqualByComparingTo("0.0");
+            assertThat(memberBRate).isEqualByComparingTo("50.0");
+        }
+
+        @Test
         @DisplayName("멤버가 아닌 사용자가 조회하면 예외가 발생한다")
         void notMemberThrows() {
             given(gatheringMemberRepository.existsByGatheringIdAndUserIdAndIsActiveTrue(1L, 99L)).willReturn(false);
