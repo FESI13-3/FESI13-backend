@@ -1,6 +1,8 @@
 package com.fesi.deadlinemate.global.error;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -65,6 +67,33 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .badRequest()
                 .body(ErrorResponse.of(ErrorCode.BAD_REQUEST, e.getParameterName() + " 파라미터가 필요합니다."));
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    protected ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException e) {
+        String message = e.getConstraintViolations().stream()
+                .map(v -> v.getPropertyPath() + ": " + v.getMessage())
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("유효성 검증에 실패했습니다.");
+        log.warn("ConstraintViolationException: {}", message);
+        return ResponseEntity
+                .badRequest()
+                .body(ErrorResponse.of(ErrorCode.BAD_REQUEST, message));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    protected ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException e) {
+        log.warn("DataIntegrityViolationException: {}", e.getMostSpecificCause().getMessage());
+        String cause = e.getMostSpecificCause().getMessage();
+        if (cause != null && (cause.contains("Duplicate entry") || cause.contains("unique constraint")
+                || cause.contains("UNIQUE") || cause.contains("uk_"))) {
+            return ResponseEntity
+                    .status(409)
+                    .body(ErrorResponse.of(ErrorCode.CONFLICT, "이미 존재하는 데이터입니다."));
+        }
+        return ResponseEntity
+                .internalServerError()
+                .body(ErrorResponse.of(ErrorCode.INTERNAL_ERROR, "데이터 처리 중 오류가 발생했습니다."));
     }
 
     @ExceptionHandler(Exception.class)
