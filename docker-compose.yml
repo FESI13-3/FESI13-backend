@@ -30,6 +30,7 @@ services:
       KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET:-}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      ADMIN_REPAIR_SECRET: ${ADMIN_REPAIR_SECRET}
       IMAGE_UPLOAD_DIR: /app/data/images
     volumes:
       - app_images:/app/data/images

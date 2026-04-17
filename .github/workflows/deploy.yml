@@ -72,7 +72,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: DOCKER_IMAGE,MYSQL_ROOT_PASSWORD,MYSQL_DATABASE,DB_USERNAME,DB_PASSWORD,JWT_SECRET,JWT_ACCESS_EXPIRATION,JWT_REFRESH_EXPIRATION,KAKAO_CLIENT_ID,KAKAO_CLIENT_SECRET,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET
+          envs: DOCKER_IMAGE,MYSQL_ROOT_PASSWORD,MYSQL_DATABASE,DB_USERNAME,DB_PASSWORD,JWT_SECRET,JWT_ACCESS_EXPIRATION,JWT_REFRESH_EXPIRATION,KAKAO_CLIENT_ID,KAKAO_CLIENT_SECRET,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,ADMIN_REPAIR_SECRET
           script_stop: true
           script: |
             cd /home/ubuntu/app
@@ -93,6 +93,7 @@ jobs:
             [ -n "$KAKAO_CLIENT_SECRET" ]    && echo "KAKAO_CLIENT_SECRET=$KAKAO_CLIENT_SECRET" >> .env
             [ -n "$GOOGLE_CLIENT_ID" ]       && echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" >> .env
             [ -n "$GOOGLE_CLIENT_SECRET" ]   && echo "GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET" >> .env
+            [ -n "$ADMIN_REPAIR_SECRET" ]    && echo "ADMIN_REPAIR_SECRET=$ADMIN_REPAIR_SECRET" >> .env
 
             docker compose up -d mysql
             docker compose pull app
