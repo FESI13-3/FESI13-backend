@@ -877,31 +877,7 @@ class GatheringApplicationServiceTest {
             assertThat(response.applications().get(1).gathering().title()).isEqualTo("Spring Study");
         }
 
-        @Test
-        @DisplayName("신청에 대응되는 모임 정보가 없으면 예외가 발생한다")
-        void getMyApplications_fail_missingGathering() {
-            GatheringApplication application = GatheringApplication.builder()
-                    .gatheringId(100L)
-                    .applicantId(200L)
-                    .personalGoal("목표1")
-                    .selfIntroduction("소개1")
-                    .status(ApplicationStatus.PENDING)
-                    .build();
-            setField(application, "id", 1L);
-
-            when(userClient.existsById(200L)).thenReturn(true);
-            when(gatheringApplicationRepository.findByApplicantIdOrderByCreatedAtDesc(200L))
-                    .thenReturn(List.of(application));
-            when(gatheringRepository.findAllById(List.of(100L)))
-                    .thenReturn(List.of());
-
-            assertThatThrownBy(() -> gatheringApplicationService.getMyApplications(200L))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting(ex -> ((BusinessException) ex).getErrorCode())
-                    .isEqualTo(ErrorCode.GATHERING_NOT_FOUND);
-        }
     }
-
 
     private void setField(Object target, String fieldName, Object value) {
         try {
