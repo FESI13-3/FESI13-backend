@@ -1,5 +1,6 @@
 package com.fesi.deadlinemate.global.config;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,7 +55,8 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        String absoluteDir = Paths.get(uploadDir).toAbsolutePath().normalize().toString();
         registry.addResourceHandler("/images/**")
-                .addResourceLocations("file:" + uploadDir + "/");
+                .addResourceLocations("file:" + absoluteDir + "/");
     }
 }
