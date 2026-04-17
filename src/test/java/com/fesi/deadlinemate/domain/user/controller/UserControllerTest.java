@@ -6,9 +6,11 @@ import com.fesi.deadlinemate.domain.user.dto.request.UpdateProfileRequest;
 import com.fesi.deadlinemate.domain.user.entity.Provider;
 import com.fesi.deadlinemate.domain.user.entity.User;
 import com.fesi.deadlinemate.domain.user.service.UserService;
+import com.fesi.deadlinemate.domain.user.service.UserStatsQueryService;
 import com.fesi.deadlinemate.global.error.BusinessException;
 import com.fesi.deadlinemate.global.error.ErrorCode;
 import com.fesi.deadlinemate.global.error.GlobalExceptionHandler;
+import java.math.BigDecimal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,6 +46,9 @@ class UserControllerTest {
     private UserService userService;
 
     @Mock
+    private UserStatsQueryService userStatsQueryService;
+
+    @Mock
     private com.fesi.deadlinemate.domain.gathering.client.GatheringClient gatheringClient;
 
     @Mock
@@ -63,13 +68,18 @@ class UserControllerTest {
     void getMyProfile() throws Exception {
         User user = createTestUser(1L);
         given(userService.findById(1L)).willReturn(user);
+        given(userStatsQueryService.countCompletedGatherings(1L)).willReturn(3L);
+        given(userStatsQueryService.calculateAvgAchievementRate(1L)).willReturn(BigDecimal.valueOf(75.0));
+        given(userStatsQueryService.countReviews(1L)).willReturn(5L);
 
         mockMvc.perform(get("/api/v1/users/me")
                         .principal(new UsernamePasswordAuthenticationToken(1L, null, List.of())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.email").value("test@example.com"))
                 .andExpect(jsonPath("$.data.nickname").value("마감왕"))
-                .andExpect(jsonPath("$.data.provider").value("EMAIL"));
+                .andExpect(jsonPath("$.data.provider").value("EMAIL"))
+                .andExpect(jsonPath("$.data.completedGatherings").value(3))
+                .andExpect(jsonPath("$.data.reviewCount").value(5));
     }
 
     @Test
@@ -77,6 +87,9 @@ class UserControllerTest {
     void updateProfile() throws Exception {
         User updatedUser = createTestUser(1L);
         given(userService.updateProfile(eq(1L), anyString(), any())).willReturn(updatedUser);
+        given(userStatsQueryService.countCompletedGatherings(1L)).willReturn(0L);
+        given(userStatsQueryService.calculateAvgAchievementRate(1L)).willReturn(BigDecimal.ZERO);
+        given(userStatsQueryService.countReviews(1L)).willReturn(0L);
 
         UpdateProfileRequest request = new UpdateProfileRequest("새닉네임", null);
 

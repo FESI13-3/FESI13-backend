@@ -2,13 +2,12 @@ package com.fesi.deadlinemate.domain.user.dto.response;
 
 import com.fesi.deadlinemate.domain.user.entity.Provider;
 import com.fesi.deadlinemate.domain.user.entity.User;
-import lombok.AllArgsConstructor;
+import java.math.BigDecimal;
+import lombok.Builder;
 import lombok.Getter;
 
-import java.math.BigDecimal;
-
 @Getter
-@AllArgsConstructor
+@Builder
 public class UserProfileResponse {
 
     private Long id;
@@ -18,17 +17,26 @@ public class UserProfileResponse {
     private Provider provider;
     private BigDecimal reputationScore;
     private String reputationLabel;
+    private long completedGatherings;
+    private BigDecimal avgAchievementRate;
+    private long reviewCount;
 
-    public static UserProfileResponse from(User user) {
-        return new UserProfileResponse(
-                user.getId(),
-                user.getEmail(),
-                user.getNickname(),
-                user.getProfileImage(),
-                user.getProvider(),
-                user.getReputationScore(),
-                getReputationLabel(user.getReputationScore())
-        );
+    public static UserProfileResponse from(User user,
+                                           long completedGatherings,
+                                           BigDecimal avgAchievementRate,
+                                           long reviewCount) {
+        return UserProfileResponse.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .profileImage(user.getProfileImage())
+                .provider(user.getProvider())
+                .reputationScore(user.getReputationScore())
+                .reputationLabel(getReputationLabel(user.getReputationScore()))
+                .completedGatherings(completedGatherings)
+                .avgAchievementRate(avgAchievementRate)
+                .reviewCount(reviewCount)
+                .build();
     }
 
     private static String getReputationLabel(BigDecimal score) {

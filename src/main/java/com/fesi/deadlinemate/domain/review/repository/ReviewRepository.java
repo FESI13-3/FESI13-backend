@@ -21,4 +21,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     @Query("SELECT r.gatheringId FROM Review r WHERE r.reviewerId = :reviewerId AND r.gatheringId IN :gatheringIds")
     List<Long> findReviewedGatheringIds(@Param("reviewerId") Long reviewerId, @Param("gatheringIds") List<Long> gatheringIds);
+
+    long countByTargetUserId(Long targetUserId);
 }

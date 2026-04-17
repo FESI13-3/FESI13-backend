@@ -9,8 +9,10 @@ import com.fesi.deadlinemate.domain.user.dto.response.PublicProfileResponse;
 import com.fesi.deadlinemate.domain.user.dto.response.UserProfileResponse;
 import com.fesi.deadlinemate.domain.user.entity.User;
 import com.fesi.deadlinemate.domain.user.service.UserService;
+import com.fesi.deadlinemate.domain.user.service.UserStatsQueryService;
 import com.fesi.deadlinemate.global.common.ApiResponse;
 import jakarta.validation.Valid;
+import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserController {
 
     private final UserService userService;
+    private final UserStatsQueryService userStatsQueryService;
     private final GatheringClient gatheringClient;
     private final ImageStorageService imageStorageService;
 
@@ -31,7 +34,14 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserProfileResponse>> getMyProfile(Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
         User user = userService.findById(userId);
-        return ResponseEntity.ok(ApiResponse.success(UserProfileResponse.from(user)));
+
+        long completedGatherings = userStatsQueryService.countCompletedGatherings(userId);
+        BigDecimal avgAchievementRate = userStatsQueryService.calculateAvgAchievementRate(userId);
+        long reviewCount = userStatsQueryService.countReviews(userId);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                UserProfileResponse.from(user, completedGatherings, avgAchievementRate, reviewCount)
+        ));
     }
 
     @PatchMapping(value = "/me", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -57,7 +67,13 @@ public class UserController {
             imageStorageService.delete(oldImageUrl);
         }
 
-        return ResponseEntity.ok(ApiResponse.success(UserProfileResponse.from(user)));
+        long completedGatherings = userStatsQueryService.countCompletedGatherings(userId);
+        BigDecimal avgAchievementRate = userStatsQueryService.calculateAvgAchievementRate(userId);
+        long reviewCount = userStatsQueryService.countReviews(userId);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                UserProfileResponse.from(user, completedGatherings, avgAchievementRate, reviewCount)
+        ));
     }
 
     @PatchMapping("/me/password")
