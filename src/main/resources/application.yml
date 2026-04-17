@@ -21,6 +21,9 @@ spring:
 image:
   upload-dir: ${IMAGE_UPLOAD_DIR:./data/images}
 
+admin:
+  repair-secret: ${ADMIN_REPAIR_SECRET:}
+
 server:
   port: 8080
   forward-headers-strategy: native
