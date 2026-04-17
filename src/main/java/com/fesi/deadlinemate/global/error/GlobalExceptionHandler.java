@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
-import org.springframework.web.HttpRequestMethodNotAllowedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -126,8 +126,8 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.of(ErrorCode.CONFLICT, e.getMessage()));
     }
 
-    @ExceptionHandler(HttpRequestMethodNotAllowedException.class)
-    protected ResponseEntity<ErrorResponse> handleMethodNotAllowed(HttpRequestMethodNotAllowedException e) {
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    protected ResponseEntity<ErrorResponse> handleMethodNotAllowed(HttpRequestMethodNotSupportedException e) {
         return ResponseEntity
                 .status(405)
                 .body(ErrorResponse.of(ErrorCode.BAD_REQUEST, e.getMethod() + " 메서드는 지원하지 않습니다."));
