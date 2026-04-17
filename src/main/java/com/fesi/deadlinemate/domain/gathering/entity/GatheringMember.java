@@ -44,6 +44,9 @@ public class GatheringMember {
     @Column(nullable = false)
     private boolean isActive;
 
+    @Column(precision = 5, scale = 1)
+    private BigDecimal overallAchievementRate;
+
     @Builder
     public GatheringMember(Long gatheringId, Long userId, GatheringRole role,
                            String personalGoal, boolean isActive) {
