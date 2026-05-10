@@ -32,8 +32,9 @@ public class QueryLoggingAspect {
             if (ctx == null) return;
 
             String url = resolveUrl();
-            log.debug("Query Statistics: URL = {}, Query Count = {}, Query Time = {}(ms)",
-                    url, ctx.getTotalCount(), ctx.getTotalTimeMs());
+            String prefix = ctx.hasN1() ? "[N+1] " : "";
+            log.debug("{}Query Statistics: URL = {}, Query Count = {}, Query Time = {}(ms)",
+                    prefix, url, ctx.getTotalCount(), ctx.getTotalTimeMs());
         } finally {
             QueryCountContext.clear();
         }
