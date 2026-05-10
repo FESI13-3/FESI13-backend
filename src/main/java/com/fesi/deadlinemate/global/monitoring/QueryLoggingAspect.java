@@ -29,7 +29,7 @@ public class QueryLoggingAspect {
     private void logAndClear() {
         try {
             QueryCountContext ctx = QueryCountContext.current();
-            if (ctx == null || !ctx.hasN1()) return;
+            if (ctx == null) return;
 
             String url = resolveUrl();
             log.debug("Query Statistics: URL = {}, Query Count = {}, Query Time = {}(ms)",
