@@ -115,7 +115,8 @@ class GatheringApplicationConcurrencyTest {
                 successCount.incrementAndGet();
             } catch (BusinessException e) {
                 if (e.getErrorCode() == ErrorCode.GATHERING_FULL) fullCount.incrementAndGet();
-            } catch (InterruptedException ignored) {
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             } finally {
                 doneLatch.countDown();
             }
@@ -133,15 +134,17 @@ class GatheringApplicationConcurrencyTest {
                 successCount.incrementAndGet();
             } catch (BusinessException e) {
                 if (e.getErrorCode() == ErrorCode.GATHERING_FULL) fullCount.incrementAndGet();
-            } catch (InterruptedException ignored) {
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             } finally {
                 doneLatch.countDown();
             }
         });
 
         startLatch.countDown();
-        doneLatch.await(5, TimeUnit.SECONDS);
+        boolean completed = doneLatch.await(5, TimeUnit.SECONDS);
         executor.shutdown();
+        assertThat(completed).as("두 스레드가 5초 내에 완료되어야 합니다").isTrue();
 
         Gathering refreshed = gatheringRepository.findById(gathering.getId()).orElseThrow();
         assertThat(successCount.get()).isEqualTo(1);
