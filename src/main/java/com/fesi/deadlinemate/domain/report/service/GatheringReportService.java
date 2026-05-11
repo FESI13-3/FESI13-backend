@@ -19,11 +19,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -63,11 +61,8 @@ public class GatheringReportService {
                 .distinct()
                 .toList();
 
-        Set<Long> userIdSet = new HashSet<>(userIds);
-
-        List<Todo> todos = todoRepository.findByGatheringIdOrderByWeekNumberAscCreatedAtAsc(gatheringId).stream()
-                .filter(todo -> userIdSet.contains(todo.getUserId()))
-                .toList();
+        List<Todo> todos = todoRepository
+                .findByGatheringIdAndUserIdInOrderByWeekNumberAscCreatedAtAsc(gatheringId, userIds);
 
         Map<Long, List<Todo>> todosByUser = groupByUser(todos);
         Map<Integer, List<Todo>> teamTodosByWeek = groupByWeek(todos);

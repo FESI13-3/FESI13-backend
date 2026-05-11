@@ -22,10 +22,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,12 +56,10 @@ public class GatheringReportQueryService {
                 .distinct()
                 .toList();
 
-        Set<Long> userIdSet = new HashSet<>(userIds);
         Map<Long, UserInfo> userMap = loadUsers(userIds);
 
-        List<Todo> todos = todoRepository.findByGatheringIdOrderByWeekNumberAscCreatedAtAsc(gatheringId).stream()
-                .filter(todo -> userIdSet.contains(todo.getUserId()))
-                .toList();
+        List<Todo> todos = todoRepository
+                .findByGatheringIdAndUserIdInOrderByWeekNumberAscCreatedAtAsc(gatheringId, userIds);
 
         List<GatheringReportResponse.MemberResultResponse> memberResults = activeMembers.stream()
                 .map(member -> toMemberResult(member.getUserId(), gathering.getTotalWeeks(), todos, userMap))

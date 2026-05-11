@@ -46,9 +46,8 @@ public class AchievementQueryService {
                 .map(GatheringMember::getUserId)
                 .collect(Collectors.toSet());
 
-        List<Todo> todos = todoRepository.findByGatheringIdOrderByWeekNumberAscCreatedAtAsc(gatheringId).stream()
-                .filter(todo -> activeUserIds.contains(todo.getUserId()))
-                .toList();
+        List<Todo> todos = todoRepository
+                .findByGatheringIdAndUserIdInOrderByWeekNumberAscCreatedAtAsc(gatheringId, activeUserIds);
 
         Map<Long, UserInfo> userMap = loadUsers(
                 activeMembers.stream()
@@ -106,9 +105,8 @@ public class AchievementQueryService {
                 .map(GatheringMember::getUserId)
                 .collect(Collectors.toSet());
 
-        List<Todo> todos = todoRepository.findByGatheringIdOrderByWeekNumberAscCreatedAtAsc(gatheringId).stream()
-                .filter(todo -> activeUserIds.contains(todo.getUserId()))
-                .toList();
+        List<Todo> todos = todoRepository
+                .findByGatheringIdAndUserIdInOrderByWeekNumberAscCreatedAtAsc(gatheringId, activeUserIds);
 
         Map<Long, UserInfo> userMap = loadUsers(
                 activeMembers.stream()

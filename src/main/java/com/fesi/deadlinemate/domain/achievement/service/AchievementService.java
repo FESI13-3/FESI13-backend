@@ -2,9 +2,7 @@ package com.fesi.deadlinemate.domain.achievement.service;
 
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringMember;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringMemberRepository;
-import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
 import com.fesi.deadlinemate.domain.todo.repository.TodoRepository;
-import com.fesi.deadlinemate.domain.user.client.UserClient;
 import com.fesi.deadlinemate.global.error.BusinessException;
 import com.fesi.deadlinemate.global.error.ErrorCode;
 import java.math.BigDecimal;
