@@ -34,7 +34,9 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -103,7 +105,8 @@ class GatheringReportServiceTest {
         when(gatheringReportRepository.findByGatheringId(gatheringId)).thenReturn(Optional.empty());
         when(gatheringMemberRepository.findByGatheringIdAndIsActiveTrueOrderByIdAsc(gatheringId))
                 .thenReturn(List.of(leader, member));
-        when(todoRepository.findByGatheringIdOrderByWeekNumberAscCreatedAtAsc(gatheringId))
+        when(todoRepository.findByGatheringIdAndUserIdInOrderByWeekNumberAscCreatedAtAsc(
+                eq(gatheringId), anyCollection()))
                 .thenReturn(todos);
         when(objectMapper.writeValueAsString(anyList()))
                 .thenReturn("[{\"week\":1,\"rate\":50.0},{\"week\":2,\"rate\":75.0},{\"week\":3,\"rate\":75.0},{\"week\":4,\"rate\":75.0}]");
@@ -214,7 +217,8 @@ class GatheringReportServiceTest {
         when(gatheringReportRepository.findByGatheringId(gatheringId)).thenReturn(Optional.empty());
         when(gatheringMemberRepository.findByGatheringIdAndIsActiveTrueOrderByIdAsc(gatheringId))
                 .thenReturn(List.of(leader));
-        when(todoRepository.findByGatheringIdOrderByWeekNumberAscCreatedAtAsc(gatheringId))
+        when(todoRepository.findByGatheringIdAndUserIdInOrderByWeekNumberAscCreatedAtAsc(
+                eq(gatheringId), anyCollection()))
                 .thenReturn(todos);
         when(objectMapper.writeValueAsString(anyList()))
                 .thenThrow(new JsonProcessingException("serialize fail") {});

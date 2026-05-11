@@ -3,6 +3,8 @@ package com.fesi.deadlinemate.domain.report.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -120,7 +122,8 @@ class GatheringReportQueryServiceTest {
         when(gatheringReportRepository.findByGatheringId(gatheringId)).thenReturn(Optional.of(report));
         when(gatheringMemberRepository.findByGatheringIdAndIsActiveTrueOrderByIdAsc(gatheringId))
                 .thenReturn(List.of(leader, member));
-        when(todoRepository.findByGatheringIdOrderByWeekNumberAscCreatedAtAsc(gatheringId))
+        when(todoRepository.findByGatheringIdAndUserIdInOrderByWeekNumberAscCreatedAtAsc(
+                eq(gatheringId), anyCollection()))
                 .thenReturn(todos);
 
         when(userClient.findById(100L)).thenReturn(userInfo(100L, "마감왕", "leader.png"));
@@ -267,7 +270,8 @@ class GatheringReportQueryServiceTest {
         when(gatheringReportRepository.findByGatheringId(gatheringId)).thenReturn(Optional.of(report));
         when(gatheringMemberRepository.findByGatheringIdAndIsActiveTrueOrderByIdAsc(gatheringId))
                 .thenReturn(List.of(leader));
-        when(todoRepository.findByGatheringIdOrderByWeekNumberAscCreatedAtAsc(gatheringId))
+        when(todoRepository.findByGatheringIdAndUserIdInOrderByWeekNumberAscCreatedAtAsc(
+                eq(gatheringId), anyCollection()))
                 .thenReturn(List.of(todo(gatheringId, 100L, 1, true)));
         when(userClient.findById(100L)).thenReturn(userInfo(100L, "마감왕", "leader.png"));
 
