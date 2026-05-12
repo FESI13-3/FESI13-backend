@@ -83,43 +83,47 @@ public class GatheringReportService {
                 ))
                 .toList();
 
-        Long mvpUserId = memberRows.stream()
-                .max(Comparator
-                        .comparing(MemberReportRow::overallRate)
-                        .thenComparing(MemberReportRow::userId, Comparator.reverseOrder()))
-                .map(MemberReportRow::userId)
+        BigDecimal maxRate = memberRows.stream()
+                .map(MemberReportRow::overallRate)
+                .max(Comparator.naturalOrder())
                 .orElse(null);
-
-        Long longestStreakUserId = memberRows.stream()
-                .max(Comparator
-                        .comparingInt(MemberReportRow::longestStreak)
-                        .thenComparing(MemberReportRow::userId, Comparator.reverseOrder()))
+        List<Long> mvpUserIds = maxRate == null ? List.of() : memberRows.stream()
+                .filter(row -> row.overallRate().compareTo(maxRate) == 0)
                 .map(MemberReportRow::userId)
-                .orElse(null);
+                .toList();
 
-        Long mostImprovedUserId = memberRows.stream()
-                .max(Comparator
-                        .comparing(MemberReportRow::improvement)
-                        .thenComparing(MemberReportRow::userId, Comparator.reverseOrder()))
+        int maxStreak = memberRows.stream()
+                .mapToInt(MemberReportRow::longestStreak)
+                .max()
+                .orElse(0);
+        List<Long> longestStreakUserIds = memberRows.stream()
+                .filter(row -> row.longestStreak() == maxStreak)
                 .map(MemberReportRow::userId)
-                .orElse(null);
+                .toList();
 
-        Long attendanceUserId = memberRows.stream()
+        BigDecimal maxImprovement = memberRows.stream()
+                .map(MemberReportRow::improvement)
+                .max(Comparator.naturalOrder())
+                .orElse(null);
+        List<Long> mostImprovedUserIds = maxImprovement == null ? List.of() : memberRows.stream()
+                .filter(row -> row.improvement().compareTo(maxImprovement) == 0)
+                .map(MemberReportRow::userId)
+                .toList();
+
+        List<Long> attendanceUserIds = memberRows.stream()
                 .filter(MemberReportRow::attendanceAwardWinner)
                 .map(MemberReportRow::userId)
-                .sorted()
-                .findFirst()
-                .orElse(null);
+                .toList();
 
         String weeklyRatesJson = writeWeeklyRates(teamWeeklyRates);
 
         GatheringReport report = GatheringReport.builder()
                 .gatheringId(gatheringId)
                 .teamOverallRate(teamOverallRate.setScale(1, RoundingMode.HALF_UP))
-                .mvpUserId(mvpUserId)
-                .longestStreakUserId(longestStreakUserId)
-                .mostImprovedUserId(mostImprovedUserId)
-                .attendanceUserId(attendanceUserId)
+                .mvpUserIds(mvpUserIds)
+                .longestStreakUserIds(longestStreakUserIds)
+                .mostImprovedUserIds(mostImprovedUserIds)
+                .attendanceUserIds(attendanceUserIds)
                 .weeklyRates(weeklyRatesJson)
                 .build();
 

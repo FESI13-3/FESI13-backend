@@ -68,10 +68,10 @@ public class GatheringReportQueryService {
         List<GatheringReportResponse.WeeklyRateResponse> teamWeeklyRates = parseWeeklyRates(report.getWeeklyRates());
 
         GatheringReportResponse.AwardsResponse awards = GatheringReportResponse.AwardsResponse.builder()
-                .mvp(toUserAward(report.getMvpUserId(), userMap))
-                .longestStreak(toStreakAward(report.getLongestStreakUserId(), memberResults, userMap))
-                .mostImproved(toUserAward(report.getMostImprovedUserId(), userMap))
-                .attendance(toUserAward(report.getAttendanceUserId(), userMap))
+                .mvp(toUserAwards(report.getMvpUserIds(), userMap))
+                .longestStreak(toStreakAwards(report.getLongestStreakUserIds(), memberResults, userMap))
+                .mostImproved(toUserAwards(report.getMostImprovedUserIds(), userMap))
+                .attendance(toUserAwards(report.getAttendanceUserIds(), userMap))
                 .build();
 
         return GatheringReportResponse.builder()
@@ -198,50 +198,55 @@ public class GatheringReportQueryService {
         }
     }
 
-    private GatheringReportResponse.UserAwardResponse toUserAward(
-            Long userId,
+    private List<GatheringReportResponse.UserAwardResponse> toUserAwards(
+            List<Long> userIds,
             Map<Long, UserInfo> userMap
     ) {
-        if (userId == null) {
-            return null;
+        if (userIds == null || userIds.isEmpty()) {
+            return List.of();
         }
 
-        UserInfo user = userMap.get(userId);
-        if (user == null) {
-            user = userClient.findById(userId);
-        }
-
-        return GatheringReportResponse.UserAwardResponse.builder()
-                .userId(userId)
-                .nickname(user != null ? user.getNickname() : null)
-                .build();
+        return userIds.stream()
+                .map(userId -> {
+                    UserInfo user = userMap.get(userId);
+                    if (user == null) {
+                        user = userClient.findById(userId);
+                    }
+                    return GatheringReportResponse.UserAwardResponse.builder()
+                            .userId(userId)
+                            .nickname(user != null ? user.getNickname() : null)
+                            .build();
+                })
+                .toList();
     }
 
-    private GatheringReportResponse.StreakAwardResponse toStreakAward(
-            Long userId,
+    private List<GatheringReportResponse.StreakAwardResponse> toStreakAwards(
+            List<Long> userIds,
             List<GatheringReportResponse.MemberResultResponse> memberResults,
             Map<Long, UserInfo> userMap
     ) {
-        if (userId == null) {
-            return null;
+        if (userIds == null || userIds.isEmpty()) {
+            return List.of();
         }
 
-        Integer streak = memberResults.stream()
-                .filter(result -> result.userId().equals(userId))
-                .map(GatheringReportResponse.MemberResultResponse::longestStreak)
-                .findFirst()
-                .orElse(0);
-
-        UserInfo user = userMap.get(userId);
-        if (user == null) {
-            user = userClient.findById(userId);
-        }
-
-        return GatheringReportResponse.StreakAwardResponse.builder()
-                .userId(userId)
-                .nickname(user != null ? user.getNickname() : null)
-                .streak(streak)
-                .build();
+        return userIds.stream()
+                .map(userId -> {
+                    int streak = memberResults.stream()
+                            .filter(result -> result.userId().equals(userId))
+                            .map(GatheringReportResponse.MemberResultResponse::longestStreak)
+                            .findFirst()
+                            .orElse(0);
+                    UserInfo user = userMap.get(userId);
+                    if (user == null) {
+                        user = userClient.findById(userId);
+                    }
+                    return GatheringReportResponse.StreakAwardResponse.builder()
+                            .userId(userId)
+                            .nickname(user != null ? user.getNickname() : null)
+                            .streak(streak)
+                            .build();
+                })
+                .toList();
     }
 
     private Map<Long, UserInfo> loadUsers(List<Long> userIds) {
