@@ -96,7 +96,7 @@ public class GatheringReportService {
                 .mapToInt(MemberReportRow::longestStreak)
                 .max()
                 .orElse(0);
-        List<Long> longestStreakUserIds = memberRows.stream()
+        List<Long> longestStreakUserIds = maxStreak == 0 ? List.of() : memberRows.stream()
                 .filter(row -> row.longestStreak() == maxStreak)
                 .map(MemberReportRow::userId)
                 .toList();
@@ -105,7 +105,8 @@ public class GatheringReportService {
                 .map(MemberReportRow::improvement)
                 .max(Comparator.naturalOrder())
                 .orElse(null);
-        List<Long> mostImprovedUserIds = maxImprovement == null ? List.of() : memberRows.stream()
+        List<Long> mostImprovedUserIds = (maxImprovement == null || maxImprovement.compareTo(BigDecimal.ZERO) <= 0)
+                ? List.of() : memberRows.stream()
                 .filter(row -> row.improvement().compareTo(maxImprovement) == 0)
                 .map(MemberReportRow::userId)
                 .toList();
