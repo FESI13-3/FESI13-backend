@@ -200,6 +200,86 @@ class GatheringReportServiceTest {
     }
 
     @Test
+    @DisplayName("아무도 완벽한 주차가 없으면 longestStreakUserIds가 비어야 한다")
+    void createReport_whenNoStreakExists_longestStreakIsEmpty() throws Exception {
+        // given
+        Long gatheringId = 1L;
+        Gathering gathering = completedGathering(gatheringId, 10L, "스트릭 없는 모임", 2);
+        GatheringMember leader = activeMember(gatheringId, 100L, GatheringRole.LEADER);
+        GatheringMember member = activeMember(gatheringId, 200L, GatheringRole.MEMBER);
+
+        List<Todo> todos = List.of(
+                // user 100 - week1: 50%, week2: 50%
+                todo(gatheringId, 100L, 1, true),
+                todo(gatheringId, 100L, 1, false),
+                todo(gatheringId, 100L, 2, true),
+                todo(gatheringId, 100L, 2, false),
+                // user 200 - week1: 50%, week2: 50%
+                todo(gatheringId, 200L, 1, true),
+                todo(gatheringId, 200L, 1, false),
+                todo(gatheringId, 200L, 2, true),
+                todo(gatheringId, 200L, 2, false)
+        );
+
+        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
+        when(gatheringReportRepository.findByGatheringId(gatheringId)).thenReturn(Optional.empty());
+        when(gatheringMemberRepository.findByGatheringIdAndIsActiveTrueOrderByIdAsc(gatheringId))
+                .thenReturn(List.of(leader, member));
+        when(todoRepository.findByGatheringIdAndUserIdInOrderByWeekNumberAscCreatedAtAsc(
+                eq(gatheringId), anyCollection()))
+                .thenReturn(todos);
+        when(objectMapper.writeValueAsString(anyList())).thenReturn("[]");
+
+        // when
+        gatheringReportService.createReport(gatheringId);
+
+        // then
+        ArgumentCaptor<GatheringReport> captor = ArgumentCaptor.forClass(GatheringReport.class);
+        verify(gatheringReportRepository).save(captor.capture());
+        assertThat(captor.getValue().getLongestStreakUserIds()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("모든 멤버의 달성률이 하락하면 mostImprovedUserIds가 비어야 한다")
+    void createReport_whenAllImprovementNegative_mostImprovedIsEmpty() throws Exception {
+        // given
+        Long gatheringId = 1L;
+        Gathering gathering = completedGathering(gatheringId, 10L, "하락 모임", 2);
+        GatheringMember leader = activeMember(gatheringId, 100L, GatheringRole.LEADER);
+        GatheringMember member = activeMember(gatheringId, 200L, GatheringRole.MEMBER);
+
+        List<Todo> todos = List.of(
+                // user 100 - week1: 100%, week2: 50% → improvement = -50
+                todo(gatheringId, 100L, 1, true),
+                todo(gatheringId, 100L, 1, true),
+                todo(gatheringId, 100L, 2, true),
+                todo(gatheringId, 100L, 2, false),
+                // user 200 - week1: 100%, week2: 50% → improvement = -50
+                todo(gatheringId, 200L, 1, true),
+                todo(gatheringId, 200L, 1, true),
+                todo(gatheringId, 200L, 2, true),
+                todo(gatheringId, 200L, 2, false)
+        );
+
+        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
+        when(gatheringReportRepository.findByGatheringId(gatheringId)).thenReturn(Optional.empty());
+        when(gatheringMemberRepository.findByGatheringIdAndIsActiveTrueOrderByIdAsc(gatheringId))
+                .thenReturn(List.of(leader, member));
+        when(todoRepository.findByGatheringIdAndUserIdInOrderByWeekNumberAscCreatedAtAsc(
+                eq(gatheringId), anyCollection()))
+                .thenReturn(todos);
+        when(objectMapper.writeValueAsString(anyList())).thenReturn("[]");
+
+        // when
+        gatheringReportService.createReport(gatheringId);
+
+        // then
+        ArgumentCaptor<GatheringReport> captor = ArgumentCaptor.forClass(GatheringReport.class);
+        verify(gatheringReportRepository).save(captor.capture());
+        assertThat(captor.getValue().getMostImprovedUserIds()).isEmpty();
+    }
+
+    @Test
     @DisplayName("주간 달성률 JSON 직렬화에 실패하면 예외가 발생한다")
     void createReport_fail_whenWeeklyRatesSerializationFails() throws Exception {
         // given
