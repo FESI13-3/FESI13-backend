@@ -13,6 +13,7 @@ import com.fesi.deadlinemate.domain.report.dto.WeeklyRateDto;
 import com.fesi.deadlinemate.domain.report.entity.GatheringReport;
 import com.fesi.deadlinemate.domain.report.repository.GatheringReportRepository;
 import com.fesi.deadlinemate.domain.todo.entity.Todo;
+import com.fesi.deadlinemate.global.common.AchievementRateCalculator;
 import com.fesi.deadlinemate.domain.todo.repository.TodoRepository;
 import com.fesi.deadlinemate.domain.user.client.UserClient;
 import com.fesi.deadlinemate.domain.user.client.dto.UserInfo;
@@ -122,7 +123,7 @@ public class GatheringReportQueryService {
                 .filter(Todo::isCompleted)
                 .count();
 
-        BigDecimal overallRate = calculateRate(completedTodos, totalTodos);
+        BigDecimal overallRate = AchievementRateCalculator.calculateRate(completedTodos, totalTodos);
 
         List<BigDecimal> weeklyRates = new ArrayList<>();
         for (int week = 1; week <= totalWeeks; week++) {
@@ -137,7 +138,7 @@ public class GatheringReportQueryService {
                     .filter(Todo::isCompleted)
                     .count();
 
-            weeklyRates.add(calculateRate(weekCompleted, weekTotal));
+            weeklyRates.add(AchievementRateCalculator.calculateRate(weekCompleted, weekTotal));
         }
 
         int longestStreak = calculateLongestPerfectStreak(weeklyRates);
@@ -153,16 +154,6 @@ public class GatheringReportQueryService {
                 .totalTodos(totalTodos)
                 .weeklyRates(weeklyRates)
                 .build();
-    }
-
-    private BigDecimal calculateRate(long completedCount, long totalCount) {
-        if (totalCount == 0) {
-            return BigDecimal.ZERO.setScale(1, RoundingMode.HALF_UP);
-        }
-
-        return BigDecimal.valueOf(completedCount)
-                .multiply(BigDecimal.valueOf(100))
-                .divide(BigDecimal.valueOf(totalCount), 1, RoundingMode.HALF_UP);
     }
 
     private int calculateLongestPerfectStreak(List<BigDecimal> weeklyRates) {

@@ -10,6 +10,7 @@ import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
 import com.fesi.deadlinemate.domain.gathering.event.GatheringMemberEvaluatedEvent;
 import com.fesi.deadlinemate.domain.report.dto.WeeklyRateDto;
 import com.fesi.deadlinemate.domain.report.entity.GatheringReport;
+import com.fesi.deadlinemate.global.common.AchievementRateCalculator;
 import com.fesi.deadlinemate.domain.report.repository.GatheringReportRepository;
 import com.fesi.deadlinemate.domain.todo.entity.Todo;
 import com.fesi.deadlinemate.domain.todo.repository.TodoRepository;
@@ -69,7 +70,7 @@ public class GatheringReportService {
         Map<Long, Map<Integer, List<Todo>>> todosByUserAndWeek = groupByUserAndWeek(todos);
 
         List<WeeklyRateDto> teamWeeklyRates = buildWeeklyRates(teamTodosByWeek, gathering.getTotalWeeks());
-        BigDecimal teamOverallRate = calculateRate(
+        BigDecimal teamOverallRate = AchievementRateCalculator.calculateRate(
                 todos.stream().filter(Todo::isCompleted).count(),
                 todos.size()
         );
@@ -185,7 +186,7 @@ public class GatheringReportService {
 
             result.add(new WeeklyRateDto(
                     week,
-                    calculateRate(completedCount, totalCount)
+                    AchievementRateCalculator.calculateRate(completedCount, totalCount)
             ));
         }
 
@@ -203,7 +204,7 @@ public class GatheringReportService {
                 .filter(Todo::isCompleted)
                 .count();
 
-        BigDecimal overallRate = calculateRate(completedTodos, totalTodos);
+        BigDecimal overallRate = AchievementRateCalculator.calculateRate(completedTodos, totalTodos);
 
         List<BigDecimal> weeklyRates = new ArrayList<>();
         for (int week = 1; week <= totalWeeks; week++) {
@@ -214,7 +215,7 @@ public class GatheringReportService {
                     .filter(Todo::isCompleted)
                     .count();
 
-            weeklyRates.add(calculateRate(weekCompleted, weekTotal));
+            weeklyRates.add(AchievementRateCalculator.calculateRate(weekCompleted, weekTotal));
         }
 
         int longestStreak = calculateLongestPerfectStreak(weeklyRates);
@@ -229,16 +230,6 @@ public class GatheringReportService {
                 improvement,
                 attendanceAwardWinner
         );
-    }
-
-    private BigDecimal calculateRate(long completedCount, long totalCount) {
-        if (totalCount == 0) {
-            return BigDecimal.ZERO.setScale(1, RoundingMode.HALF_UP);
-        }
-
-        return BigDecimal.valueOf(completedCount)
-                .multiply(BigDecimal.valueOf(100))
-                .divide(BigDecimal.valueOf(totalCount), 1, RoundingMode.HALF_UP);
     }
 
     private int calculateLongestPerfectStreak(List<BigDecimal> weeklyRates) {
