@@ -77,10 +77,10 @@ class GatheringReportQueryServiceTest {
         GatheringReport report = GatheringReport.builder()
                 .gatheringId(gatheringId)
                 .teamOverallRate(new BigDecimal("78.50"))
-                .mvpUserId(100L)
-                .longestStreakUserId(100L)
-                .mostImprovedUserId(200L)
-                .attendanceUserId(100L)
+                .mvpUserIds(List.of(100L))
+                .longestStreakUserIds(List.of(100L))
+                .mostImprovedUserIds(List.of(200L))
+                .attendanceUserIds(List.of(100L))
                 .weeklyRates("""
                         [
                           {"week":1,"rate":90.0},
@@ -172,18 +172,22 @@ class GatheringReportQueryServiceTest {
         assertThat(memberResult.completedTodos()).isEqualTo(3);
         assertThat(memberResult.totalTodos()).isEqualTo(8);
 
-        assertThat(response.awards().mvp().userId()).isEqualTo(100L);
-        assertThat(response.awards().mvp().nickname()).isEqualTo("마감왕");
+        assertThat(response.awards().mvp()).hasSize(1);
+        assertThat(response.awards().mvp().get(0).userId()).isEqualTo(100L);
+        assertThat(response.awards().mvp().get(0).nickname()).isEqualTo("마감왕");
 
-        assertThat(response.awards().longestStreak().userId()).isEqualTo(100L);
-        assertThat(response.awards().longestStreak().nickname()).isEqualTo("마감왕");
-        assertThat(response.awards().longestStreak().streak()).isEqualTo(2);
+        assertThat(response.awards().longestStreak()).hasSize(1);
+        assertThat(response.awards().longestStreak().get(0).userId()).isEqualTo(100L);
+        assertThat(response.awards().longestStreak().get(0).nickname()).isEqualTo("마감왕");
+        assertThat(response.awards().longestStreak().get(0).streak()).isEqualTo(2);
 
-        assertThat(response.awards().mostImproved().userId()).isEqualTo(200L);
-        assertThat(response.awards().mostImproved().nickname()).isEqualTo("성장맨");
+        assertThat(response.awards().mostImproved()).hasSize(1);
+        assertThat(response.awards().mostImproved().get(0).userId()).isEqualTo(200L);
+        assertThat(response.awards().mostImproved().get(0).nickname()).isEqualTo("성장맨");
 
-        assertThat(response.awards().attendance().userId()).isEqualTo(100L);
-        assertThat(response.awards().attendance().nickname()).isEqualTo("마감왕");
+        assertThat(response.awards().attendance()).hasSize(1);
+        assertThat(response.awards().attendance().get(0).userId()).isEqualTo(100L);
+        assertThat(response.awards().attendance().get(0).nickname()).isEqualTo("마감왕");
     }
 
     @Test
@@ -255,10 +259,10 @@ class GatheringReportQueryServiceTest {
         GatheringReport report = GatheringReport.builder()
                 .gatheringId(gatheringId)
                 .teamOverallRate(new BigDecimal("80.00"))
-                .mvpUserId(100L)
-                .longestStreakUserId(100L)
-                .mostImprovedUserId(100L)
-                .attendanceUserId(100L)
+                .mvpUserIds(List.of(100L))
+                .longestStreakUserIds(List.of(100L))
+                .mostImprovedUserIds(List.of(100L))
+                .attendanceUserIds(List.of(100L))
                 .weeklyRates("invalid-json")
                 .build();
 

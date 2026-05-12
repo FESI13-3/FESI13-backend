@@ -122,10 +122,10 @@ class GatheringReportServiceTest {
 
         assertThat(saved.getGatheringId()).isEqualTo(gatheringId);
         assertThat(saved.getTeamOverallRate()).isEqualByComparingTo("56.30");
-        assertThat(saved.getMvpUserId()).isEqualTo(100L);
-        assertThat(saved.getLongestStreakUserId()).isEqualTo(100L);
-        assertThat(saved.getMostImprovedUserId()).isEqualTo(200L);
-        assertThat(saved.getAttendanceUserId()).isEqualTo(100L);
+        assertThat(saved.getMvpUserIds()).containsExactly(100L);
+        assertThat(saved.getLongestStreakUserIds()).containsExactly(100L);
+        assertThat(saved.getMostImprovedUserIds()).containsExactly(200L);
+        assertThat(saved.getAttendanceUserIds()).containsExactly(100L);
         assertThat(saved.getWeeklyRates()).isEqualTo(
                 "[{\"week\":1,\"rate\":50.0},{\"week\":2,\"rate\":75.0},{\"week\":3,\"rate\":75.0},{\"week\":4,\"rate\":75.0}]"
         );
@@ -180,10 +180,10 @@ class GatheringReportServiceTest {
         GatheringReport existing = GatheringReport.builder()
                 .gatheringId(gatheringId)
                 .teamOverallRate(new BigDecimal("80.00"))
-                .mvpUserId(100L)
-                .longestStreakUserId(100L)
-                .mostImprovedUserId(200L)
-                .attendanceUserId(100L)
+                .mvpUserIds(List.of(100L))
+                .longestStreakUserIds(List.of(100L))
+                .mostImprovedUserIds(List.of(200L))
+                .attendanceUserIds(List.of(100L))
                 .weeklyRates("[]")
                 .build();
 
