@@ -34,20 +34,23 @@ public class GatheringReport extends BaseTimeEntity {
     private BigDecimal teamOverallRate;
 
     @Convert(converter = LongListConverter.class)
-    @Column
+    @Column(columnDefinition = "TEXT")
     private List<Long> mvpUserIds;
 
     @Convert(converter = LongListConverter.class)
-    @Column
+    @Column(columnDefinition = "TEXT")
     private List<Long> longestStreakUserIds;
 
     @Convert(converter = LongListConverter.class)
-    @Column
+    @Column(columnDefinition = "TEXT")
     private List<Long> mostImprovedUserIds;
 
     @Convert(converter = LongListConverter.class)
-    @Column
+    @Column(columnDefinition = "TEXT")
     private List<Long> attendanceUserIds;
+
+    @Column(nullable = false)
+    private int longestStreakValue;
 
     @Lob
     @Column(nullable = false, columnDefinition = "json")
@@ -59,6 +62,7 @@ public class GatheringReport extends BaseTimeEntity {
             BigDecimal teamOverallRate,
             List<Long> mvpUserIds,
             List<Long> longestStreakUserIds,
+            int longestStreakValue,
             List<Long> mostImprovedUserIds,
             List<Long> attendanceUserIds,
             String weeklyRates
@@ -67,6 +71,7 @@ public class GatheringReport extends BaseTimeEntity {
         this.teamOverallRate = teamOverallRate;
         this.mvpUserIds = mvpUserIds;
         this.longestStreakUserIds = longestStreakUserIds;
+        this.longestStreakValue = longestStreakValue;
         this.mostImprovedUserIds = mostImprovedUserIds;
         this.attendanceUserIds = attendanceUserIds;
         this.weeklyRates = weeklyRates;

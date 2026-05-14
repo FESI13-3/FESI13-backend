@@ -124,6 +124,7 @@ public class GatheringReportService {
                 .teamOverallRate(teamOverallRate.setScale(1, RoundingMode.HALF_UP))
                 .mvpUserIds(mvpUserIds)
                 .longestStreakUserIds(longestStreakUserIds)
+                .longestStreakValue(maxStreak)
                 .mostImprovedUserIds(mostImprovedUserIds)
                 .attendanceUserIds(attendanceUserIds)
                 .weeklyRates(weeklyRatesJson)

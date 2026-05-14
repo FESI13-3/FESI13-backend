@@ -124,6 +124,7 @@ class GatheringReportServiceTest {
         assertThat(saved.getTeamOverallRate()).isEqualByComparingTo("56.30");
         assertThat(saved.getMvpUserIds()).containsExactly(100L);
         assertThat(saved.getLongestStreakUserIds()).containsExactly(100L);
+        assertThat(saved.getLongestStreakValue()).isEqualTo(2);
         assertThat(saved.getMostImprovedUserIds()).containsExactly(200L);
         assertThat(saved.getAttendanceUserIds()).containsExactly(100L);
         assertThat(saved.getWeeklyRates()).isEqualTo(

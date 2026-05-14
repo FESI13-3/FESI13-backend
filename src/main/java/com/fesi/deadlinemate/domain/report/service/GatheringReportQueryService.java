@@ -70,7 +70,7 @@ public class GatheringReportQueryService {
 
         GatheringReportResponse.AwardsResponse awards = GatheringReportResponse.AwardsResponse.builder()
                 .mvp(toUserAwards(report.getMvpUserIds(), userMap))
-                .longestStreak(toStreakAwards(report.getLongestStreakUserIds(), memberResults, userMap))
+                .longestStreak(toStreakAwards(report.getLongestStreakUserIds(), report.getLongestStreakValue(), userMap))
                 .mostImproved(toUserAwards(report.getMostImprovedUserIds(), userMap))
                 .attendance(toUserAwards(report.getAttendanceUserIds(), userMap))
                 .build();
@@ -213,7 +213,7 @@ public class GatheringReportQueryService {
 
     private List<GatheringReportResponse.StreakAwardResponse> toStreakAwards(
             List<Long> userIds,
-            List<GatheringReportResponse.MemberResultResponse> memberResults,
+            int streakValue,
             Map<Long, UserInfo> userMap
     ) {
         if (userIds == null || userIds.isEmpty()) {
@@ -222,11 +222,6 @@ public class GatheringReportQueryService {
 
         return userIds.stream()
                 .map(userId -> {
-                    int streak = memberResults.stream()
-                            .filter(result -> result.userId().equals(userId))
-                            .map(GatheringReportResponse.MemberResultResponse::longestStreak)
-                            .findFirst()
-                            .orElse(0);
                     UserInfo user = userMap.get(userId);
                     if (user == null) {
                         user = userClient.findById(userId);
@@ -234,7 +229,7 @@ public class GatheringReportQueryService {
                     return GatheringReportResponse.StreakAwardResponse.builder()
                             .userId(userId)
                             .nickname(user != null ? user.getNickname() : null)
-                            .streak(streak)
+                            .streak(streakValue)
                             .build();
                 })
                 .toList();

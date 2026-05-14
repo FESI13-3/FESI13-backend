@@ -79,6 +79,7 @@ class GatheringReportQueryServiceTest {
                 .teamOverallRate(new BigDecimal("78.50"))
                 .mvpUserIds(List.of(100L))
                 .longestStreakUserIds(List.of(100L))
+                .longestStreakValue(2)
                 .mostImprovedUserIds(List.of(200L))
                 .attendanceUserIds(List.of(100L))
                 .weeklyRates("""
@@ -261,6 +262,7 @@ class GatheringReportQueryServiceTest {
                 .teamOverallRate(new BigDecimal("80.00"))
                 .mvpUserIds(List.of(100L))
                 .longestStreakUserIds(List.of(100L))
+                .longestStreakValue(0)
                 .mostImprovedUserIds(List.of(100L))
                 .attendanceUserIds(List.of(100L))
                 .weeklyRates("invalid-json")

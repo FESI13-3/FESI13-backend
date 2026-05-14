@@ -34,7 +34,7 @@ public class LongListConverter implements AttributeConverter<List<Long>, String>
                     objectMapper.getTypeFactory().constructCollectionType(List.class, Long.class)
             );
         } catch (JsonProcessingException e) {
-            throw new IllegalArgumentException("List<Long> JSON 역직렬화 실패: " + json, e);
+            throw new IllegalArgumentException("List<Long> JSON 역직렬화 실패", e);
         }
     }
 }
