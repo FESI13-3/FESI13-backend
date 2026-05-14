@@ -10,7 +10,6 @@ import com.fesi.deadlinemate.domain.gathering.entity.Gathering;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringMember;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringRole;
 import com.fesi.deadlinemate.domain.gathering.entity.GatheringStatus;
-import com.fesi.deadlinemate.domain.gathering.entity.GatheringTag;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringMemberRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringRepository;
 import com.fesi.deadlinemate.domain.gathering.repository.GatheringTagRepository;
@@ -49,7 +48,6 @@ public class MembershipQueryService {
     private final GatheringCategoryRepository gatheringCategoryRepository;
     private final CategoryRepository categoryRepository;
     private final UserClient userClient;
-    private final TodoRepository todoRepository;
 
     public MyGatheringListResponse getMyGatherings(Long userId, String status, String sort, int page, int limit) {
         int validatedPage = Math.max(page, 1);
@@ -78,11 +76,11 @@ public class MembershipQueryService {
                 .collect(Collectors.toMap(GatheringMember::getGatheringId, m -> m));
 
         Map<Long, List<String>> tagsMap = gatheringTagRepository
-                .findByGatheringIdInOrderByGatheringIdAscIdAsc(resultGatheringIds).stream()
+                .findTagRowsByGatheringIdIn(resultGatheringIds).stream()
                 .collect(Collectors.groupingBy(
-                        GatheringTag::getGatheringId,
+                        row -> row.getGatheringId(),
                         LinkedHashMap::new,
-                        Collectors.mapping(GatheringTag::getTag, Collectors.toList())
+                        Collectors.mapping(row -> row.getTag(), Collectors.toList())
                 ));
 
         Map<Long, List<String>> categoriesMap = buildCategoriesMap(resultGatheringIds);
@@ -143,21 +141,10 @@ public class MembershipQueryService {
         Map<Long, BigDecimal> achievementRates = members.stream()
                 .collect(Collectors.toMap(
                         GatheringMember::getUserId,
-                        member -> calculateOverallAchievementRate(gatheringId, member.getUserId())
+                        GatheringMember::getOverallAchievementRate
                 ));
 
         return MemberListResponse.of(members, userMap, achievementRates);
-    }
-
-    private BigDecimal calculateOverallAchievementRate(Long gatheringId, Long userId) {
-        long totalCount = todoRepository.countByGatheringIdAndUserId(gatheringId, userId);
-        if (totalCount == 0) {
-            return BigDecimal.ZERO.setScale(1);
-        }
-        long completedCount = todoRepository.countByGatheringIdAndUserIdAndIsCompletedTrue(gatheringId, userId);
-        return BigDecimal.valueOf(completedCount)
-                .multiply(BigDecimal.valueOf(100))
-                .divide(BigDecimal.valueOf(totalCount), 1, RoundingMode.HALF_UP);
     }
 
     private Page<Gathering> resolveGatheringPage(List<Long> ids, String status, boolean isOldest, PageRequest pageable) {
